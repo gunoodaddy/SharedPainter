@@ -68,12 +68,8 @@ private:
 
 	void _stop_thread( void )
 	{
-		mutex_.lock();
-	
 		if( !threadStarted_ )
 			return;
-
-		mutex_.unlock();
 
 		thread_.join();
 

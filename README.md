@@ -8,8 +8,9 @@
 * Text Object
 * Background Image (Screen shot)
 * File (Image File/General File), limit 20MB per a file
-* Image Object resizing
+* Image Object Scale
 * Window resizing 
+* All Objects Position
 * Undo
 * Multiuser sharing
 

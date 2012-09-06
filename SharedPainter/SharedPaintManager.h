@@ -85,7 +85,7 @@ public:
 
 	bool isConnecting( void )
 	{
-		std::vector< boost::shared_ptr<CPainterSession> >::iterator it = sessionList_.begin();
+		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
 			if( (*it)->session()->isConnecting() )
@@ -96,7 +96,7 @@ public:
 
 	bool isConnected( void )
 	{
-		std::vector< boost::shared_ptr<CPainterSession> >::iterator it = sessionList_.begin();
+		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
 			if( (*it)->session()->isConnected() )
@@ -123,17 +123,15 @@ public:
 		commandMngr_.undoCommand();
 	}
 
-	int sendDataToUsers( const std::string &msg, int toSessionId = -1 )
+	int sendDataToUsers( const std::vector<boost::shared_ptr<CPainterSession>> &sessionList, const std::string &msg, int toSessionId = -1 )
 	{
-		boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
-
 		static int PACKETID = 0;
 		int sendCnt = 0;
 		int packetId = ++PACKETID;
 		std::vector<struct send_byte_info_t> infolist;
 
-		std::vector< boost::shared_ptr<CPainterSession> >::iterator it = sessionList_.begin();
-		for( ; it != sessionList_.end(); it++ )
+		SESSION_LIST::const_iterator it = sessionList.begin();
+		for( ; it != sessionList.end(); it++ )
 		{
 			if( (*it)->session()->isConnected() )
 			{
@@ -161,6 +159,13 @@ public:
 			packetId = -1;
 
 		return packetId;
+	}
+
+	int sendDataToUsers( const std::string &msg, int toSessionId = -1 )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
+
+		return sendDataToUsers( sessionList_, msg, toSessionId );
 	}
 
 	void sendAllData( int toSessionId )
@@ -470,7 +475,7 @@ private:
 private:
 	void _delayedRemoveSession( int sessionId )
 	{
-		std::vector< boost::shared_ptr<CPainterSession> >::iterator it = sessionList_.begin();
+		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
 			if( (*it)->session()->sessionId() == sessionId )
@@ -525,6 +530,30 @@ protected:
 	virtual void onIPainterSessionEvent_ReceivedPacket( boost::shared_ptr<CPainterSession> session, const boost::shared_ptr<CPacketData> data )
 	{
 		dispatchPaintPacket( data );
+
+		if( isServerMode() )
+		{
+			// to send the others without this user
+			boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
+
+			if( sessionList_.size() <= 1 )
+				return;
+
+			SESSION_LIST list = sessionList_;
+			SESSION_LIST::iterator it = list.begin();
+			for( ; it != list.end(); it++ )
+			{
+				if( *it == session )
+				{
+					list.erase( it );
+					break;
+				}
+			}
+
+			std::string msg = CommonPacketBuilder::makePacket( data->code, data->body );
+
+			sendDataToUsers( list, msg );
+		}
 	}
 	virtual void onIPainterSessionEvent_Disconnected( boost::shared_ptr<CPainterSession> session )
 	{
@@ -570,7 +599,6 @@ protected:
 			sendInfoDataMap_.erase( it );
 		}
 
-		//qDebug() << "Packet sending noti!!" << packet->packetId() << wroteBytes << totalBytes;
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SendingPacket, this, packet->packetId(), wroteBytes, totalBytes ) );
 	}
 
@@ -593,7 +621,8 @@ private:
 	CNetServiceRunner netRunner_;
 	bool serverMode_;
 	int acceptPort_;
-	std::vector< boost::shared_ptr<CPainterSession> > sessionList_;
+	typedef std::vector< boost::shared_ptr<CPainterSession> > SESSION_LIST;
+	SESSION_LIST sessionList_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
 	CPacketSlicer broadCastPacketSlicer_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSession_;

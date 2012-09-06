@@ -44,7 +44,9 @@ static std::string getMyIPAddress( void )
 	return ip;
 }
 
-CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1), serverMode_(false), lastPacketId_(-1)
+CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1), serverMode_(false)
+, lastWindowWidth_(0), lastWindowHeight_(0)
+, lastPacketId_(-1)
 {
 	// default generate my id
 	myId_ = generateMyId();
@@ -190,6 +192,8 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPacketData> pa
 			int width, height;
 			if( WindowPacketBuilder::CResizeMainWindow::parse( packetData->body, width, height ) )
 			{
+				if( width <= 0 || height <= 0 )
+					return;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeMainWindow, this, width, height ) );
 			}
 		}

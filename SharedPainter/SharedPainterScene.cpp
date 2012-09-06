@@ -198,6 +198,14 @@ void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileIte
 	pixmapItem->setPixmap( pixmap ); 
 }
 
+
+void CSharedPainterScene::commonAddItem( QGraphicsItem *item )
+{
+	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
+	addItem( item );
+}
+
+
 void CSharedPainterScene::removeItem( CPaintItem * item )
 {
 	if( ! item )
@@ -256,12 +264,11 @@ void CSharedPainterScene::drawFile( boost::shared_ptr<CFileItem> file )
 	QPixmap pixmap = icon.pixmap(9999, 9999);
 	CMyGraphicItem<QGraphicsPixmapItem> *item = new CMyGraphicItem<QGraphicsPixmapItem>( this );
 	item->setPixmap( pixmap ); 
-	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 	if( file->isAvailablePosition() )
 		item->setPos( file->posX(), file->posY() );
 	item->setItemData( file );
 	item->setZValue( ZVALUE_TOPMOST );
-	addItem( item );
+	commonAddItem( item );
 }
 
 void CSharedPainterScene::drawImage( boost::shared_ptr<CImageFileItem> image )
@@ -270,13 +277,11 @@ void CSharedPainterScene::drawImage( boost::shared_ptr<CImageFileItem> image )
 
 	setScaleImageFileItem( image, item );
 
-	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 	if( image->isAvailablePosition() )
 		item->setPos( image->posX(), image->posY() );
 	item->setItemData( image );
 	item->setZValue( currentZValue() );
-
-	addItem( item );
+	commonAddItem( item );
 }
 
 void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )
@@ -284,13 +289,12 @@ void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )
 	CMyGraphicItem<QGraphicsSimpleTextItem> *item = new CMyGraphicItem<QGraphicsSimpleTextItem>( this );
 	item->setText( text->text() );
 	item->setFont( text->font() );
-	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 	if( text->isAvailablePosition() )
 		item->setPos( text->posX(), text->posY() );
 	item->setItemData( text );
 	item->setBrush ( QBrush(text->color()) );
 	item->setZValue( currentZValue() );
-	addItem( item );	
+	commonAddItem( item );
 }
 
 
@@ -315,10 +319,9 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 			pathItem->setPos( line->posX(), line->posY() );
 		pathItem->setPath( painterPath );
 		pathItem->setPen( QPen(line->color(), line->width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin) );
-		pathItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 		pathItem->setZValue( currentZValue() );
 		pathItem->setItemData( line );
-		addItem( pathItem );
+		commonAddItem( pathItem );
 
 		invalidateRect = pathItem->boundingRect();
 	}
@@ -336,10 +339,9 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		ellipseItem->setRect( rect );
 		ellipseItem->setPen( QPen(line->color(), 1) );
 		ellipseItem->setBrush( QBrush(line->color()) );
-		ellipseItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 		ellipseItem->setZValue( currentZValue() );
 		ellipseItem->setItemData( line );
-		addItem( ellipseItem );
+		commonAddItem( ellipseItem );
 
 		invalidateRect = ellipseItem->boundingRect();
 	}

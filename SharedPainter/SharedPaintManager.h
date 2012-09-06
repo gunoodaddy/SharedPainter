@@ -190,9 +190,13 @@ public:
 
 		std::string allData;
 
+		// Window Resize
+		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_ );
+		allData += msg;
+
 		// Back Ground Image
 		if( backgroundImageItem_ )
-			allData = PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
+			allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
 		
 		// All Paint Item
 		ITEM_LIST_MAP::iterator it = userItemListMap_.begin();
@@ -270,6 +274,8 @@ public:
 	int notifyResizingMainWindow( int width, int height )
 	{
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( width, height );
+		lastWindowWidth_ = width;
+		lastWindowHeight_ = height;
 		return sendDataToUsers( msg );
 	}
 
@@ -637,6 +643,9 @@ private:
 	IGluePaintCanvas *canvas_;
 	ITEM_LIST_MAP userItemListMap_;
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
+	int lastWindowWidth_;
+	int lastWindowHeight_;
+	
 
 	// network
 	CNetServiceRunner netRunner_;

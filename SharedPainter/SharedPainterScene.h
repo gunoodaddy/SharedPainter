@@ -98,11 +98,6 @@ private:
 	void dragMoveEvent( QGraphicsSceneDragDropEvent * evt );
 	void dropEvent( QGraphicsSceneDragDropEvent * evt );
 
-	void hoverEnterEvent( QGraphicsSceneHoverEvent * event );
-
-	void hoverLeaveEvent( QGraphicsSceneHoverEvent * event );
-
-
 	// for CMyGraphicItem
 public:	
 	void onItemMoveBegin( boost::shared_ptr< CPaintItem > );
@@ -122,6 +117,7 @@ private:
 	void resizeImage(QImage *image, const QSize &newSize);
 	void drawLineTo( const QPointF &pt1, const QPointF &pt2, const QColor &clr, int width );
 	void setScaleImageFileItem( boost::shared_ptr<CImageFileItem> image, QGraphicsPixmapItem *pixmapItem );
+	void commonAddItem( QGraphicsItem *item );
 
 	inline void fireEvent_DrawItem( boost::shared_ptr<CPaintItem> item )
 	{

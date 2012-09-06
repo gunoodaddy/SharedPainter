@@ -7,8 +7,9 @@
 * Free Pen Object
 * Text Object
 * Background Image (Screen shot)
-* File (Image File/General File), limit 20MB per a file
-* Image Object Scale
+* File Object (limit 20MB per a file)
+* Image File Object (limit 20MB per a file)
+* Image File Object Scale
 * Window resizing 
 * All Objects Position
 * Undo

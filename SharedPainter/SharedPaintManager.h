@@ -31,7 +31,7 @@ public:
 	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, const std::string &owner, int itemId ) = 0;
 	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, const std::string &owner, int itemId, double x, double y ) = 0;
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
-	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &addr, int port ) = 0;
+	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_ClearBackgroundImage( CSharedPaintManager *self ) = 0;
@@ -106,7 +106,8 @@ public:
 	}
 
 	bool startClient( void );
-	void startServer( int port = 0 );
+	void startServer( const std::string &broadCastChannel, int port = 0 );
+	void setBroadCastChannel( const std::string & channel );
 
 	bool connectToPeer( const std::string &addr, int port )
 	{
@@ -468,12 +469,12 @@ private:
 			(*it)->onISharedPaintEvent_SetBackgroundImage( this, image );
 		}
 	}
-	void fireObserver_GetServerInfo( const std::string &addr, int port )
+	void fireObserver_GetServerInfo( const std::string &broadcastChannel, const std::string &addr, int port )
 	{
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
-			(*it)->onISharedPaintEvent_GetServerInfo( this, addr, port );
+			(*it)->onISharedPaintEvent_GetServerInfo( this, broadcastChannel, addr, port );
 		}
 	}
 

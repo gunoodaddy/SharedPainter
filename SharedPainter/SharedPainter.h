@@ -33,6 +33,7 @@ public:
 	
 protected slots:
 	void onTimer( void );
+	void actionBroadcastChannel( void );
 	void actionClearBGImage( void );
 	void actionAddText( void );
 	void actionClearScreen( void );
@@ -49,6 +50,7 @@ protected slots:
 private:
 	void _requestAddItem( boost::shared_ptr<CPaintItem> item );
 	QPointF _calculateTextPos( int textSize );
+	bool getBroadcastChannelString( bool force = false );
 
 protected:
 	// ICanvasViewEvent
@@ -145,8 +147,11 @@ protected:
 		resizeFreezingFlag_ = false;
 	}
 	
-	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &addr, int port )
+	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port )
 	{
+		if( broadcastChannel != broadcastChannel_)
+			return;
+
 		if( !self->isConnected() && !self->isServerMode() )
 		{
 			if( self->isConnecting() )
@@ -171,6 +176,7 @@ private:
 	QAction *penModeAction_;
 	QProgressBar *wroteProgressBar_;
 	QTimer *keyHookTimer_;
+	std::string broadcastChannel_;
 };
 
 #endif // SHAREDPAINTER_H

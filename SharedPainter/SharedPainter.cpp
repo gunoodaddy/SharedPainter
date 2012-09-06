@@ -23,6 +23,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		// File Menu
 		QMenu* file = new QMenu( "&File", menuBar );
 		file->addAction( "&Connect", this, SLOT(actionConnect()), Qt::CTRL+Qt::Key_N );
+		file->addAction( "&Broadcast Channel", this, SLOT(actionBroadcastChannel()), Qt::CTRL+Qt::Key_H );
 		QMenu* broadCastTypeMenu = file->addMenu( "BroadCast Type" );
 		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
 		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
@@ -63,7 +64,6 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	ui.painterView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	setCursor( Qt::ArrowCursor ); 
-
 
 	// Pen mode activated..
 	penModeAction_->setChecked( true );
@@ -307,6 +307,7 @@ void SharedPainter::actionScreenShot( void )
 	move(DEFAULT_HIDE_POS_X, DEFAULT_HIDE_POS_Y);
 }
 
+
 void SharedPainter::actionClearBGImage( void )
 {
 	SharePaintManagerPtr()->clearBackgroundImage();
@@ -322,18 +323,53 @@ void SharedPainter::actionUndo( void )
 	SharePaintManagerPtr()->undoCommand();
 }
 
+
+void SharedPainter::actionBroadcastChannel( void )
+{
+	if( ! getBroadcastChannelString( true ) )
+		return;	
+
+	SharePaintManagerPtr()->setBroadCastChannel( broadcastChannel_ );
+}
+
 void SharedPainter::actionServerType( void )
 {
-	SharePaintManagerPtr()->startServer();
+	if( ! getBroadcastChannelString() )
+		return;
+
+	SharePaintManagerPtr()->startServer( broadcastChannel_ );
 	setBroadCastTypeText( tr("Server Type") );
 }
 
 void SharedPainter::actionClientType( void )
 {
+	if( ! getBroadcastChannelString() )
+		return;
+
 	if( SharePaintManagerPtr()->startClient() )
 		setBroadCastTypeText( tr("Client Type") );
 	else
 		setBroadCastTypeText( tr("None Type") );
+}
+
+bool SharedPainter::getBroadcastChannelString( bool force )
+{
+	if( !force && broadcastChannel_.empty() == false )	// already setting
+		return true;
+
+	bool ok;
+	QString channel = QInputDialog::getText(this, tr("Broadcast Channel"), tr("Channel: any string"), QLineEdit::Normal, broadcastChannel_.c_str(), &ok);
+	if( ! ok )
+		return false;
+
+	if( channel.isEmpty() )
+	{
+		QMessageBox::warning(this, "", "Invalid channel string.");
+		return false;
+	}
+
+	broadcastChannel_ = channel.toStdString();
+	return true;
 }
 
 void SharedPainter::showEvent( QShowEvent * evt )

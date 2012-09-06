@@ -1,6 +1,6 @@
 #pragma once 
 
-#define VERSION_TEXT	"0.2"
+#define VERSION_TEXT	"0.5"
 #define AUTHOR_TEXT		"gunoodaddy"
 
 #define NET_MAGIC_CODE	0xBE

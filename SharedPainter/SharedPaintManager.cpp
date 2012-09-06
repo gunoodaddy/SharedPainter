@@ -86,7 +86,16 @@ bool CSharedPaintManager::startClient( void )
 	return false;
 }
 
-void CSharedPaintManager::startServer( int port )
+void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
+{
+	std::string myIp = getMyIPAddress();
+	std::string broadCastMsg = BroadCastPacketBuilder::CServerInfo::make( channel, myIp, acceptPort_ );
+	
+	if( broadCastSession_ )
+		broadCastSession_->setBroadCastMessage( broadCastMsg );
+}
+
+void CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
 {
 	serverMode_ = true;
 
@@ -108,8 +117,7 @@ void CSharedPaintManager::startServer( int port )
 
 	std::string myIp = getMyIPAddress();
 
-	std::string broadCastMsg = BroadCastPacketBuilder::CServerInfo::make( myIp, acceptPort_ );
-
+	std::string broadCastMsg = BroadCastPacketBuilder::CServerInfo::make( broadCastChannel, myIp, acceptPort_ );
 	if( broadCastSession_ )
 		broadCastSession_->close();
 
@@ -203,11 +211,11 @@ void CSharedPaintManager::dispatchBroadCastPacket( boost::shared_ptr<CPacketData
 	{
 	case CODE_BROAD_SERVER_INFO:
 		{
-			std::string addr;
+			std::string addr, broadcastChannel;
 			int port;
-			if( BroadCastPacketBuilder::CServerInfo::parse( packetData->body, addr, port ) )
+			if( BroadCastPacketBuilder::CServerInfo::parse( packetData->body, broadcastChannel, addr, port ) )
 			{
-				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_GetServerInfo, this, addr, port ) );
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_GetServerInfo, this, broadcastChannel, addr, port ) );
 			}
 		}
 		break;

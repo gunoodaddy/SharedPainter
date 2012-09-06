@@ -41,8 +41,9 @@ public:
 class CSharedPaintManager : public INetPeerServerEvent, INetBroadCastSessionEvent, IPainterSessionEvent
 {
 private:
-	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > shared_paint_item_list_map_t;
-	
+	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
+	typedef std::vector< boost::shared_ptr<CPainterSession> > SESSION_LIST;
+
 public:
 	CSharedPaintManager(void);
 	~CSharedPaintManager(void);
@@ -55,6 +56,19 @@ public:
 	int acceptPort( void ) const
 	{
 		return acceptPort_;
+	}
+
+	void close( void )
+	{
+		if( netPeerServer_ )
+			netPeerServer_->close();
+
+		if( broadCastSession_ )
+			broadCastSession_->close();
+
+		sessionList_.clear();
+
+		netRunner_.close();
 	}
 
 	void setCanvas( IGluePaintCanvas *canvas )
@@ -181,7 +195,7 @@ public:
 			allData = PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
 		
 		// All Paint Item
-		shared_paint_item_list_map_t::iterator it = userItemListMap_.begin();
+		ITEM_LIST_MAP::iterator it = userItemListMap_.begin();
 		for( ; it != userItemListMap_.end(); it++ )
 		{
 			CSharedPaintItemList::ITEM_MAP &map = it->second->itemMap();
@@ -265,7 +279,7 @@ public:
 		assert( item->owner().empty() == false );
 
 		boost::shared_ptr<CSharedPaintItemList> itemList;
-		shared_paint_item_list_map_t::iterator it = userItemListMap_.find( item->owner() );
+		ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
 		if( it != userItemListMap_.end() )
 		{
 			itemList = it->second;
@@ -273,7 +287,7 @@ public:
 		else
 		{
 			itemList = boost::shared_ptr<CSharedPaintItemList>( new CSharedPaintItemList( item->owner() ) );
-			userItemListMap_.insert( shared_paint_item_list_map_t::value_type(item->owner(), itemList) );
+			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
 		}
 
 		itemList->addItem( item );
@@ -355,7 +369,7 @@ private:
 
 	boost::shared_ptr<CSharedPaintItemList> findItemList( const std::string &owner )
 	{
-		shared_paint_item_list_map_t::iterator it = userItemListMap_.find( owner );
+		ITEM_LIST_MAP::iterator it = userItemListMap_.find( owner );
 		if( it == userItemListMap_.end() )
 			return boost::shared_ptr<CSharedPaintItemList>();
 
@@ -621,14 +635,13 @@ private:
 
 	// paint item
 	IGluePaintCanvas *canvas_;
-	shared_paint_item_list_map_t userItemListMap_;
+	ITEM_LIST_MAP userItemListMap_;
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 
 	// network
 	CNetServiceRunner netRunner_;
 	bool serverMode_;
 	int acceptPort_;
-	typedef std::vector< boost::shared_ptr<CPainterSession> > SESSION_LIST;
 	SESSION_LIST sessionList_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
 	CPacketSlicer broadCastPacketSlicer_;

@@ -5,8 +5,8 @@
 
 int main(int argc, char *argv[])
 {
-	CSingleton<CSharedPaintManager>::Instance();
 	CSingleton<CDefferedCaller>::Instance();
+	CSingleton<CSharedPaintManager>::Instance();
 
 	QApplication a(argc, argv);
 
@@ -14,10 +14,9 @@ int main(int argc, char *argv[])
 	SharedPainter w(scene);
 	w.show();
 
+	CSingleton<CSettingManager>::Instance();
+
 	int res = a.exec();
-
-	CSingleton<CSharedPaintManager>::ForceToDelete();
-
 	return res;
 
 }

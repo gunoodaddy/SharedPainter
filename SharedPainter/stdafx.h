@@ -12,3 +12,4 @@
 #include "DefferedCaller.h"
 #include "SharedPaintPolicy.h"
 #include "SharedPaintManager.h"
+#include "SettingManager.h"

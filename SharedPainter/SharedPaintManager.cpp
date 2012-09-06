@@ -52,15 +52,7 @@ CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1),
 
 CSharedPaintManager::~CSharedPaintManager(void)
 {
-	if( netPeerServer_ )
-		netPeerServer_->close();
-
-	if( broadCastSession_ )
-		broadCastSession_->close();
-
-	sessionList_.clear();
-
-	netRunner_.close();
+	close();
 }
 
 bool CSharedPaintManager::startClient( void )

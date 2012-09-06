@@ -60,10 +60,10 @@ private:
 		if( threadStarted_ )
 			return;
 
-		thread_ = boost::thread(boost::bind(&CNetServiceRunner::_threadMain, this));
-
 		stopped_ = false;
 		threadStarted_ = true;
+
+		thread_ = boost::thread(boost::bind(&CNetServiceRunner::_threadMain, this));
 	}
 
 	void _stop_thread( void )
@@ -84,6 +84,9 @@ private:
 
 	void _threadMain( void )
 	{
+		if( stopped_ )
+			return;
+
 		qDebug() << "IO Thread Started";
 	
 		io_service_.run();

@@ -2,6 +2,7 @@
 
 #define VERSION_TEXT	"0.5"
 #define AUTHOR_TEXT		"gunoodaddy"
+#define PROGRAME_TEXT	"SharedPainter"
 
 #define NET_MAGIC_CODE	0xBE
 

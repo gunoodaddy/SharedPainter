@@ -90,6 +90,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 SharedPainter::~SharedPainter()
 {
 	SharePaintManagerPtr()->unregisterObserver( this );
+	SharePaintManagerPtr()->close();
+
+	delete keyHookTimer_;
 }
 
 /*
@@ -160,7 +163,7 @@ void SharedPainter::actionConnect( void )
 		static QString lastAddress;
 
 		QString addr = QInputDialog::getText( this, tr("Input peer address"),
-			tr("Address:Port"), QLineEdit::Normal, lastAddress, &ok);
+			tr("Address:Port"), QLineEdit::Normal, SettingManagerPtr()->peerAddress().c_str(), &ok);
 
 		lastAddress = addr;
 
@@ -186,12 +189,16 @@ void SharedPainter::actionConnect( void )
 		//ip = "61.247.198.102";
 		//ip = "127.0.0.1";
 		SharePaintManagerPtr()->connectToPeer( ip, port );
+
+		SettingManagerPtr()->setPeerAddress( addr.toStdString() );
+
 		return;
 	} while( false );
 
 	if( ! errorMsg.isEmpty() )
 		QMessageBox::warning(this, "", errorMsg);
 }
+
 
 QPointF SharedPainter::_calculateTextPos( int textSize )
 {
@@ -329,7 +336,7 @@ void SharedPainter::actionBroadcastChannel( void )
 	if( ! getBroadcastChannelString( true ) )
 		return;	
 
-	SharePaintManagerPtr()->setBroadCastChannel( broadcastChannel_ );
+	SharePaintManagerPtr()->setBroadCastChannel( SettingManagerPtr()->broadCastChannel() );
 }
 
 void SharedPainter::actionServerType( void )
@@ -337,7 +344,7 @@ void SharedPainter::actionServerType( void )
 	if( ! getBroadcastChannelString() )
 		return;
 
-	SharePaintManagerPtr()->startServer( broadcastChannel_ );
+	SharePaintManagerPtr()->startServer( SettingManagerPtr()->broadCastChannel() );
 	setBroadCastTypeText( tr("Server Type") );
 }
 
@@ -354,11 +361,11 @@ void SharedPainter::actionClientType( void )
 
 bool SharedPainter::getBroadcastChannelString( bool force )
 {
-	if( !force && broadcastChannel_.empty() == false )	// already setting
+	if( !force && SettingManagerPtr()->broadCastChannel().empty() == false )	// already setting
 		return true;
 
 	bool ok;
-	QString channel = QInputDialog::getText(this, tr("Broadcast Channel"), tr("Channel: any string"), QLineEdit::Normal, broadcastChannel_.c_str(), &ok);
+	QString channel = QInputDialog::getText(this, tr("Broadcast Channel"), tr("Channel: any string"), QLineEdit::Normal, SettingManagerPtr()->broadCastChannel().c_str(), &ok);
 	if( ! ok )
 		return false;
 
@@ -368,7 +375,7 @@ bool SharedPainter::getBroadcastChannelString( bool force )
 		return false;
 	}
 
-	broadcastChannel_ = channel.toStdString();
+	SettingManagerPtr()->setBroadCastChannel( channel.toStdString() );
 	return true;
 }
 
@@ -382,6 +389,7 @@ void SharedPainter::showEvent( QShowEvent * evt )
 
 void SharedPainter::closeEvent( QCloseEvent *evt )
 {
+	SettingManagerPtr()->save();
 	SharePaintManagerPtr()->clearAllItems();
 
 	QMainWindow::closeEvent( evt );

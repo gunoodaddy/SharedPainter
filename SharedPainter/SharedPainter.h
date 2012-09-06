@@ -149,7 +149,7 @@ protected:
 	
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port )
 	{
-		if( broadcastChannel != broadcastChannel_)
+		if( broadcastChannel != SettingManagerPtr()->broadCastChannel() )
 			return;
 
 		if( !self->isConnected() && !self->isServerMode() )
@@ -176,7 +176,6 @@ private:
 	QAction *penModeAction_;
 	QProgressBar *wroteProgressBar_;
 	QTimer *keyHookTimer_;
-	std::string broadcastChannel_;
 };
 
 #endif // SHAREDPAINTER_H

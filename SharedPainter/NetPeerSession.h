@@ -38,13 +38,7 @@ public:
 		return clientsocket_;
 	}
 
-	bool isConnecting( void )
-	{
-		if( clientsocket_.is_open() && !connected_ )
-			return true;
-		return false;
-	}
-
+	bool isConnecting( void ) { return ( clientsocket_.is_open() && !connected_ ); }
 	bool isConnected( void ) { return (clientsocket_.is_open() && connected_); }
 	bool connect( const std::string &ip, int port )
 	{

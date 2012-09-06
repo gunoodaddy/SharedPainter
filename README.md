@@ -4,7 +4,7 @@
 
 ## Features
 
-* Free Pen
+* Free Pen Object
 * Text Object
 * Background Image (Screen shot)
 * File (Image File/General File), limit 20MB per a file

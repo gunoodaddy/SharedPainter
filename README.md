@@ -11,6 +11,7 @@
 * Image Object resizing
 * Window resizing 
 * Undo
+* Multiuser sharing
 
 ## Requirement
 

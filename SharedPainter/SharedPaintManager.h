@@ -224,6 +224,12 @@ public:
 		commandMngr_.executeCommand( command );
 	}
 
+	void notifyRemoveItem( boost::shared_ptr< CPaintItem > item )
+	{
+		boost::shared_ptr<CRemoveItemCommand> command = boost::shared_ptr<CRemoveItemCommand>(new CRemoveItemCommand( this, item ));
+		commandMngr_.executeCommand( command );
+	}
+
 	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( this, item ));

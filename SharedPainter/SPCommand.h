@@ -38,6 +38,23 @@ private:
 	boost::shared_ptr<CPaintItem> item_;
 };
 
+class CRemoveItemCommand : public CSPCommand
+{
+public:
+	CRemoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item) { }
+	~CRemoveItemCommand( void ) 
+	{
+		qDebug() << "~CRemoveItemCommand";
+	}
+
+	virtual bool execute( void );
+	virtual void undo( void );
+
+private:
+	CSharedPaintManager *manager_;
+	boost::shared_ptr<CPaintItem> item_;
+};
+
 
 class CUpdateItemCommand : public CSPCommand
 {
@@ -61,7 +78,11 @@ private:
 class CMoveItemCommand : public CSPCommand
 {
 public:
-	CMoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item) { }
+	CMoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item), prevX_(0.f), prevY_(0.f) { }
+	~CMoveItemCommand( void ) 
+	{
+		qDebug() << "~CMoveItemCommand";
+	}
 
 	virtual bool execute( void );
 	virtual void undo( void );
@@ -69,4 +90,6 @@ public:
 private:
 	CSharedPaintManager *manager_;
 	boost::shared_ptr<CPaintItem> item_;
+	double prevX_;
+	double prevY_;
 };

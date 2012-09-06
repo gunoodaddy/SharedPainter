@@ -130,6 +130,7 @@ void SharedPainter::onTimer( void )
 }
 
 
+// this logic is for fixing bug that the center "Enter key" don't work.
 bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 {
 	if( event->type() == QEvent::KeyPress )
@@ -353,6 +354,7 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 
 void SharedPainter::moveEvent( QMoveEvent * evt )
 {
+	// Screen Shot Action!
 	if( screenShotMode_ )
 	{
 		if( evt->pos().x() == DEFAULT_HIDE_POS_X && evt->pos().y() == DEFAULT_HIDE_POS_Y )
@@ -417,4 +419,9 @@ void SharedPainter::onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boos
 void SharedPainter::onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
 {
 	SharePaintManagerPtr()->notifyUpdateItem( item );
+}
+
+void SharedPainter::onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
+{
+	SharePaintManagerPtr()->notifyRemoveItem( item );
 }

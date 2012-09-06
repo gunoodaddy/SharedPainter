@@ -13,6 +13,7 @@ public:
 	virtual void onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item ) = 0;
 	virtual void onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
+	virtual void onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 };
 
 class CSharedPainterScene : public QGraphicsScene, public IGluePaintCanvas
@@ -107,6 +108,7 @@ public:
 	void onItemMoveBegin( boost::shared_ptr< CPaintItem > );
 	void onItemMoveEnd( boost::shared_ptr< CPaintItem > );
 	void onItemUpdate( boost::shared_ptr< CPaintItem > );
+	void onItemRemove( boost::shared_ptr< CPaintItem > );
 
 private:
 	qreal currentZValue( void )

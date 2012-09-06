@@ -24,6 +24,17 @@ public:
 		}
 	}
 
+	void keyPressEvent( QKeyEvent * event )
+	{
+		if( event->key() == Qt::Key_Delete )
+		{
+			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+			{
+				scene_->onItemRemove( r );
+			}
+		}
+	}
+
 	void hoverEnterEvent( QGraphicsSceneHoverEvent * event )
 	{
 		scene_->setCursor( Qt::OpenHandCursor ); 
@@ -34,9 +45,9 @@ public:
 		scene_->setCursor( Qt::PointingHandCursor ); 
 	}
 
-	void hoverMoveEvent( QGraphicsSceneHoverEvent * event )
-	{
-	}
+	//void hoverMoveEvent( QGraphicsSceneHoverEvent * event )
+	//{
+	//}
 
 	void mouseDoubleClickEvent( QGraphicsSceneMouseEvent * event )
 	{
@@ -122,12 +133,6 @@ CSharedPainterScene::CSharedPainterScene(void )
 	penClr_ = Qt::blue;
 	penWidth_ = 2;
 
-	// for test
-	/*QGraphicsLineItem* i = addLine(QLineF( 10, 10, 100, 10 ));
-	i->setFlag(QGraphicsItem::ItemIsMovable);
-	i->setPen( QPen(QColor(qrand()%32*8,qrand()%32*8,qrand()%32*8), 5) );
-	i->setZValue(ZVALUE_NORMAL);*/
-
 	connect(this, SIGNAL(sceneRectChanged(const QRectF &)), this, SLOT(sceneRectChanged(const QRectF &)));
 }
 
@@ -138,7 +143,6 @@ CSharedPainterScene::~CSharedPainterScene()
 
 void CSharedPainterScene::sceneRectChanged(const QRectF &rect)
 {
-	//qDebug() << "sceneRectChanged" << rect;
 	resetBackground( rect );
 }
 
@@ -200,16 +204,12 @@ void CSharedPainterScene::removeItem( CPaintItem * item )
 		return;
 
 	if( ! item->drawingObject() )
-	{
-		// Nothing to do
-	}
-	else
-	{
-		QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
-		QGraphicsScene::removeItem( i );
+		return;
 
-		invalidate( i->boundingRect() );
-	}
+	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
+	QGraphicsScene::removeItem( i );
+
+	invalidate( i->boundingRect() );
 }
 
 void CSharedPainterScene::removeItem( boost::shared_ptr<CPaintItem> item )
@@ -224,16 +224,11 @@ void CSharedPainterScene::moveItem( boost::shared_ptr<CPaintItem> item, double x
 		return;
 
 	if( ! item->drawingObject() )
-	{
-		// Nothing to do
-	}
-	else
-	{
-		QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
-		i->setPos( x, y );
+		return;
 
-		invalidate( i->boundingRect() );
-	}
+	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
+	i->setPos( x, y );
+	invalidate( i->boundingRect() );
 }
 
 
@@ -248,6 +243,7 @@ void CSharedPainterScene::drawSendingStatus( boost::shared_ptr<CPaintItem> item 
 	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
 	//qDebug() << "drawSendingStatus" << item->wroteBytes() << item->totalBytes();
 	// TODO
+	// How make progress bar and handle it??
 	// ....
 }
 
@@ -260,7 +256,7 @@ void CSharedPainterScene::drawFile( boost::shared_ptr<CFileItem> file )
 	QPixmap pixmap = icon.pixmap(9999, 9999);
 	CMyGraphicItem<QGraphicsPixmapItem> *item = new CMyGraphicItem<QGraphicsPixmapItem>( this );
 	item->setPixmap( pixmap ); 
-	item->setFlag(QGraphicsItem::ItemIsMovable);
+	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 	if( file->isAvailablePosition() )
 		item->setPos( file->posX(), file->posY() );
 	item->setItemData( file );
@@ -274,7 +270,7 @@ void CSharedPainterScene::drawImage( boost::shared_ptr<CImageFileItem> image )
 
 	setScaleImageFileItem( image, item );
 
-	item->setFlag(QGraphicsItem::ItemIsMovable);
+	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 	if( image->isAvailablePosition() )
 		item->setPos( image->posX(), image->posY() );
 	item->setItemData( image );
@@ -288,7 +284,7 @@ void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )
 	CMyGraphicItem<QGraphicsSimpleTextItem> *item = new CMyGraphicItem<QGraphicsSimpleTextItem>( this );
 	item->setText( text->text() );
 	item->setFont( text->font() );
-	item->setFlag(QGraphicsItem::ItemIsMovable);
+	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 	if( text->isAvailablePosition() )
 		item->setPos( text->posX(), text->posY() );
 	item->setItemData( text );
@@ -319,7 +315,7 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 			pathItem->setPos( line->posX(), line->posY() );
 		pathItem->setPath( painterPath );
 		pathItem->setPen( QPen(line->color(), line->width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin) );
-		pathItem->setFlag(QGraphicsItem::ItemIsMovable);
+		pathItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 		pathItem->setZValue( currentZValue() );
 		pathItem->setItemData( line );
 		addItem( pathItem );
@@ -340,7 +336,7 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		ellipseItem->setRect( rect );
 		ellipseItem->setPen( QPen(line->color(), 1) );
 		ellipseItem->setBrush( QBrush(line->color()) );
-		ellipseItem->setFlag(QGraphicsItem::ItemIsMovable);
+		ellipseItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
 		ellipseItem->setZValue( currentZValue() );
 		ellipseItem->setItemData( line );
 		addItem( ellipseItem );
@@ -446,6 +442,11 @@ void CSharedPainterScene::onItemMoveEnd( boost::shared_ptr< CPaintItem > item )
 void CSharedPainterScene::onItemUpdate( boost::shared_ptr< CPaintItem > item )
 {
 	eventTarget_->onICanvasViewEvent_UpdateItem( this, item );
+}
+
+void CSharedPainterScene::onItemRemove( boost::shared_ptr< CPaintItem > item )
+{
+	eventTarget_->onICanvasViewEvent_RemoveItem( this, item );
 }
 
 void CSharedPainterScene::dragEnterEvent( QGraphicsSceneDragDropEvent * evt )

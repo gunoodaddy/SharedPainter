@@ -20,6 +20,26 @@ void CAddItemCommand::undo( void )
 }
 
 
+bool CRemoveItemCommand::execute( void )
+{
+	std::string msg = PaintPacketBuilder::CRemoveItem::make( item_->owner(), item_->itemId() );
+	manager_->sendDataToUsers( msg );
+	manager_->removePaintItem( item_->owner(), item_->itemId() );
+
+	return true;
+}
+
+void CRemoveItemCommand::undo( void )
+{
+	manager_->addPaintItem( item_ );
+
+	std::string msg = PaintPacketBuilder::CAddItem::make( item_ );
+	int packetId = manager_->sendDataToUsers( msg );
+	item_->setPacketId( packetId );
+}
+
+
+
 bool CUpdateItemCommand::execute( void )
 {
 	prevData_ = item_->prevData();
@@ -46,6 +66,9 @@ void CUpdateItemCommand::undo( void )
 
 bool CMoveItemCommand::execute( void )
 {
+	prevX_ = item_->prevData().posX;
+	prevY_ = item_->prevData().posY;
+
 	std::string msg = PaintPacketBuilder::CMoveItem::make( item_->owner(), item_->itemId(), item_->posX(), item_->posY() );
 	manager_->sendDataToUsers( msg );
 	return true;
@@ -53,9 +76,7 @@ bool CMoveItemCommand::execute( void )
 
 void CMoveItemCommand::undo( void )
 {
-	double x = item_->prevData().posX;
-	double y = item_->prevData().posY;
-	item_->move( x, y );
+	item_->move( prevX_, prevY_ );
 
 	std::string msg = PaintPacketBuilder::CMoveItem::make( item_->owner(), item_->itemId(), item_->posX(), item_->posY() );
 	manager_->sendDataToUsers( msg );

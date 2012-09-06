@@ -2,6 +2,16 @@
 
 <img src="https://raw.github.com/gunoodaddy/SharedPainter/master/SharedPainterIntro.png"/>
 
+## Features
+
+* Free Pen
+* Text Object
+* Background Image (Screen shot)
+* File (Image File/General File), limit 20MB per a file
+* Image Object resizing
+* Window resizing 
+* Undo
+
 ## Requirement
 
 * Visual Studio 2008 (not express version)

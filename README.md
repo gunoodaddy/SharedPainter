@@ -10,9 +10,9 @@
 * File Object (limit 20MB per a file)
 * Image File Object (limit 20MB per a file)
 * Image File Object Scale
-* Window resizing 
+* Window Resize
 * All Objects Position
-* Remove Object
+* Object Remove
 * Undo
 * Multiuser sharing
 

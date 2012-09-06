@@ -1,6 +1,6 @@
 # Shared Painter
 
-<img src="https://github.com/gunoodaddy/SharedPainter/blob/master/SharedPainterIntro.png"/>
+<img src="https://raw.github.com/gunoodaddy/SharedPainter/master/SharedPainterIntro.png"/>
 
 ## Requirement
 

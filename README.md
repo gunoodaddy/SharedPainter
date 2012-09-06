@@ -4,6 +4,7 @@
 
 ## Features
 
+* Automatically server finding by udp broadcast
 * Free Pen Object
 * Text Object
 * Background Image (Screen shot)

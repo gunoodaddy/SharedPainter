@@ -12,6 +12,7 @@
 * Image File Object Scale
 * Window resizing 
 * All Objects Position
+* Remove Object
 * Undo
 * Multiuser sharing
 

@@ -97,19 +97,16 @@ protected:
 	// ISharedPaintEvent
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self )
 	{
-		qDebug() << "@@@@@@@@@@@@@@@@@@@ Connected";
 		setStatusBar_Network("Connected");
 	}
 
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self )
 	{
-		qDebug() << "@@@@@@@@@@@@@@@@@@@ Connect Fail";
 		setStatusBar_Network("Connect Failure");
 	}
 
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self )
 	{
-		qDebug() << "@@@@@@@@@@@@@@@@@@@ Disconnected";
 		setStatusBar_Network("Disconnected");
 	}
 

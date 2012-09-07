@@ -16,14 +16,12 @@ public:
 
 	void setStatusBar_Network( const QString &str )
 	{
-		//ui.statusBar->showMessage( str );
 		QString realStr = str + "  ";
 		statusBarLabel_->setText( realStr );
 	}
 	void setStatusBar_BroadCastType( const QString &str )
 	{
 		QString realStr = str + "  ";
-		//ui.statusBar->showMessage( str );
 		broadCastTypeLabel_->setText( realStr );
 	}
 	void setStatusBar_JoinerCnt( int count )
@@ -130,6 +128,7 @@ protected:
 		wroteProgressBar_->setValue( wroteBytes );
 
 		/*
+                // TODO
 		ITEM_LIST list = self->findItem( packetId );
 		for( size_t i = 0; i < list.size(); i++ )
 		{

@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/shared_ptr.hpp>
 
+#include "PacketCodeDefine.h"
 #include "PaintItem.h"
 #include "PacketBuffer.h"
 #include "NetPacketData.h"

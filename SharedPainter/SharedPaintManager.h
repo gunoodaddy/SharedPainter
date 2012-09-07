@@ -6,14 +6,17 @@
 #include "PacketSlicer.h"
 #include "PaintPacketBuilder.h"
 #include "WindowPacketBuilder.h"
+#include "BroadCastPacketBuilder.h"
+#include "SystemPacketBuilder.h"
 #include "SharedPaintPolicy.h"
 #include "DefferedCaller.h"
 #include "SharedPaintManagementData.h"
 #include "SharedPaintCommandManager.h"
-#include "PainterSession.h"
+#include "PaintSession.h"
 #include "NetPeerServer.h"
 #include "NetBroadCastSession.h"
 #include "NetServiceRunner.h"
+#include "PaintUser.h"
 
 #define SharePaintManagerPtr()		CSingleton<CSharedPaintManager>::Instance()
 
@@ -38,11 +41,12 @@ public:
 };
 
 
-class CSharedPaintManager : public INetPeerServerEvent, INetBroadCastSessionEvent, IPainterSessionEvent
+class CSharedPaintManager : public INetPeerServerEvent, INetBroadCastSessionEvent, IPaintSessionEvent
 {
 private:
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
-	typedef std::vector< boost::shared_ptr<CPainterSession> > SESSION_LIST;
+	typedef std::map< std::string, boost::shared_ptr<CPaintUser> > USER_MAP;
+	typedef std::vector< boost::shared_ptr<CPaintSession> > SESSION_LIST;
 
 public:
 	CSharedPaintManager(void);
@@ -93,7 +97,7 @@ public:
 		clearAllItems();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newConnect( addr, port );
-		boost::shared_ptr<CPainterSession> userSession = boost::shared_ptr<CPainterSession>(new CPainterSession(session, this));
+		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
 		sessionList_.push_back( userSession );
 		return true;
 	}
@@ -135,7 +139,7 @@ public:
 		return false;
 	}
 
-	int sendDataToUsers( const std::vector<boost::shared_ptr<CPainterSession>> &sessionList, const std::string &msg, int toSessionId = -1 )
+	int sendDataToUsers( const std::vector<boost::shared_ptr<CPaintSession>> &sessionList, const std::string &msg, int toSessionId = -1 )
 	{
 		static int PACKETID = 0;
 		int sendCnt = 0;
@@ -286,6 +290,15 @@ public:
 
 	// Internal Action
 public:
+	void addUser( boost::shared_ptr<CPaintUser> user )
+	{
+		std::pair<USER_MAP::iterator, bool> res = joinerMap_.insert( USER_MAP::value_type( user->userId(), user ) );
+		if( !res.second )
+			res.first->second = user;	// overwrite;
+
+		// TODO
+	}
+
 	void addPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		assert( item->itemId() > 0 );
@@ -530,7 +543,7 @@ protected:
 	// INetPeerServerEvent
 	virtual void onINetPeerServerEvent_Accepted( boost::shared_ptr<CNetPeerServer> server, boost::shared_ptr<CNetPeerSession> session )
 	{
-		boost::shared_ptr<CPainterSession> userSession = boost::shared_ptr<CPainterSession>(new CPainterSession(session, this));
+		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
 		sessionList_.push_back( userSession );
 
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_Connected, this, session->sessionId() ) );
@@ -552,18 +565,20 @@ protected:
 		}
 	}
 
-	// IPainterSessionEvent
-	virtual void onIPainterSessionEvent_Connected( boost::shared_ptr<CPainterSession> session )
+	// IPaintSessionEvent
+	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session )
 	{
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_Connected, this, session->sessionId() ) );
 	}
-	virtual void onIPainterSessionEvent_ConnectFailed( boost::shared_ptr<CPainterSession> session )
+
+	virtual void onIPaintSessionEvent_ConnectFailed( boost::shared_ptr<CPaintSession> session )
 	{
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ConnectFailed, this ) );
 
 		removeSession( session->sessionId() );
 	}
-	virtual void onIPainterSessionEvent_ReceivedPacket( boost::shared_ptr<CPainterSession> session, const boost::shared_ptr<CPacketData> data )
+
+	virtual void onIPaintSessionEvent_ReceivedPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CPacketData> data )
 	{
 		dispatchPaintPacket( data );
 
@@ -591,16 +606,18 @@ protected:
 			sendDataToUsers( list, msg );
 		}
 	}
-	virtual void onIPainterSessionEvent_Disconnected( boost::shared_ptr<CPainterSession> session )
+
+	virtual void onIPaintSessionEvent_Disconnected( boost::shared_ptr<CPaintSession> session )
 	{
 		if( isConnected() == false )
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_DisConnected, this ) );
 
 		removeSession( session->sessionId() );
 	}
-	virtual void onIPainterSessionEvent_SendingPacket( boost::shared_ptr<CPainterSession> session, const boost::shared_ptr<CNetPacketData> packet )
+
+	virtual void onIPaintSessionEvent_SendingPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CNetPacketData> packet )
 	{
-//		qDebug() << "Packet sending " << packet->packetId() << packet->buffer().remainingSize() << packet->buffer().totalSize();
+		//qDebug() << "Packet sending " << packet->packetId() << packet->buffer().remainingSize() << packet->buffer().totalSize();
 		if( packet->packetId() < 0 )
 			return;	// ignore this!
 
@@ -654,6 +671,10 @@ private:
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 	int lastWindowWidth_;
 	int lastWindowHeight_;
+
+	// user management
+	boost::shared_ptr<CPaintUser> myUserInfo_;
+	USER_MAP joinerMap_;
 	
 	// network
 	CNetServiceRunner netRunner_;
@@ -670,7 +691,7 @@ private:
 	{
 		int wroteBytes;
 		int totalBytes;
-		CPainterSession *session;
+		CPaintSession *session;
 	};
 	typedef std::map< int, std::vector<struct send_byte_info_t> > send_info_map_t;
 	send_info_map_t sendInfoDataMap_;

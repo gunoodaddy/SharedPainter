@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "SharedPaintManager.h"
-#include "BroadCastPacketBuilder.h"
 #include <QHostInfo>
 
 #define START_SERVER_PORT		4001
@@ -126,6 +125,13 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPacketData> pa
 {
 	switch( packetData->code )
 	{
+	case CODE_SYSTEM_JOIN:
+		{
+			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoin::parse( packetData->body );
+
+			addUser( user );
+		}
+		break;
 	case CODE_PAINT_CLEAR_SCREEN:
 		{
 			PaintPacketBuilder::CClearScreen::parse( packetData->body );	// nothing to do..

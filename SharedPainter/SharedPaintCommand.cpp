@@ -38,8 +38,6 @@ void CRemoveItemCommand::undo( void )
 	item_->setPacketId( packetId );
 }
 
-
-
 bool CUpdateItemCommand::execute( void )
 {
 	prevData_ = item_->prevData();

@@ -163,7 +163,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Paint"
+			Name="Paint Source"
 			>
 			<File
 				RelativePath=".\PaintItem.cpp"
@@ -176,6 +176,10 @@
 			<Filter
 				Name="Packet"
 				>
+				<File
+					RelativePath=".\PacketCodeDefine.h"
+					>
+				</File>
 				<File
 					RelativePath=".\PacketSlicer.cpp"
 					>
@@ -200,6 +204,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\SystemPacketBuilder.h"
+						>
+					</File>
+					<File
 						RelativePath=".\WindowPacketBuilder.h"
 						>
 					</File>
@@ -209,11 +217,11 @@
 				Name="Session"
 				>
 				<File
-					RelativePath=".\PainterSession.cpp"
+					RelativePath=".\PaintSession.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\PainterSession.h"
+					RelativePath=".\PaintSession.h"
 					>
 				</File>
 			</Filter>
@@ -222,6 +230,14 @@
 				>
 				<File
 					RelativePath=".\PaintItemFactory.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Joiner"
+				>
+				<File
+					RelativePath=".\PaintUser.h"
 					>
 				</File>
 			</Filter>
@@ -360,6 +376,10 @@
 							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\SharedPainter.rc"
+					>
 				</File>
 			</Filter>
 		</Filter>
@@ -748,10 +768,6 @@
 				</FileConfiguration>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\SharedPainter.rc"
-			>
-		</File>
 	</Files>
 	<Globals>
 		<Global

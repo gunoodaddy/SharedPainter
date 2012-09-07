@@ -156,13 +156,14 @@ public:
 		return false;
 	}
 
-	int sendDataToUsers( const std::vector<boost::shared_ptr<CPaintSession>> &sessionList, const std::string &msg, int toSessionId = -1 )
+	int sendDataToUsers( const SESSION_LIST &sessionList, const std::string &msg, int toSessionId = -1 )
 	{
 		static int PACKETID = 0;
 		int sendCnt = 0;
 		int packetId = ++PACKETID;
 		std::vector<struct send_byte_info_t> infolist;
 
+		SESSION_LIST sendableSessionList;
 		SESSION_LIST::const_iterator it = sessionList.begin();
 		for( ; it != sessionList.end(); it++ )
 		{
@@ -177,8 +178,12 @@ public:
 				info.wroteBytes = 0;
 
 				infolist.push_back( info );
-				boost::shared_ptr<CNetPacketData> packet = boost::shared_ptr<CNetPacketData>(new CNetPacketData( packetId, msg ) );
-				(*it)->session()->sendData( packet );
+
+				sendableSessionList.push_back( *it );
+
+				// DO NOT SEND HERE BUT DO IT OVER THERE
+				//boost::shared_ptr<CNetPacketData> packet = boost::shared_ptr<CNetPacketData>(new CNetPacketData( packetId, msg ) );
+				//(*it)->session()->sendData( packet );
 				sendCnt ++;
 			}
 		}
@@ -189,6 +194,13 @@ public:
 			sendInfoDataMap_.insert( send_info_map_t::value_type( packetId, infolist ) );
 			lastPacketId_ = packetId;
 			mutexSendInfo_.unlock();
+			
+			// MUST send after above codes for preventing from race condition..
+			for( size_t i = 0; i < sendableSessionList.size(); i++ )
+			{
+				boost::shared_ptr<CNetPacketData> packet = boost::shared_ptr<CNetPacketData>(new CNetPacketData( packetId, msg ) );
+				sendableSessionList[i]->session()->sendData( packet );
+			}
 		}
 		else
 			packetId = -1;
@@ -198,7 +210,7 @@ public:
 
 	int sendDataToUsers( const std::string &msg, int toSessionId = -1 )
 	{
-		std::vector<boost::shared_ptr<CPaintSession> > sessionList = sessionList_;
+		SESSION_LIST sessionList = sessionList_;
 
 		return sendDataToUsers( sessionList, msg, toSessionId );
 	}
@@ -853,7 +865,10 @@ protected:
 	{
 		//qDebug() << "Packet sending " << packet->packetId() << packet->buffer().remainingSize() << packet->buffer().totalSize();
 		if( packet->packetId() < 0 )
+		{
+			qDebug() << "onIPaintSessionEvent_SendingPacket error : packet id < 0";
 			return;	// ignore this!
+		}
 
 		size_t totalBytes = 0;
 		size_t wroteBytes = 0;
@@ -864,7 +879,10 @@ protected:
 
 			send_info_map_t::iterator it = sendInfoDataMap_.find( packet->packetId() );
 			if( it == sendInfoDataMap_.end() )
+			{
+				qDebug() << "onIPaintSessionEvent_SendingPacket error : not found info" << packet->packetId();
 				return;	// not found. unexpected error..
+			}
 
 			std::vector<struct send_byte_info_t>::iterator itD = it->second.begin();
 			for( ; itD != it->second.end(); itD++ )
@@ -885,10 +903,12 @@ protected:
 
 			if( totalBytes <= wroteBytes )
 			{
-				//qDebug() << "sendInfoDataMap_.erase!!i!!" << packet->packetId() << wroteBytes << totalBytes;
+				//qDebug() << "sendInfoDataMap_.erase !!i!!" << packet->packetId() << wroteBytes << totalBytes;
 				sendInfoDataMap_.erase( it );
 			}
 		}
+
+		//qDebug() << "sendInfoDataMap_.noti !!i!!" << packet->packetId() << wroteBytes << totalBytes << "====" << packet->buffer().remainingSize() << packet->buffer().totalSize();
 
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SendingPacket, this, packet->packetId(), wroteBytes, totalBytes ) );
 	}

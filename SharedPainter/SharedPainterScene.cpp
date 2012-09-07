@@ -365,7 +365,7 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		pathItem->setItemData( line );
 		commonAddItem( pathItem );
 
-		invalidateRect = pathItem->boundingRect();
+		//invalidateRect = pathItem->boundingRect();
 	}
 	else
 	{
@@ -385,10 +385,10 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		ellipseItem->setItemData( line );
 		commonAddItem( ellipseItem );
 
-		invalidateRect = ellipseItem->boundingRect();
+		//invalidateRect = ellipseItem->boundingRect();
 	}
 
-	invalidate( invalidateRect );
+	//invalidate( invalidateRect );
 }
 
 
@@ -423,6 +423,18 @@ void CSharedPainterScene::drawBackgroundImage( boost::shared_ptr<CBackgroundImag
 	QPainter painter(&image_);
 	painter.drawPixmap( 0, 0, backgroundPixmap_ );
 	invalidate( QRectF(), QGraphicsScene::BackgroundLayer );
+}
+
+void CSharedPainterScene::drawLineStart( const QPointF &pt, const QColor &clr, int width )
+{
+	double x = pt.x() - (width / 2);
+	double y = pt.y() - (width / 2);
+	QRectF rect( x, y, width, width );
+
+	QGraphicsEllipseItem *item = addEllipse( rect, QPen(clr, 1), QBrush(clr) );
+	item->setZValue( currentZValue() );
+
+	tempLineItemList_.push_back( item );
 }
 
 void CSharedPainterScene::drawLineTo( const QPointF &pt1, const QPointF &pt2, const QColor &clr, int width )
@@ -577,6 +589,8 @@ void CSharedPainterScene::mousePressEvent( QGraphicsSceneMouseEvent *evt )
 		currLineItem_->setMyItem();
 
 		currentLineZValue_ = currentZValue();
+
+		drawLineStart( prevPos_, currLineItem_->color(), currLineItem_->width() );
 	}
 }
 
@@ -623,7 +637,6 @@ void CSharedPainterScene::mouseReleaseEvent( QGraphicsSceneMouseEvent *evt )
 		{
 			QGraphicsScene::removeItem( tempLineItemList_[i] );
 		}
-		qDebug() << "mouseReleaseEvent temp list removed.." << tempLineItemList_.size();
 		tempLineItemList_.clear();
 
 		resetBackground( sceneRect () );

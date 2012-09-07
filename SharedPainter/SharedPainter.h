@@ -187,6 +187,7 @@ protected:
 
 	virtual void onISharedPaintEvent_ClearBackground( CSharedPaintManager *self )
 	{
+		setCheckGridLineAction( false );
 		canvas_->drawBackgroundGridLine( 0 );
 		canvas_->setBackgroundColor( 255, 255, 255, 255 );
 		canvas_->clearBackgroundImage();

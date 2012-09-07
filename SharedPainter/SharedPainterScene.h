@@ -120,6 +120,7 @@ private:
 	void addImageFileItem( const QPointF &pos, const QString &path );
 	void addGeneralFileItem( const QPointF &pos, const QString &path );
 	void resizeImage(QImage *image, const QSize &newSize);
+	void drawLineStart( const QPointF &pt, const QColor &clr, int width );
 	void drawLineTo( const QPointF &pt1, const QPointF &pt2, const QColor &clr, int width );
 	void setScaleImageFileItem( boost::shared_ptr<CImageFileItem> image, QGraphicsPixmapItem *pixmapItem );
 	void commonAddItem( QGraphicsItem *item );
@@ -144,7 +145,7 @@ private:
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 	boost::shared_ptr<CLineItem> currLineItem_;
 
-	std::vector< QGraphicsLineItem * > tempLineItemList_;
+	std::vector< QGraphicsItem * > tempLineItemList_;
 
 	QFileIconProvider fileIconProvider_;
 	qreal currentZValue_;

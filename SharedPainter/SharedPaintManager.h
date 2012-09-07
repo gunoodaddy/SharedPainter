@@ -115,6 +115,17 @@ public:
 		return true;
 	}
 
+	void clearAllSessions( void )
+	{
+		mutexSession_.lock();
+		SESSION_LIST::iterator it = sessionList_.begin();
+		for( ; it != sessionList_.end(); it++ )
+		{
+			(*it)->close();
+		}
+		mutexSession_.unlock();
+	}
+
 	int acceptPort( void ) const
 	{
 		return acceptPort_;
@@ -286,7 +297,6 @@ public:
 		std::string allData = generateAllData();
 
 		sendDataToUsers( allData, toSessionId );
-		
 	}
 
 	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
@@ -455,17 +465,6 @@ private:
 		boost::shared_ptr<CPaintUser> removing = findUser( sessionId );
 
 		removeUser( removing );
-	}
-
-	void clearAllSessions( void )
-	{
-		mutexSession_.lock();
-		SESSION_LIST::iterator it = sessionList_.begin();
-		for( ; it != sessionList_.end(); it++ )
-		{
-			(*it)->close();
-		}
-		mutexSession_.unlock();
 	}
 
 	void clearAllUsers( void )

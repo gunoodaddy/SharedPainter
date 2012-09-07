@@ -5,23 +5,23 @@
 #include "WindowPacketBuilder.h"
 
 class CSharedPaintManager;
-class CSPCommandManager;
+class CSharedPaintCommandManager;
 
-class CSPCommand
+class CSharedPaintCommand
 {
 public:
-	CSPCommand(void) { }
-	virtual ~CSPCommand(void) { }
+	CSharedPaintCommand(void) { }
+	virtual ~CSharedPaintCommand(void) { }
 
 private:
 	virtual bool execute( void ) = 0;
 	virtual void undo( void ) = 0;
 
-	friend class CSPCommandManager;
+	friend class CSharedPaintCommandManager;
 };
 
 
-class CAddItemCommand : public CSPCommand
+class CAddItemCommand : public CSharedPaintCommand
 {
 public:
 	CAddItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item) { }
@@ -38,7 +38,7 @@ private:
 	boost::shared_ptr<CPaintItem> item_;
 };
 
-class CRemoveItemCommand : public CSPCommand
+class CRemoveItemCommand : public CSharedPaintCommand
 {
 public:
 	CRemoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item) { }
@@ -56,7 +56,7 @@ private:
 };
 
 
-class CUpdateItemCommand : public CSPCommand
+class CUpdateItemCommand : public CSharedPaintCommand
 {
 public:
 	CUpdateItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item) { }
@@ -75,7 +75,7 @@ private:
 };
 
 
-class CMoveItemCommand : public CSPCommand
+class CMoveItemCommand : public CSharedPaintCommand
 {
 public:
 	CMoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item), prevX_(0.f), prevY_(0.f) { }

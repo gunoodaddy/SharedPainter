@@ -1,11 +1,11 @@
 #pragma once
 
-#include "SPCommand.h"
+#include "SharedPaintCommand.h"
 
-class CSPCommandManager
+class CSharedPaintCommandManager
 {
 public:
-	CSPCommandManager() { }
+	CSharedPaintCommandManager() { }
 
 	void clear( void )
 	{
@@ -13,7 +13,7 @@ public:
 			commandList_.pop();
 	}
 
-	bool executeCommand( boost::shared_ptr< CSPCommand > command )
+	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command )
 	{
 		bool ret = command->execute();
 		if( ret )
@@ -27,13 +27,13 @@ public:
 		if( commandList_.size() <= 0 )
 			return;
 
-		boost::shared_ptr< CSPCommand > command = commandList_.top();
+		boost::shared_ptr< CSharedPaintCommand > command = commandList_.top();
 		command->undo();
 
 		commandList_.pop();
 	}
 
 protected:
-	typedef std::stack< boost::shared_ptr< CSPCommand > > commandlist_t;
+	typedef std::stack< boost::shared_ptr< CSharedPaintCommand > > commandlist_t;
 	commandlist_t commandList_;
 };

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "SPCommand.h"
+#include "SharedPaintCommand.h"
 #include "SharedPaintManager.h"
 
 bool CAddItemCommand::execute( void )

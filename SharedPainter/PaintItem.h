@@ -209,14 +209,7 @@ public:
 public:
 	virtual bool loadData( const std::string & data, int *readPos = NULL ) 
 	{
-		try
-		{
-			loadBasicPaintData( data, data_, readPos );
-		} catch(...)
-		{
-			return false;
-		}
-		return true;
+		return loadBasicPaintData( data, data_, readPos );
 	}
 
 	virtual std::string generateData( int *writePos = NULL ) const
@@ -305,7 +298,11 @@ public:
 	{
 		//
 	}
-
+	virtual void remove( void )
+	{
+		if( canvas_ )
+			canvas_->clearBackgroundImage();
+	}
 	virtual void draw( void )
 	{
 		if( canvas_ )

@@ -9,7 +9,7 @@
 #include "SharedPaintPolicy.h"
 #include "DefferedCaller.h"
 #include "SharedPaintManagementData.h"
-#include "SPCommandManager.h"
+#include "SharedPaintCommandManager.h"
 #include "PainterSession.h"
 #include "NetPeerServer.h"
 #include "NetBroadCastSession.h"
@@ -53,11 +53,6 @@ public:
 		return myId_;
 	}
 
-	int acceptPort( void ) const
-	{
-		return acceptPort_;
-	}
-
 	void close( void )
 	{
 		if( netPeerServer_ )
@@ -85,6 +80,27 @@ public:
 	void unregisterObserver( ISharedPaintEvent *obs )
 	{
 		observers_.remove( obs );
+	}
+
+	// Network
+public:
+	bool startClient( void );
+	void startServer( const std::string &broadCastChannel, int port = 0 );
+	void setBroadCastChannel( const std::string & channel );
+
+	bool connectToPeer( const std::string &addr, int port )
+	{
+		clearAllItems();
+
+		boost::shared_ptr<CNetPeerSession> session = netRunner_.newConnect( addr, port );
+		boost::shared_ptr<CPainterSession> userSession = boost::shared_ptr<CPainterSession>(new CPainterSession(session, this));
+		sessionList_.push_back( userSession );
+		return true;
+	}
+
+	int acceptPort( void ) const
+	{
+		return acceptPort_;
 	}
 
 	int lastPacketId( void )
@@ -117,25 +133,6 @@ public:
 				return true;
 		}
 		return false;
-	}
-
-	bool startClient( void );
-	void startServer( const std::string &broadCastChannel, int port = 0 );
-	void setBroadCastChannel( const std::string & channel );
-
-	bool connectToPeer( const std::string &addr, int port )
-	{
-		clearAllItems();
-
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newConnect( addr, port );
-		boost::shared_ptr<CPainterSession> userSession = boost::shared_ptr<CPainterSession>(new CPainterSession(session, this));
-		sessionList_.push_back( userSession );
-		return true;
-	}
-
-	void undoCommand( void )
-	{
-		commandMngr_.undoCommand();
 	}
 
 	int sendDataToUsers( const std::vector<boost::shared_ptr<CPainterSession>> &sessionList, const std::string &msg, int toSessionId = -1 )
@@ -183,7 +180,14 @@ public:
 		return sendDataToUsers( sessionList_, msg, toSessionId );
 	}
 
-	void sendAllData( int toSessionId )
+	// Shared Paint Action
+public:
+	void undoCommand( void )
+	{
+		commandMngr_.undoCommand();
+	}
+
+	void sendAllPaintData( int toSessionId )
 	{
 		if( isServerMode() == false )
 			return;
@@ -215,8 +219,31 @@ public:
 		
 	}
 
+	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
+	{
+		boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( this, item ));
+		return commandMngr_.executeCommand( command );
+	}
+
+	int sendBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image )
+	{
+		if( !image )
+			return -1;
+
+		backgroundImageItem_ = image;
+
+		canvas_->drawBackgroundImage( image );
+
+		if( isConnected() == false )
+			return -1;
+
+		std::string msg = PaintPacketBuilder::CSetBackgroundImage::make( image );
+		return sendDataToUsers( msg );
+	}
+
 	void clearBackgroundImage( void )
 	{
+		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
 		canvas_->clearBackgroundImage();
 
 		std::string msg = PaintPacketBuilder::CClearBackgroundImage::make();
@@ -249,28 +276,6 @@ public:
 		commandMngr_.executeCommand( command );
 	}
 
-	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
-	{
-		boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( this, item ));
-		return commandMngr_.executeCommand( command );
-	}
-
-	int sendBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image )
-	{
-		if( !image )
-			return -1;
-
-		backgroundImageItem_ = image;
-
-		canvas_->drawBackgroundImage( image );
-
-		if( isConnected() == false )
-			return -1;
-
-		std::string msg = PaintPacketBuilder::CSetBackgroundImage::make( image );
-		return sendDataToUsers( msg );
-	}
-
 	int notifyResizingMainWindow( int width, int height )
 	{
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( width, height );
@@ -279,6 +284,8 @@ public:
 		return sendDataToUsers( msg );
 	}
 
+	// Internal Action
+public:
 	void addPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		assert( item->itemId() > 0 );
@@ -365,6 +372,8 @@ public:
 	{
 		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
 		canvas_->clearScreen();
+
+		// all data clear
 		userItemListMap_.clear();
 		commandMngr_.clear();
 	}
@@ -401,7 +410,7 @@ private:
 		}
 
 		if( isServerMode() )
-			sendAllData( sessionId );
+			sendAllPaintData( sessionId );
 	}
 	void fireObserver_DisConnected( void )
 	{
@@ -637,7 +646,7 @@ private:
 	std::list<ISharedPaintEvent *> observers_;
 
 	// my action command
-	CSPCommandManager commandMngr_;
+	CSharedPaintCommandManager commandMngr_;
 
 	// paint item
 	IGluePaintCanvas *canvas_;
@@ -646,7 +655,6 @@ private:
 	int lastWindowWidth_;
 	int lastWindowHeight_;
 	
-
 	// network
 	CNetServiceRunner netRunner_;
 	bool serverMode_;

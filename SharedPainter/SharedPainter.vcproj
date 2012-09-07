@@ -406,15 +406,15 @@
 				Name="Command"
 				>
 				<File
-					RelativePath=".\SPCommand.cpp"
+					RelativePath=".\SharedPaintCommand.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SPCommand.h"
+					RelativePath=".\SharedPaintCommand.h"
 					>
 				</File>
 				<File
-					RelativePath=".\SPCommandManager.h"
+					RelativePath=".\SharedPaintCommandManager.h"
 					>
 				</File>
 			</Filter>

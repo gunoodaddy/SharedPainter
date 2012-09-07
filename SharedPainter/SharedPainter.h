@@ -17,16 +17,18 @@ public:
 	void setStatusBar_Network( const QString &str )
 	{
 		//ui.statusBar->showMessage( str );
-		statusBarLabel_->setText( str );
+		QString realStr = str + "  ";
+		statusBarLabel_->setText( realStr );
 	}
 	void setStatusBar_BroadCastType( const QString &str )
 	{
+		QString realStr = str + "  ";
 		//ui.statusBar->showMessage( str );
-		broadCastTypeLabel_->setText( str );
+		broadCastTypeLabel_->setText( realStr );
 	}
 	void setStatusBar_JoinerCnt( int count )
 	{
-		QString str = tr("Joiner Count : ");
+		QString str = tr("  Joiner Count : ");
 		str += QString::number(count);
 		joinerCountLabel_->setText( str );
 	}
@@ -70,9 +72,17 @@ protected slots:
 	void actionGridLine( void );
 
 private:
+	void setCheckGridLineAction( bool checked );
 	void _requestAddItem( boost::shared_ptr<CPaintItem> item );
 	QPointF _calculateTextPos( int textSize );
 	bool getBroadcastChannelString( bool force = false );
+	void changeToobarButtonColor( QPushButton *button, const QColor &clr )
+	{
+		QString s;
+		s += "background-color: " + clr.name() + ";";
+		s += "width:20; height:20;";
+		button->setStyleSheet(s);
+	}
 
 protected:
 	// ICanvasViewEvent
@@ -161,6 +171,7 @@ protected:
 
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size )
 	{
+		setCheckGridLineAction( size > 0 );
 		canvas_->drawBackgroundGridLine( size );
 	}
 
@@ -222,8 +233,10 @@ private:
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
 	QAction *penModeAction_;
+	QAction *gridLineAction_;
 	QAction *toolBar_MoveMode_;
 	QAction *toolBar_PenMode_;
+	QAction *toolBar_GridLine_;
 	QPushButton *toolBar_penColorButton_;
 	QPushButton *toolBar_bgColorButton_;
 	QProgressBar *wroteProgressBar_;

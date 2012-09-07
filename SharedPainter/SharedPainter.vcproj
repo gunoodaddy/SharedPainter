@@ -361,7 +361,7 @@
 							Name="VCCustomBuildTool"
 							Description="Rcc&apos;ing $(InputFileName)..."
 							CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-							AdditionalDependencies="$(InputPath);.\Resources\pen_mode.ico;.\Resources\move_mode.ico;.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\scheenshot.ico;.\Resources\grid_line.ico;.\Resources\bg_clear.ico;.\Resources\clear_screen.ico"
+							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\pen_mode.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png"
 							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 						/>
 					</FileConfiguration>
@@ -372,7 +372,7 @@
 							Name="VCCustomBuildTool"
 							Description="Rcc&apos;ing $(InputFileName)..."
 							CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-							AdditionalDependencies="$(InputPath);.\Resources\pen_mode.ico;.\Resources\move_mode.ico;.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\scheenshot.ico;.\Resources\grid_line.ico;.\Resources\bg_clear.ico;.\Resources\clear_screen.ico"
+							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\pen_mode.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png"
 							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 						/>
 					</FileConfiguration>
@@ -795,7 +795,47 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\bg_clear.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\clear_screen.ico"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\clear_screen.png"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -835,7 +875,47 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\grid_line.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\move_mode.ico"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\move_mode.png"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -895,6 +975,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\pen_mode.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\pen_width.png"
 				>
 				<FileConfiguration
@@ -916,6 +1016,46 @@
 			</File>
 			<File
 				RelativePath=".\Resources\scheenshot.ico"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\screenshot.ico"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\screenshot.png"
 				>
 				<FileConfiguration
 					Name="Release|Win32"

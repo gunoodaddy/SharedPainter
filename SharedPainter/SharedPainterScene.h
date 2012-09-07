@@ -62,6 +62,7 @@ public:
 
 	bool isFreePenMode( void ) { return freePenMode_; }
 
+	int backgroundGridLineSize( void ) { return gridLineSize_; }
 	int penWidth( void ) { return penWidth_; }
 	const QColor & penColor( void ) { return penClr_; }
 

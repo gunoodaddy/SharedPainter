@@ -1,12 +1,12 @@
 <RCC>
     <qresource prefix="/SharedPainter">
-        <file>Resources/pen_mode.ico</file>
-        <file>Resources/move_mode.ico</file>
         <file>Resources/pen_color.ico</file>
         <file>Resources/pen_width.png</file>
-        <file>Resources/scheenshot.ico</file>
-        <file>Resources/grid_line.ico</file>
-        <file>Resources/bg_clear.ico</file>
-        <file>Resources/clear_screen.ico</file>
+        <file>Resources/screenshot.png</file>
+        <file>Resources/grid_line.png</file>
+        <file>Resources/pen_mode.png</file>
+        <file>Resources/bg_clear.png</file>
+        <file>Resources/clear_screen.png</file>
+        <file>Resources/move_mode.png</file>
     </qresource>
 </RCC>

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stack>
-
 class CSharedPaintItemList
 {
 public:

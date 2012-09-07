@@ -235,6 +235,9 @@ public:
 			boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
 			dispatchPaintPacket( boost::shared_ptr<CPaintSession>() /*NULL*/, data );
 		}
+
+		std::string allData(data, size);
+		sendDataToUsers( allData );
 	}
 
 	std::string generateAllData( void )

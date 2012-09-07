@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'sharedpainter.ui'
 **
-** Created: Fri Sep 7 14:42:27 2012
+** Created: Fri Sep 7 18:43:44 2012
 **      by: Qt User Interface Compiler version 4.8.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -19,6 +19,7 @@
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenuBar>
 #include <QtGui/QStatusBar>
+#include <QtGui/QToolBar>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QWidget>
 
@@ -42,12 +43,13 @@ public:
     QGraphicsView *painterView;
     QMenuBar *menuBar;
     QStatusBar *statusBar;
+    QToolBar *toolBar;
 
     void setupUi(QMainWindow *SharedPainterClass)
     {
         if (SharedPainterClass->objectName().isEmpty())
             SharedPainterClass->setObjectName(QString::fromUtf8("SharedPainterClass"));
-        SharedPainterClass->resize(679, 500);
+        SharedPainterClass->resize(679, 592);
         actionConnect = new QAction(SharedPainterClass);
         actionConnect->setObjectName(QString::fromUtf8("actionConnect"));
         actionExit = new QAction(SharedPainterClass);
@@ -87,6 +89,10 @@ public:
         statusBar = new QStatusBar(SharedPainterClass);
         statusBar->setObjectName(QString::fromUtf8("statusBar"));
         SharedPainterClass->setStatusBar(statusBar);
+        toolBar = new QToolBar(SharedPainterClass);
+        toolBar->setObjectName(QString::fromUtf8("toolBar"));
+        SharedPainterClass->addToolBar(Qt::TopToolBarArea, toolBar);
+        SharedPainterClass->insertToolBarBreak(toolBar);
 
         retranslateUi(SharedPainterClass);
         QObject::connect(actionExit, SIGNAL(triggered()), SharedPainterClass, SLOT(actionExit()));
@@ -107,6 +113,7 @@ public:
         actionClient->setText(QApplication::translate("SharedPainterClass", "Client", 0, QApplication::UnicodeUTF8));
         actionBroadCastServerType->setText(QApplication::translate("SharedPainterClass", "Server", 0, QApplication::UnicodeUTF8));
         actionBroadCastClientType->setText(QApplication::translate("SharedPainterClass", "Client", 0, QApplication::UnicodeUTF8));
+        toolBar->setWindowTitle(QApplication::translate("SharedPainterClass", "toolBar", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

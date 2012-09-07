@@ -47,6 +47,8 @@ protected slots:
 	void actionPenWidth( void );
 	void actionPenColor( void );
 	void actionPenMode( void );
+	void actionFreePenMode( void );
+	void actionMoveMode( void );
 	void actionExit( void );
 	void actionConnect( void );
 	void actionScreenShot( void );
@@ -201,6 +203,10 @@ private:
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
 	QAction *penModeAction_;
+	QAction *toolBar_MoveMode_;
+	QAction *toolBar_PenMode_;
+	QPushButton *toolBar_penColorButton_;
+	QPushButton *toolBar_bgColorButton_;
 	QProgressBar *wroteProgressBar_;
 	QTimer *keyHookTimer_;
 };

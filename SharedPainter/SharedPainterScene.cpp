@@ -33,6 +33,7 @@ public:
 				scene_->onItemRemove( r );
 			}
 		}
+		T::keyPressEvent( event );
 	}
 
 	void hoverEnterEvent( QGraphicsSceneHoverEvent * event )
@@ -149,7 +150,7 @@ void CSharedPainterScene::sceneRectChanged(const QRectF &rect)
 
 void CSharedPainterScene::internalDrawGridLine( QPainter *painter, const QRectF &rect, int gridLineSize )
 {
-	painter->setPen(QPen(Qt::black, 2, Qt::SolidLine));
+	painter->setPen(QPen(QColor(102, 102, 102), 2, Qt::SolidLine));
 
 	int w = rect.width();
 	int h = rect.height();

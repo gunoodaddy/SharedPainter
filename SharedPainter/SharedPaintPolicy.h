@@ -1,8 +1,8 @@
 #pragma once 
 
-#define VERSION_TEXT	"0.5"
+#define VERSION_TEXT	"0.7"
 #define AUTHOR_TEXT		"gunoodaddy"
-#define PROGRAME_TEXT	"SharedPainter"
+#define PROGRAME_TEXT	"Shared Painter"
 
 #define NET_MAGIC_CODE	0xBE
 

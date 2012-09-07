@@ -50,6 +50,40 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		menuBar->addMenu( edit );
 	}
 
+	// create tool bar
+	{
+		toolBar_penColorButton_ = new QPushButton();
+		toolBar_penColorButton_->connect( toolBar_penColorButton_, SIGNAL(clicked()), this, SLOT(actionPenColor()) );
+		toolBar_penColorButton_->setToolTip( tr("Pen Color") );
+		//toolBar_penColorButton_->setGeometry(0, 0,  10, 10 );
+		//toolBar_penColorButton_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+		toolBar_bgColorButton_ = new QPushButton();
+		toolBar_bgColorButton_->connect( toolBar_bgColorButton_, SIGNAL(clicked()), this, SLOT(actionBGColor()) );
+		toolBar_bgColorButton_->setToolTip( tr("Background Color") );
+
+
+		toolBar_MoveMode_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/move_mode.ico"), "Move", this, SLOT(actionMoveMode()) );
+		toolBar_PenMode_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_mode.ico"), "Pen", this, SLOT(actionFreePenMode()) );
+		ui.toolBar->addSeparator();
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width.png"), "Pen Width", this, SLOT(actionPenWidth()) );
+		ui.toolBar->addWidget( toolBar_penColorButton_ );
+		ui.toolBar->addSeparator();
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/scheenshot.ico"), "Screen Shot", this, SLOT(actionScreenShot()) );
+		ui.toolBar->addWidget( toolBar_bgColorButton_ );
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/grid_line.ico"), "Grid Line", this, SLOT(actionGridLine()) );
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/bg_clear.ico"), "Clear Background", this, SLOT(actionClearBG()) );
+		ui.toolBar->addSeparator();
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.ico"), "Clear Background", this, SLOT(actionClearScreen()) );
+
+		toolBar_MoveMode_->setCheckable( true );
+		toolBar_PenMode_->setCheckable( true );
+
+		QString s = "background-color: ";
+		toolBar_penColorButton_->setStyleSheet(s + canvas_->penColor().name());
+		toolBar_bgColorButton_->setStyleSheet(s + QColor(Qt::white).name());
+	}
+
 	// create status bar
 	{
 		statusBarLabel_ = new QLabel();
@@ -71,8 +105,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	setCursor( Qt::ArrowCursor ); 
 
 	// Pen mode activated..
-	penModeAction_->setChecked( true );
-	actionPenMode();
+	actionFreePenMode();
 
 	// Key Hooking Timer 
 	keyHookTimer_ = new QTimer(this);
@@ -170,6 +203,9 @@ void SharedPainter::actionBGColor( void )
 	LAST_COLOR = clr;
 
 	SharePaintManagerPtr()->setBackgroundColor( clr.red(), clr.green(), clr.blue(), clr.alpha() );
+
+	QString s = "background-color: ";
+	toolBar_bgColorButton_->setStyleSheet(s + clr.name());
 }
 
 void SharedPainter::actionConnect( void )
@@ -309,20 +345,45 @@ void SharedPainter::actionPenWidth( void )
 
 void SharedPainter::actionPenColor( void )
 {
-	QColor clr = QColorDialog::getColor(canvas_->penColor(), this, tr("Pen Color"));
+	QColor clr = QColorDialog::getColor( canvas_->penColor(), this, tr("Pen Color") );
+
+	if( !clr.isValid() )
+		return;
 
 	canvas_->setPenSetting( clr, canvas_->penWidth() );
+
+	QString s = "background-color: ";
+	toolBar_penColorButton_->setStyleSheet(s + clr.name());
 }
+
+void SharedPainter::actionFreePenMode( void )
+{
+	toolBar_MoveMode_->setChecked( false );
+	toolBar_PenMode_->setChecked( true );
+
+	penModeAction_->setChecked( true );
+	canvas_->setFreePenMode( true );
+}
+
+void SharedPainter::actionMoveMode( void )
+{
+	toolBar_MoveMode_->setChecked( true );
+	toolBar_PenMode_->setChecked( false );
+
+	penModeAction_->setChecked( false );
+	canvas_->setFreePenMode( false );
+}
+
 
 void SharedPainter::actionPenMode( void )
 {
 	if( penModeAction_->isChecked() )
 	{
-		canvas_->setFreePenMode( true );
+		actionFreePenMode();
 	}
 	else
 	{
-		canvas_->setFreePenMode( false );
+		actionMoveMode();
 	}
 }
 

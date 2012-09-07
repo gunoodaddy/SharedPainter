@@ -25,6 +25,9 @@ void TextItemDialog::clickedColorButton( void )
 {
 	clr_ = QColorDialog::getColor( clr_, this, tr("Pen Color"));
 
+	if( !clr_.isValid() )
+		return;
+
 	changeColor( clr_ );
 
 }
@@ -54,7 +57,6 @@ void TextItemDialog::clickedOkButton( void )
 void TextItemDialog::changeColor( const QColor &color )
 {
 	clr_ = color;
-
 	QString s = "background-color: ";
 	ui.clrButton->setStyleSheet(s + color.name());
 }

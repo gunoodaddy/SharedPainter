@@ -39,9 +39,11 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::CTRL+Qt::Key_A );
 		penModeAction_->setCheckable( true );
 		edit->addAction( "&Text", this, SLOT(actionAddText()), Qt::Key_Enter|Qt::Key_Return );
+		edit->addAction( "&Draw Grid Line", this, SLOT(actionGridLine()));
+		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_C );
 		edit->addAction( "&Screen Shot", this, SLOT(actionScreenShot()), Qt::CTRL+Qt::Key_S );
 		edit->addSeparator();
-		edit->addAction( "Clear &Background Image", this, SLOT(actionClearBGImage()), Qt::CTRL+Qt::Key_B );
+		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
 		edit->addSeparator();
 		edit->addAction( "&Undo", this, SLOT(actionUndo()), Qt::CTRL+Qt::Key_Z );
@@ -154,6 +156,20 @@ bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 void SharedPainter::actionExit( void )
 {
 	close();
+}
+
+void SharedPainter::actionGridLine( void )
+{
+	SharePaintManagerPtr()->setBackgroundGridLine( 30 );
+}
+
+void SharedPainter::actionBGColor( void )
+{
+	static QColor LAST_COLOR = Qt::white;
+	QColor clr = QColorDialog::getColor(LAST_COLOR, this, tr("Pen Color"));
+	LAST_COLOR = clr;
+
+	SharePaintManagerPtr()->setBackgroundColor( clr.red(), clr.green(), clr.blue(), clr.alpha() );
 }
 
 void SharedPainter::actionConnect( void )
@@ -318,9 +334,9 @@ void SharedPainter::actionScreenShot( void )
 }
 
 
-void SharedPainter::actionClearBGImage( void )
+void SharedPainter::actionClearBG( void )
 {
-	SharePaintManagerPtr()->clearBackgroundImage();
+	SharePaintManagerPtr()->clearBackground();
 }
 
 void SharedPainter::actionClearScreen( void )

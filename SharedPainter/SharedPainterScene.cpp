@@ -128,8 +128,9 @@ private:
 
 
 CSharedPainterScene::CSharedPainterScene(void )
-: eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL)
+: eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
 {
+	backgroundColor_ = Qt::white;
 	penClr_ = Qt::blue;
 	penWidth_ = 2;
 
@@ -146,12 +147,45 @@ void CSharedPainterScene::sceneRectChanged(const QRectF &rect)
 	resetBackground( rect );
 }
 
+void CSharedPainterScene::internalDrawGridLine( QPainter *painter, const QRectF &rect, int gridLineSize )
+{
+	painter->setPen(QPen(Qt::black, 2, Qt::SolidLine));
+
+	int w = rect.width();
+	int h = rect.height();
+
+	// vertical line
+	int x = gridLineSize;
+	for( ; x < w; x += gridLineSize )
+	{
+		painter->drawLine( x, 0, x, h);
+	}
+	
+	// horizontal line
+	int y = gridLineSize;
+	for( ; y < h; y += gridLineSize )
+	{
+		painter->drawLine( 0, y, w, y);
+	}
+}
+
 void CSharedPainterScene::resetBackground( const QRectF &rect )
 {
 	QImage newImage(rect.toRect().size(), QImage::Format_RGB32);
-    newImage.fill(qRgb(255, 255, 255));
-    QPainter painter(&newImage);
-    painter.drawPixmap(QPoint(0, 0), backgroundPixmap_);
+    newImage.fill(backgroundColor_);
+    
+	QPainter painter(&newImage);
+
+	// draw image
+	if( ! backgroundPixmap_.isNull() )
+		painter.drawPixmap(QPoint(0, 0), backgroundPixmap_);
+
+	// draw grid line
+	if( gridLineSize_ > 0 )
+	{
+		internalDrawGridLine( &painter, rect, gridLineSize_ );
+	}
+
 	image_ = newImage;	
 
 	invalidate( QRectF(), QGraphicsScene::BackgroundLayer );
@@ -190,7 +224,6 @@ void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileIte
 		newH = (pixmap.height() * DEFAULT_PIXMAP_ITEM_SIZE_W) / pixmap.width();
 	}
 
-	//qDebug() << "setScaleImageFileItem" << newW << newH << image->scale()<< newW * image->scale() << newH * image->scale();
 	newW *= image->scale();
 	newH *= image->scale();
 
@@ -253,6 +286,14 @@ void CSharedPainterScene::drawSendingStatus( boost::shared_ptr<CPaintItem> item 
 	// TODO
 	// How make progress bar and handle it??
 	// ....
+}
+
+
+void CSharedPainterScene::drawBackgroundGridLine( int size )
+{
+	gridLineSize_ = size;
+
+	resetBackground( sceneRect() );
 }
 
 
@@ -347,6 +388,13 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 	}
 
 	invalidate( invalidateRect );
+}
+
+
+void CSharedPainterScene::setBackgroundColor( int r, int g, int b, int a )
+{
+	backgroundColor_ = QColor(r, g, b, a);
+	resetBackground( sceneRect () );	
 }
 
 void CSharedPainterScene::clearBackgroundImage( void )

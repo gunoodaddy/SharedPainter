@@ -44,7 +44,7 @@ static std::string getMyIPAddress( void )
 }
 
 CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1), serverMode_(false)
-, lastWindowWidth_(0), lastWindowHeight_(0)
+, lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
 	// default generate my id
@@ -56,6 +56,8 @@ CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1),
 
 	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
 	myUserInfo_->loadData( data );
+
+	backgroundColor_ = Qt::white;
 }
 
 CSharedPaintManager::~CSharedPaintManager(void)
@@ -161,10 +163,10 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ClearScreen, this ) );
 		}
 		break;
-	case CODE_PAINT_CLEAR_BG_IMAGE:
+	case CODE_PAINT_CLEAR_BG:
 		{
 			PaintPacketBuilder::CClearScreen::parse( packetData->body );	// nothing to do..
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ClearBackgroundImage, this ) );
+			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ClearBackground, this ) );
 		}
 		break;
 	case CODE_PAINT_SET_BG_IMAGE:
@@ -173,6 +175,24 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SetBackgroundImage, this, image ) );
 		}
 		break;
+	case CODE_PAINT_SET_BG_GRID_LINE:
+		{
+			int size;
+			if( PaintPacketBuilder::CSetBackgroundGridLine::parse( packetData->body, size ) )
+			{
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SetBackgroundGridLine, this, size ) );
+			}
+		}
+		break;
+	case CODE_PAINT_SET_BG_COLOR:
+		{
+			int r, g, b, a;
+			if( PaintPacketBuilder::CSetBackgroundColor::parse( packetData->body, r, g, b, a ) )
+			{
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SetBackgroundColor, this, r, g, b, a ) );
+			}
+		}
+		break;	
 	case CODE_PAINT_ADD_ITEM:
 		{
 			boost::shared_ptr<CPaintItem> item = PaintPacketBuilder::CAddItem::parse( packetData->body );

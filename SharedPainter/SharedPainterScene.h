@@ -76,13 +76,17 @@ public:
 	virtual void drawFile( boost::shared_ptr<CFileItem> file );
 	virtual void drawText( boost::shared_ptr<CTextItem> text );
 	virtual void drawImage( boost::shared_ptr<CImageFileItem> image );
+	virtual void drawBackgroundGridLine( int size );
 	virtual void drawBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image );
 	virtual void clearBackgroundImage( void );
 	virtual void clearScreen( void )
 	{
+		gridLineSize_ = 0;
+		backgroundColor_ = Qt::white;
 		currentZValue_ = ZVALUE_NORMAL;
 		clearBackgroundImage();
 	}
+	virtual void setBackgroundColor( int r, int g, int b, int a );
 
 private slots:
 	void sceneRectChanged(const QRectF &rect);
@@ -118,6 +122,7 @@ private:
 	void drawLineTo( const QPointF &pt1, const QPointF &pt2, const QColor &clr, int width );
 	void setScaleImageFileItem( boost::shared_ptr<CImageFileItem> image, QGraphicsPixmapItem *pixmapItem );
 	void commonAddItem( QGraphicsItem *item );
+	void internalDrawGridLine( QPainter *painter, const QRectF &rect, int gridLineSize );
 
 	inline void fireEvent_DrawItem( boost::shared_ptr<CPaintItem> item )
 	{
@@ -143,6 +148,8 @@ private:
 	QFileIconProvider fileIconProvider_;
 	qreal currentZValue_;
 	qreal currentLineZValue_;
+	QColor backgroundColor_;
+	int gridLineSize_;
 };
 
 #endif // CSHAREDPAINTERSCENE_H

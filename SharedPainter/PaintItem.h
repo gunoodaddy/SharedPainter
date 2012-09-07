@@ -81,7 +81,6 @@ class IGluePaintCanvas
 {
 public:
 	virtual void drawSendingStatus( boost::shared_ptr<CPaintItem> item ) = 0;
-	virtual void drawBackgroundImage( boost::shared_ptr<CBackgroundImageItem> line ) = 0;
 	virtual void drawLine( boost::shared_ptr<CLineItem> line ) = 0;
 	virtual void drawFile( boost::shared_ptr<CFileItem> file ) = 0;
 	virtual void drawText( boost::shared_ptr<CTextItem> text ) = 0;
@@ -92,6 +91,9 @@ public:
 	virtual void updateItem( boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void clearBackgroundImage( void ) = 0;
 	virtual void clearScreen( void ) = 0;
+	virtual void setBackgroundColor( int r, int g, int b, int a ) = 0;
+	virtual void drawBackgroundGridLine( int size ) = 0;
+	virtual void drawBackgroundImage( boost::shared_ptr<CBackgroundImageItem> line ) = 0;
 };
 
 struct SPaintData

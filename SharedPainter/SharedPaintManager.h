@@ -36,8 +36,10 @@ public:
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
+	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
+	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size ) = 0;
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self ) = 0;
-	virtual void onISharedPaintEvent_ClearBackgroundImage( CSharedPaintManager *self ) = 0;
+	virtual void onISharedPaintEvent_ClearBackground( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 };
 
@@ -221,7 +223,15 @@ public:
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_ );
 		allData += msg;
 
-		// Back Ground Image
+		// Background Grid Line
+		if( gridLineSize_ > 0 )
+			allData += PaintPacketBuilder::CSetBackgroundGridLine::make( gridLineSize_ );
+
+		// Background Color
+		if( backgroundColor_ != Qt::white )
+			allData += PaintPacketBuilder::CSetBackgroundColor::make( backgroundColor_.red(), backgroundColor_.green(), backgroundColor_.blue(), backgroundColor_.alpha() );
+
+		// Background Image
 		if( backgroundImageItem_ )
 			allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
 		
@@ -255,22 +265,30 @@ public:
 
 		backgroundImageItem_ = image;
 
-		canvas_->drawBackgroundImage( image );
-
-		if( isConnected() == false )
-			return -1;
+		fireObserver_SetBackgroundImage( image );
 
 		std::string msg = PaintPacketBuilder::CSetBackgroundImage::make( image );
-		return sendDataToUsers( msg );
+		int packetId = sendDataToUsers( msg );
+		return packetId;
 	}
 
-	void clearBackgroundImage( void )
+	void setBackgroundColor( int r, int g, int b, int a )
 	{
-		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
-		canvas_->clearBackgroundImage();
-
-		std::string msg = PaintPacketBuilder::CClearBackgroundImage::make();
+		std::string msg = PaintPacketBuilder::CSetBackgroundColor::make( r, g, b, a );
 		sendDataToUsers( msg );
+
+		fireObserver_SetBackgroundColor( r, g, b, a );
+	}
+
+	void clearBackground( void )
+	{
+		// data init..
+		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
+
+		std::string msg = PaintPacketBuilder::CClearBackground::make();
+		sendDataToUsers( msg );
+
+		fireObserver_ClearBackground();
 	}
 
 	void clearScreen( void )
@@ -278,6 +296,14 @@ public:
 		clearAllItems();
 
 		std::string msg = PaintPacketBuilder::CClearScreen::make();
+		sendDataToUsers( msg );
+	}
+
+	void setBackgroundGridLine( int size )
+	{
+		fireObserver_SetBackgroundGridLine( size );
+
+		std::string msg = PaintPacketBuilder::CSetBackgroundGridLine::make( size );
 		sendDataToUsers( msg );
 	}
 	
@@ -639,14 +665,14 @@ private:
 			(*it)->onISharedPaintEvent_ClearScreen( this );
 		}
 	}
-	void fireObserver_ClearBackgroundImage( void )
+	void fireObserver_ClearBackground( void )
 	{
 		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>(); // clear
 
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
-			(*it)->onISharedPaintEvent_ClearBackgroundImage( this );
+			(*it)->onISharedPaintEvent_ClearBackground( this );
 		}
 	}
 	void fireObserver_SetBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image )
@@ -657,6 +683,26 @@ private:
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_SetBackgroundImage( this, image );
+		}
+	}
+	void fireObserver_SetBackgroundColor( int r, int g, int b, int a )
+	{
+		backgroundColor_ = QColor(r, g, b, a);
+
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_SetBackgroundColor( this, r, g, b, a );
+		}
+	}
+	void fireObserver_SetBackgroundGridLine( int size )
+	{
+		gridLineSize_ = size;
+
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_SetBackgroundGridLine( this, size );
 		}
 	}
 	void fireObserver_GetServerInfo( const std::string &broadcastChannel, const std::string &addr, int port )
@@ -853,6 +899,8 @@ private:
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 	int lastWindowWidth_;
 	int lastWindowHeight_;
+	QColor backgroundColor_;
+	int gridLineSize_;
 
 	// user management
 	boost::recursive_mutex mutexUser_;

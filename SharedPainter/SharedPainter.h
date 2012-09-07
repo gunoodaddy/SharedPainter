@@ -40,7 +40,8 @@ public:
 protected slots:
 	void onTimer( void );
 	void actionBroadcastChannel( void );
-	void actionClearBGImage( void );
+	void actionClearBG( void );
+	void actionBGColor( void );
 	void actionAddText( void );
 	void actionClearScreen( void );
 	void actionPenWidth( void );
@@ -52,6 +53,7 @@ protected slots:
 	void actionUndo( void );
 	void actionServerType( void );
 	void actionClientType( void );
+	void actionGridLine( void );
 
 private:
 	void _requestAddItem( boost::shared_ptr<CPaintItem> item );
@@ -136,13 +138,25 @@ protected:
 		self->clearAllItems();
 	}
 
+	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size )
+	{
+		canvas_->drawBackgroundGridLine( size );
+	}
+
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) 
 	{
 		canvas_->drawBackgroundImage( image );
 	}
 
-	virtual void onISharedPaintEvent_ClearBackgroundImage( CSharedPaintManager *self )
+	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a )
 	{
+		canvas_->setBackgroundColor( r, g, b, a );
+	}
+
+	virtual void onISharedPaintEvent_ClearBackground( CSharedPaintManager *self )
+	{
+		canvas_->drawBackgroundGridLine( 0 );
+		canvas_->setBackgroundColor( 255, 255, 255, 255 );
 		canvas_->clearBackgroundImage();
 	}
 

@@ -17,7 +17,7 @@ class CNetPeerServer : public boost::enable_shared_from_this<CNetPeerServer>
 public:
 	CNetPeerServer( boost::asio::io_service &io_service ) : evtTarget_(NULL), io_service_(io_service), acceptor_(io_service)
 	{
-		qDebug() << "~CNetPeerServer()" << this;
+		qDebug() << "CNetPeerServer()" << this;
 	}
 
 	~CNetPeerServer(void)

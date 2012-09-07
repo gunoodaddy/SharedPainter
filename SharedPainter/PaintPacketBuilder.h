@@ -6,6 +6,88 @@
 
 namespace PaintPacketBuilder
 {
+	class CSetBackgroundGridLine
+	{
+	public:
+		static std::string make( int size )
+		{		
+			std::string data;
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::writeInt16( data, pos, size, true );
+
+				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_GRID_LINE, data );
+			}catch(...)
+			{
+			}
+
+			return "";
+		}
+
+		static bool parse( const std::string &body, int &size )
+		{		
+			int pos = 0;
+			try
+			{
+				boost::int16_t s;
+				pos += CPacketBufferUtil::readInt16( body, pos, s, true );
+
+				size = s;
+				return true;
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
+
+	class CSetBackgroundColor
+	{
+	public:
+		static std::string make( int r, int g, int b, int a )
+		{		
+			std::string data;
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::writeInt16( data, pos, r, true );
+				pos += CPacketBufferUtil::writeInt16( data, pos, g, true );
+				pos += CPacketBufferUtil::writeInt16( data, pos, b, true );
+				pos += CPacketBufferUtil::writeInt16( data, pos, a, true );
+
+				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_COLOR, data );
+			}catch(...)
+			{
+			}
+
+			return "";
+		}
+
+		static bool parse( const std::string &body, int &r, int &g, int &b, int &a )
+		{		
+			int pos = 0;
+			try
+			{
+				boost::int16_t rr, gg, bb, aa;
+				pos += CPacketBufferUtil::readInt16( body, pos, rr, true );
+				pos += CPacketBufferUtil::readInt16( body, pos, gg, true );
+				pos += CPacketBufferUtil::readInt16( body, pos, bb, true );
+				pos += CPacketBufferUtil::readInt16( body, pos, aa, true );
+
+				r = rr;
+				g = gg;
+				b = bb;
+				a = aa;
+				return true;
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
 	class CSetBackgroundImage
 	{
 	public:
@@ -45,7 +127,7 @@ namespace PaintPacketBuilder
 		}
 	};
 
-	class CClearBackgroundImage
+	class CClearBackground
 	{
 	public:
 		static std::string make( void )
@@ -54,7 +136,7 @@ namespace PaintPacketBuilder
 			try
 			{
 				std::string body;
-				return CommonPacketBuilder::makePacket( CODE_PAINT_CLEAR_BG_IMAGE, body );
+				return CommonPacketBuilder::makePacket( CODE_PAINT_CLEAR_BG, body );
 			}catch(...)
 			{
 

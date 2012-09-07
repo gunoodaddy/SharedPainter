@@ -28,6 +28,7 @@ public:
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes ) = 0;
+	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_AddPaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onISharedPaintEvent_UpdatePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item ) = 0;
@@ -721,7 +722,14 @@ private:
 			(*it)->onISharedPaintEvent_UpdatePaintUser( this, user );
 		}
 	}
-
+	void fireObserver_ReceivedPacket( void )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ReceivedPacket( this );
+		}
+	}
 	// delaying remove session feature
 private:
 	void _delayedRemoveSession( int sessionId )
@@ -797,6 +805,8 @@ protected:
 	virtual void onIPaintSessionEvent_ReceivedPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CPacketData> data )
 	{
 		dispatchPaintPacket( session, data );
+
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedPacket, this ) );
 
 		if( isServerMode() )
 		{

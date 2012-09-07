@@ -36,6 +36,18 @@ public:
 	void showEvent ( QShowEvent * evt );
 	void resizeEvent( QResizeEvent *evt );
 	bool eventFilter(QObject *object, QEvent *event);
+	void changeEvent ( QEvent * event )
+	{
+		if( event->type() == QEvent::ActivationChange )
+		{
+			if( isActiveWindow() )
+			{
+#ifdef Q_WS_WIN
+				::FlashWindow( winId(), FALSE);
+#endif
+			}
+		}
+	}
 	
 protected slots:
 	void onTimer( void );
@@ -87,6 +99,13 @@ protected:
 	{
 		qDebug() << "@@@@@@@@@@@@@@@@@@@ Disconnected";
 		setStatusBar_Network("Disconnected");
+	}
+
+	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self )
+	{
+#ifdef Q_WS_WIN
+		::FlashWindow( winId(), TRUE);
+#endif
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )

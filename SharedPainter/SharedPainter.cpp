@@ -28,6 +28,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
 		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
 		file->addSeparator();
+		file->addAction( "&Import from file", this, SLOT(actionImportFile()), Qt::CTRL+Qt::Key_I );
+		file->addAction( "&Export to file", this, SLOT(actionExportFile()),  Qt::CTRL+Qt::Key_E );
+		file->addSeparator();
 		file->addAction( "E&xit", this, SLOT(actionExit()), Qt::CTRL+Qt::Key_Q );
 		menuBar->addMenu( file );
 
@@ -195,6 +198,55 @@ void SharedPainter::setCheckGridLineAction( bool checked )
 {
 	toolBar_GridLine_->setChecked( checked );
 	gridLineAction_->setChecked( checked );
+}
+
+void SharedPainter::actionImportFile( void )
+{
+	QString path;
+
+	path = QFileDialog::getOpenFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );
+
+	if( path.isEmpty() )
+		return;
+
+	QFile f(path);
+	if( !f.open( QIODevice::ReadOnly ) )
+	{
+		QMessageBox::warning( this, "", tr("cannot open file.") );
+		return;
+	}
+
+	QByteArray byteArray;
+	byteArray = f.readAll();
+
+	SharePaintManagerPtr()->loadData( byteArray.data(), byteArray.size() );
+}
+
+
+void SharedPainter::actionExportFile( void )
+{
+	std::string allData = SharePaintManagerPtr()->generateAllData();
+	QString path;
+
+	path = QFileDialog::getSaveFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );
+
+	if( path.isEmpty() )
+		return;
+
+	QFile f(path);
+	if( !f.open( QIODevice::WriteOnly ) )
+	{
+		QMessageBox::warning( this, "", tr("cannot open file.") );
+		return;
+	}
+
+	QDataStream out(&f);
+	int ret = out.writeRawData( allData.c_str(), allData.size() );
+	if( ret != allData.size() )
+	{
+		QMessageBox::warning( this, "", tr("failed to save.") );
+		return;
+	}
 }
 
 void SharedPainter::actionGridLine( void )

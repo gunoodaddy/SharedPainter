@@ -327,10 +327,10 @@ public:
 			QByteArray temp( pixmapBuf.c_str(), pixmapBuf.size() );
 			byteArray_ = temp;
 
-			qDebug() << "########## !!!!!!!!!!!!! loadData : " << byteArray_.size() << pixmapBuf.size() ;
+			//qDebug() << "########## !!!!!!!!!!!!! loadData : " << byteArray_.size() << pixmapBuf.size() ;
 
-			HexDump(  pixmapBuf.c_str() + 10000, 50 );
-			HexDump(  byteArray_.data() + 10000, 50 );
+			//HexDump(  pixmapBuf.c_str() + 10000, 50 );
+			//HexDump(  byteArray_.data() + 10000, 50 );
 
 		} catch(CPacketException &e) {
 			(void)e;

@@ -222,11 +222,23 @@ public:
 		commandMngr_.undoCommand();
 	}
 
-	void sendAllSyncData( int toSessionId )
+	void loadData( const char * data, size_t size )
 	{
-		if( isServerMode() == false )
+		CPacketSlicer slicer;
+		slicer.addBuffer( data, size );
+
+		if( slicer.parse() == false )
 			return;
 
+		for( size_t i = 0; i < slicer.parsedItemCount(); i++ )
+		{
+			boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
+			dispatchPaintPacket( boost::shared_ptr<CPaintSession>() /*NULL*/, data );
+		}
+	}
+
+	std::string generateAllData( void )
+	{
 		std::string allData;
 
 		// User Info
@@ -260,6 +272,15 @@ public:
 				allData += msg;
 			}
 		}
+		return allData;
+	}
+
+	void sendAllSyncData( int toSessionId )
+	{
+		if( isServerMode() == false )
+			return;
+
+		std::string allData = generateAllData();
 
 		sendDataToUsers( allData, toSessionId );
 		

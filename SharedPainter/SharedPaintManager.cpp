@@ -135,7 +135,7 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 	broadCastSession_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 }
 
-
+// this function need to check session pointer null check!
 void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData )
 {
 	switch( packetData->code )
@@ -143,7 +143,8 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 	case CODE_SYSTEM_JOIN:
 		{
 			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerUser::parse( packetData->body );
-			user->setSessionId( session->sessionId() );
+			if( session )
+				user->setSessionId( session->sessionId() );
 
 			addUser( user );
 		}

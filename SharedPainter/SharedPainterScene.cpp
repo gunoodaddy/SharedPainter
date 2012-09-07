@@ -420,9 +420,7 @@ void CSharedPainterScene::drawBackgroundImage( boost::shared_ptr<CBackgroundImag
 		return;
 	}
 
-	QPainter painter(&image_);
-	painter.drawPixmap( 0, 0, backgroundPixmap_ );
-	invalidate( QRectF(), QGraphicsScene::BackgroundLayer );
+	resetBackground( sceneRect () );
 }
 
 void CSharedPainterScene::drawLineStart( const QPointF &pt, const QColor &clr, int width )

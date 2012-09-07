@@ -70,6 +70,8 @@ protected slots:
 	void actionServerType( void );
 	void actionClientType( void );
 	void actionGridLine( void );
+	void actionImportFile( void );
+	void actionExportFile( void );
 
 private:
 	void setCheckGridLineAction( bool checked );

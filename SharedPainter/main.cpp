@@ -14,8 +14,6 @@ int main(int argc, char *argv[])
 	SharedPainter w(scene);
 	w.show();
 
-	CSingleton<CSettingManager>::Instance();
-
 	int res = a.exec();
 	return res;
 

@@ -5,7 +5,7 @@
 
 namespace SystemPacketBuilder
 {
-	class CJoin
+	class CJoinerUser
 	{
 	public:
 		static std::string make( boost::shared_ptr<CPaintUser> user )
@@ -28,7 +28,7 @@ namespace SystemPacketBuilder
 			int pos = 0;
 			try
 			{
-				struct SUserInfoData userInfo;
+				struct SPaintUserInfoData userInfo;
 				pos += CPacketBufferUtil::readString8( body, pos, userInfo.userId );
 
 				boost::shared_ptr<CPaintUser> user = boost::shared_ptr<CPaintUser>(new CPaintUser);
@@ -39,6 +39,39 @@ namespace SystemPacketBuilder
 			{
 			}
 			return boost::shared_ptr<CPaintUser>();
+		}
+	};
+
+	class CLeftUser
+	{
+	public:
+		static std::string make( const std::string &userId )
+		{
+			int pos = 0;
+			try
+			{
+				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, userId );
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_LEFT, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::string &userId )
+		{
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::readString8( body, pos, userId );
+				return true;
+
+			}catch(...)
+			{
+			}
+			return false;
 		}
 	};
 };

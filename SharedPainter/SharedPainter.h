@@ -14,15 +14,21 @@ public:
 	SharedPainter(CSharedPainterScene* canvas, QWidget *parent = 0, Qt::WFlags flags = 0);
 	~SharedPainter();
 
-	void setStatusText( const QString &str )
+	void setStatusBar_Network( const QString &str )
 	{
 		//ui.statusBar->showMessage( str );
 		statusBarLabel_->setText( str );
 	}
-	void setBroadCastTypeText( const QString &str )
+	void setStatusBar_BroadCastType( const QString &str )
 	{
 		//ui.statusBar->showMessage( str );
 		broadCastTypeLabel_->setText( str );
+	}
+	void setStatusBar_JoinerCnt( int count )
+	{
+		QString str = tr("Joiner Count : ");
+		str += QString::number(count);
+		joinerCountLabel_->setText( str );
 	}
 
 	void closeEvent( QCloseEvent *evt );
@@ -64,19 +70,19 @@ protected:
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self )
 	{
 		qDebug() << "@@@@@@@@@@@@@@@@@@@ Connected";
-		setStatusText("Connected");
+		setStatusBar_Network("Connected");
 	}
 
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self )
 	{
 		qDebug() << "@@@@@@@@@@@@@@@@@@@ Connect Fail";
-		setStatusText("Connect Failure");
+		setStatusBar_Network("Connect Failure");
 	}
 
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self )
 	{
 		qDebug() << "@@@@@@@@@@@@@@@@@@@ Disconnected";
-		setStatusText("Disconnected");
+		setStatusBar_Network("Disconnected");
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
@@ -161,6 +167,12 @@ protected:
 		}
 	}
 
+	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
+	{
+		setStatusBar_JoinerCnt( self->userCount() );
+	}
+
+
 private:
 	Ui::SharedPainterClass ui;
 
@@ -173,6 +185,7 @@ private:
 	QPoint orgPos_;
 	QLabel *broadCastTypeLabel_;
 	QLabel *statusBarLabel_;
+	QLabel *joinerCountLabel_;
 	QAction *penModeAction_;
 	QProgressBar *wroteProgressBar_;
 	QTimer *keyHookTimer_;

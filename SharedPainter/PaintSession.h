@@ -27,6 +27,7 @@ public:
 	
 	~CPaintSession(void) 
 	{
+		session_->close();
 		session_->setEvent( NULL );
 		qDebug() << "~CPaintSession(void) " << this;
 	}
@@ -34,6 +35,11 @@ public:
 	int sessionId( void )
 	{
 		return session_->sessionId();
+	}
+
+	void close( void )
+	{
+		session_->close();
 	}
 
 	boost::shared_ptr<CNetPeerSession> session( void )

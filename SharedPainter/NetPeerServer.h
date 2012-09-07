@@ -70,8 +70,6 @@ private:
 	{
 		if( !error )
 		{
-			new_session->start();
-
 			if( evtTarget_ )
 				evtTarget_->onINetPeerServerEvent_Accepted( shared_from_this(), new_session );
 

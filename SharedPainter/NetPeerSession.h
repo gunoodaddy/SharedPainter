@@ -71,7 +71,13 @@ public:
 
 	void close( void )
 	{
-		clientsocket_.close();
+		// safe close for thread race condition..
+		{
+			boost::recursive_mutex::scoped_lock autolock(mutex_);
+
+			if( clientsocket_.is_open() )
+				clientsocket_.close();
+		}
 
 		if( connected_ )
 		{
@@ -112,9 +118,7 @@ public:
 	{
 		connected_ = true;
 		deadline_.cancel();
-
 		fireConnectSuccessEvent();
-
 		// Start the input actor.
 		_start_read();
 	}
@@ -123,8 +127,6 @@ public:
 	{
 		if (endpoint_iter != tcp::resolver::iterator())
 		{
-			std::cout << "Trying " << endpoint_iter->endpoint() << "...\n";
-
 			// Set a deadline for the connect operation.
 			deadline_.expires_from_now(boost::posix_time::seconds(60));
 
@@ -134,6 +136,7 @@ public:
 			clientsocket_.async_connect(endpoint_iter->endpoint(),
 				boost::bind(&CNetPeerSession::_handle_connect,
 				shared_from_this(), _1, endpoint_iter));
+
 		}
 		else
 		{
@@ -223,8 +226,6 @@ public:
 
 	void _handle_write( const boost::system::error_code& ec )
 	{
-		boost::recursive_mutex::scoped_lock autolock(mutex_);
-	
 		// the asynchronous read operation has now completed or failed and returned an error
 		if(!ec)
 		{
@@ -232,12 +233,14 @@ public:
 
 			fireSendingEvent( packet );
 
+			mutex_.lock();
 			if(packet->buffer().remainingSize() <= 0)
 				write_buffer_list_.pop_front();
-
+			
 			// write completed, so send next write data
 			if( !write_buffer_list_.empty() ) // if there is anthing left to be written
 				_start_write(); // then start sending the next item in the buffer
+			mutex_.unlock();
 		}
 		else
 			close();

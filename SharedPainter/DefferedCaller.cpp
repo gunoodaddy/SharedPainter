@@ -34,13 +34,28 @@ void CDefferedCaller::performMainThread( deferredMethod_t func )
 void CDefferedCaller::customEvent(QEvent* e)
 {
 	mutex_.lock();
+	std::list<deferredMethod_t> methods = deferredMethods_;
+	mutex_.unlock();
 
-	for(size_t i = 0; i < deferredMethods_.size(); i++) 
+	// MUST be lock-free status..
+	for( std::list<deferredMethod_t>::iterator it = methods.begin(); it != methods.end(); it++) 
 	{
-		deferredMethods_[i]();
+		(*it)();
+	}
+
+	mutex_.lock();
+	if( methods.size() < deferredMethods_.size() )
+	{
+		int cnt = methods.size();
+		while( --cnt >= 0 )
+			deferredMethods_.pop_front();
+
+		mutex_.unlock();
+
+		CDefferedCaller::customEvent(e);	// recursive
+		return;
 	}
 
 	deferredMethods_.clear();
-
 	mutex_.unlock();
 }

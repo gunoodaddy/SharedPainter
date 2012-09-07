@@ -1,6 +1,6 @@
 #pragma once
 
-struct SUserInfoData
+struct SPaintUserInfoData
 {
 	std::string userId;
 };
@@ -11,10 +11,13 @@ public:
 	CPaintUser( void ) { }
 	~CPaintUser( void ) { }
 
-	void loadData( const struct SUserInfoData &info ) { data_ = info; }
+	void setSessionId( int sessionId ) { sessionId_ = sessionId; }
+	int sessionId( void ) { return sessionId_; }
+	void loadData( const struct SPaintUserInfoData &info ) { data_ = info; }
 
 	const std::string &userId( void ) { return data_.userId; }
 
 private:
-	SUserInfoData data_;
+	int sessionId_;
+	SPaintUserInfoData data_;
 };

@@ -2,6 +2,7 @@
 
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/function.hpp>
+#include <boost/thread.hpp>
 #include <QObject>
 #include <QCustomEvent>
 #include "Singleton.h"
@@ -23,7 +24,7 @@ private:
 	void customEvent(QEvent* e);
 
 private:
-	std::vector<deferredMethod_t> deferredMethods_;
+	std::list<deferredMethod_t> deferredMethods_;
 	boost::recursive_mutex mutex_;
 	static boost::thread::id mainThreadId_;
 };

@@ -18,10 +18,9 @@ public:
 
 	boost::asio::io_service& io_service( void ) { return io_service_; }
 
-	boost::shared_ptr<CNetPeerSession> newConnect( const std::string &ip, int port )
+	boost::shared_ptr<CNetPeerSession> newSession( void )
 	{
 		boost::shared_ptr<CNetPeerSession> session = boost::shared_ptr<CNetPeerSession>(new CNetPeerSession( io_service_, newSessionId() ));
-		session->connect( ip, port );
 		
 		return session;
 	}

@@ -49,6 +49,13 @@ CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1),
 {
 	// default generate my id
 	myId_ = generateMyId();
+
+	// create my user info
+	struct SPaintUserInfoData data;
+	data.userId = myId_;
+
+	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
+	myUserInfo_->loadData( data );
 }
 
 CSharedPaintManager::~CSharedPaintManager(void)
@@ -58,6 +65,9 @@ CSharedPaintManager::~CSharedPaintManager(void)
 
 bool CSharedPaintManager::startClient( void )
 {
+	clearAllSessions();
+	clearAllUsers();
+
 	if( netPeerServer_ )
 		netPeerServer_->close();
 
@@ -92,6 +102,9 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 {
 	serverMode_ = true;
 
+	clearAllSessions();
+	clearAllUsers();
+
 	if( port <= 0 )
 		port = START_SERVER_PORT;
 
@@ -121,15 +134,25 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 }
 
 
-void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPacketData> packetData )
+void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData )
 {
 	switch( packetData->code )
 	{
 	case CODE_SYSTEM_JOIN:
 		{
-			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoin::parse( packetData->body );
+			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerUser::parse( packetData->body );
+			user->setSessionId( session->sessionId() );
 
 			addUser( user );
+		}
+		break;
+	case CODE_SYSTEM_LEFT:
+		{
+			std::string userId;
+			if( SystemPacketBuilder::CLeftUser::parse( packetData->body, userId ) )
+			{
+				removeUser( userId );
+			}
 		}
 		break;
 	case CODE_PAINT_CLEAR_SCREEN:

@@ -38,6 +38,7 @@ public:
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_ClearBackgroundImage( CSharedPaintManager *self ) = 0;
+	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 };
 
 
@@ -65,7 +66,8 @@ public:
 		if( broadCastSession_ )
 			broadCastSession_->close();
 
-		sessionList_.clear();
+		clearAllUsers();
+		clearAllSessions();
 
 		netRunner_.close();
 	}
@@ -95,10 +97,18 @@ public:
 	bool connectToPeer( const std::string &addr, int port )
 	{
 		clearAllItems();
+		clearAllUsers();
 
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newConnect( addr, port );
+		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
+
+		mutexSession_.lock();
 		sessionList_.push_back( userSession );
+		mutexSession_.unlock();
+
+		// must be called here for preventing from a crash by thread race condition.
+		userSession->session()->connect( addr, port );
+
 		return true;
 	}
 
@@ -119,6 +129,8 @@ public:
 
 	bool isConnecting( void )
 	{
+		boost::recursive_mutex::scoped_lock autolock(mutexSession_);
+
 		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
@@ -130,6 +142,8 @@ public:
 
 	bool isConnected( void )
 	{
+		boost::recursive_mutex::scoped_lock autolock(mutexSession_);
+
 		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
@@ -168,8 +182,10 @@ public:
 
 		if ( sendCnt > 0 )
 		{
+			mutexSendInfo_.lock();
 			sendInfoDataMap_.insert( send_info_map_t::value_type( packetId, infolist ) );
 			lastPacketId_ = packetId;
+			mutexSendInfo_.unlock();
 		}
 		else
 			packetId = -1;
@@ -179,9 +195,9 @@ public:
 
 	int sendDataToUsers( const std::string &msg, int toSessionId = -1 )
 	{
-		boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
+		std::vector<boost::shared_ptr<CPaintSession> > sessionList = sessionList_;
 
-		return sendDataToUsers( sessionList_, msg, toSessionId );
+		return sendDataToUsers( sessionList, msg, toSessionId );
 	}
 
 	// Shared Paint Action
@@ -191,12 +207,15 @@ public:
 		commandMngr_.undoCommand();
 	}
 
-	void sendAllPaintData( int toSessionId )
+	void sendAllSyncData( int toSessionId )
 	{
 		if( isServerMode() == false )
 			return;
 
 		std::string allData;
+
+		// User Info
+		allData += generateJoinerInfoPacket();
 
 		// Window Resize
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_ );
@@ -288,17 +307,130 @@ public:
 		return sendDataToUsers( msg );
 	}
 
-	// Internal Action
+	// User Management and Sync
 public:
+	int userCount( void )
+	{
+		return joinerMap_.size();
+	}
+
+private:
+	void sendMyUserInfo( boost::shared_ptr<CPaintSession> session )
+	{
+		std::string msg = SystemPacketBuilder::CJoinerUser::make( myUserInfo_ );
+		session->session()->sendData( msg );
+	}
+
+	void notifyRemoveUserInfo( boost::shared_ptr<CPaintUser> user )
+	{
+		std::string msg = SystemPacketBuilder::CLeftUser::make( user->userId() );
+		sendDataToUsers( msg );
+	}
+
 	void addUser( boost::shared_ptr<CPaintUser> user )
 	{
+		mutexUser_.lock();
 		std::pair<USER_MAP::iterator, bool> res = joinerMap_.insert( USER_MAP::value_type( user->userId(), user ) );
 		if( !res.second )
 			res.first->second = user;	// overwrite;
+		mutexUser_.unlock();
 
-		// TODO
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, user ) );
 	}
 
+	boost::shared_ptr<CPaintUser> findUser( int sessionId )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+
+		USER_MAP::iterator it = joinerMap_.begin();
+		for( ; it != joinerMap_.end(); it++ )
+		{
+			if( it->second->sessionId() == sessionId )
+			{
+				return it->second;
+			}
+		}
+		return boost::shared_ptr<CPaintUser>();
+	}
+
+	boost::shared_ptr<CPaintUser> findUser( const std::string &userId )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+
+		USER_MAP::iterator it = joinerMap_.find( userId );
+		if( it != joinerMap_.end() )
+			return it->second;
+		return boost::shared_ptr<CPaintUser>();
+	}
+
+	void removeUser( const std::string & userId )
+	{
+		boost::shared_ptr<CPaintUser> removing;
+		// erase from map
+		{
+			boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+
+			USER_MAP::iterator it = joinerMap_.find( userId );
+			if( it == joinerMap_.end() )
+				return;
+
+			removing = it->second;
+			joinerMap_.erase( it );
+		}
+
+		if( removing )
+			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, removing ) );
+	}
+
+	void removeUser( boost::shared_ptr<CPaintUser> user )
+	{
+		removeUser( user->userId() ); 
+	}
+
+	void removeUser( int sessionId )
+	{
+		boost::shared_ptr<CPaintUser> removing = findUser( sessionId );
+
+		removeUser( removing );
+	}
+
+	void clearAllSessions( void )
+	{
+		mutexSession_.lock();
+		SESSION_LIST::iterator it = sessionList_.begin();
+		for( ; it != sessionList_.end(); it++ )
+		{
+			(*it)->close();
+		}
+		mutexSession_.unlock();
+	}
+
+	void clearAllUsers( void )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+		joinerMap_.clear();
+		joinerMap_.insert( USER_MAP::value_type(myUserInfo_->userId(), myUserInfo_) );
+	}
+
+	std::string generateJoinerInfoPacket( void )
+	{
+		std::string allData;
+
+		// User Info
+		mutexUser_.lock();
+		USER_MAP::iterator it = joinerMap_.begin();
+		for( ; it != joinerMap_.end(); it++ )
+		{
+			std::string msg = SystemPacketBuilder::CJoinerUser::make( it->second );
+			allData += msg;
+		}
+		mutexUser_.unlock();
+
+		return allData;
+	}
+
+	// Internal Action ( for SharedPaintCommand )
+public:
 	void addPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		assert( item->itemId() > 0 );
@@ -393,7 +525,7 @@ public:
 
 private:
 	void dispatchBroadCastPacket( boost::shared_ptr<CPacketData> packetData );
-	void dispatchPaintPacket( boost::shared_ptr<CPacketData> packetData );
+	void dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData );
 
 	boost::shared_ptr<CSharedPaintItemList> findItemList( const std::string &owner )
 	{
@@ -403,6 +535,22 @@ private:
 
 		return it->second;
 	}
+
+	boost::shared_ptr<CPaintSession> findSession( int sessionId )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexSession_);
+
+		SESSION_LIST::iterator it = sessionList_.begin();
+		for( ; it != sessionList_.end(); it++ )
+		{
+			if( (*it)->sessionId() == sessionId )
+			{
+				return *it;
+			}
+		}
+		return boost::shared_ptr<CPaintSession>();
+	}
+
 
 private:
 	// observer methods
@@ -423,7 +571,7 @@ private:
 		}
 
 		if( isServerMode() )
-			sendAllPaintData( sessionId );
+			sendAllSyncData( sessionId );
 	}
 	void fireObserver_DisConnected( void )
 	{
@@ -519,11 +667,21 @@ private:
 			(*it)->onISharedPaintEvent_GetServerInfo( this, broadcastChannel, addr, port );
 		}
 	}
+	void fireObserver_UpdatePaintUser( boost::shared_ptr<CPaintUser> user )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_UpdatePaintUser( this, user );
+		}
+	}
 
 	// delaying remove session feature
 private:
 	void _delayedRemoveSession( int sessionId )
 	{
+		boost::recursive_mutex::scoped_lock autolock(mutexSession_);
+
 		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
@@ -540,13 +698,23 @@ private:
 	}
 
 protected:
+	void commonSessionConnection( boost::shared_ptr<CPaintSession> userSession )
+	{
+		// send to my user info
+		sendMyUserInfo( userSession );
+	}
+
 	// INetPeerServerEvent
 	virtual void onINetPeerServerEvent_Accepted( boost::shared_ptr<CNetPeerServer> server, boost::shared_ptr<CNetPeerSession> session )
 	{
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
+		
+		mutexSession_.lock();
 		sessionList_.push_back( userSession );
+		mutexSession_.unlock();
 
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_Connected, this, session->sessionId() ) );
+		// start read io!
+		session->start();
 	}
 
 	// INetBroadCastSessionEvent
@@ -568,6 +736,8 @@ protected:
 	// IPaintSessionEvent
 	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session )
 	{
+		commonSessionConnection( session );
+
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_Connected, this, session->sessionId() ) );
 	}
 
@@ -580,13 +750,11 @@ protected:
 
 	virtual void onIPaintSessionEvent_ReceivedPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CPacketData> data )
 	{
-		dispatchPaintPacket( data );
+		dispatchPaintPacket( session, data );
 
 		if( isServerMode() )
 		{
 			// to send the others without this user
-			boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
-
 			if( sessionList_.size() <= 1 )
 				return;
 
@@ -612,6 +780,16 @@ protected:
 		if( isConnected() == false )
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_DisConnected, this ) );
 
+		boost::shared_ptr<CPaintUser> user = findUser( session->sessionId() );
+		if( user )
+		{
+			if( isServerMode() )
+			{
+				notifyRemoveUserInfo( user );
+			}
+			removeUser( user );
+		}
+
 		removeSession( session->sessionId() );
 	}
 
@@ -621,35 +799,39 @@ protected:
 		if( packet->packetId() < 0 )
 			return;	// ignore this!
 
-		boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
-
-		send_info_map_t::iterator it = sendInfoDataMap_.find( packet->packetId() );
-		if( it == sendInfoDataMap_.end() )
-			return;	// not found. unexpected error..
-
-		std::vector<struct send_byte_info_t>::iterator itD = it->second.begin();
-		for( ; itD != it->second.end(); itD++ )
-		{
-			if( (*itD).session == session.get() )
-			{
-				(*itD).wroteBytes = packet->buffer().totalSize() -  packet->buffer().remainingSize();
-				break;
-			}
-		}
-
 		size_t totalBytes = 0;
 		size_t wroteBytes = 0;
-		for( size_t i = 0; i < it->second.size(); i++ )
+	
+		// processing wrote bytes for all joiners
 		{
-			const struct send_byte_info_t &info = it->second[i];
-			totalBytes += info.totalBytes;
-			wroteBytes += info.wroteBytes;
-		}
+			boost::recursive_mutex::scoped_lock autolock(mutexSendInfo_);
 
-		if( totalBytes <= wroteBytes )
-		{
-			//qDebug() << "sendInfoDataMap_.erase!!i!!" << packet->packetId() << wroteBytes << totalBytes;
-			sendInfoDataMap_.erase( it );
+			send_info_map_t::iterator it = sendInfoDataMap_.find( packet->packetId() );
+			if( it == sendInfoDataMap_.end() )
+				return;	// not found. unexpected error..
+
+			std::vector<struct send_byte_info_t>::iterator itD = it->second.begin();
+			for( ; itD != it->second.end(); itD++ )
+			{
+				if( (*itD).session == session.get() )
+				{
+					(*itD).wroteBytes = packet->buffer().totalSize() -  packet->buffer().remainingSize();
+					break;
+				}
+			}
+
+			for( size_t i = 0; i < it->second.size(); i++ )
+			{
+				const struct send_byte_info_t &info = it->second[i];
+				totalBytes += info.totalBytes;
+				wroteBytes += info.wroteBytes;
+			}
+
+			if( totalBytes <= wroteBytes )
+			{
+				//qDebug() << "sendInfoDataMap_.erase!!i!!" << packet->packetId() << wroteBytes << totalBytes;
+				sendInfoDataMap_.erase( it );
+			}
 		}
 
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SendingPacket, this, packet->packetId(), wroteBytes, totalBytes ) );
@@ -673,6 +855,7 @@ private:
 	int lastWindowHeight_;
 
 	// user management
+	boost::recursive_mutex mutexUser_;
 	boost::shared_ptr<CPaintUser> myUserInfo_;
 	USER_MAP joinerMap_;
 	
@@ -681,6 +864,7 @@ private:
 	bool serverMode_;
 	int acceptPort_;
 	SESSION_LIST sessionList_;
+	boost::recursive_mutex mutexSession_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
 	CPacketSlicer broadCastPacketSlicer_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSession_;

@@ -52,13 +52,16 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	{
 		statusBarLabel_ = new QLabel();
 		broadCastTypeLabel_ = new QLabel();
+		joinerCountLabel_ = new QLabel();
 		wroteProgressBar_ = new QProgressBar();
-		ui.statusBar->addPermanentWidget( broadCastTypeLabel_, 1 );
+		ui.statusBar->addPermanentWidget( broadCastTypeLabel_ );
+		ui.statusBar->addPermanentWidget( joinerCountLabel_, 1 );
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
-		setStatusText( tr("Not Connected") );
-		setBroadCastTypeText( tr("None Type") );
+		setStatusBar_Network( tr("Not Connected") );
+		setStatusBar_BroadCastType( tr("None Type") );
+		setStatusBar_JoinerCnt( 1 );	// my self 
 	}
 	
 	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
@@ -345,7 +348,7 @@ void SharedPainter::actionServerType( void )
 		return;
 
 	SharePaintManagerPtr()->startServer( SettingManagerPtr()->broadCastChannel() );
-	setBroadCastTypeText( tr("Server Type") );
+	setStatusBar_BroadCastType( tr("Server Type") );
 }
 
 void SharedPainter::actionClientType( void )
@@ -354,9 +357,9 @@ void SharedPainter::actionClientType( void )
 		return;
 
 	if( SharePaintManagerPtr()->startClient() )
-		setBroadCastTypeText( tr("Client Type") );
+		setStatusBar_BroadCastType( tr("Client Type") );
 	else
-		setBroadCastTypeText( tr("None Type") );
+		setStatusBar_BroadCastType( tr("None Type") );
 }
 
 bool SharedPainter::getBroadcastChannelString( bool force )

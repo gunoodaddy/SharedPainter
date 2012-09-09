@@ -134,7 +134,7 @@ private:
 				}
 				state_ = STATE_BODY;
 			case STATE_BODY:
-				if( buffer_.remainingSize() < currBodyLen_ )
+				if( buffer_.remainingSize() < (size_t)currBodyLen_ )
 				{
 					return parsedItems_.size() > 0 ? true : false;
 				}

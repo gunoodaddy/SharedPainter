@@ -1,6 +1,7 @@
 #ifndef SHAREDPAINTER_H
 #define SHAREDPAINTER_H
 
+#include <qt_windows.h>
 #include <QtGui/QMainWindow>
 #include "ui_sharedpainter.h"
 #include "SharedPainterScene.h"

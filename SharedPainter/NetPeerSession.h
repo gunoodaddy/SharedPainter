@@ -48,7 +48,11 @@ public:
 		stopped_ = false;
 
 		char temp[100];
+#if defined(Q_WS_WIN)
+		 _itoa(port, temp, 10);
+#else
 		itoa(port, temp, 10);
+#endif
 		std::string portstr = temp;
 
 		try

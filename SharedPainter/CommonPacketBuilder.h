@@ -9,7 +9,7 @@ namespace CommonPacketBuilder
 		std::string buf;
 
 		int pos = 0;
-		pos += CPacketBufferUtil::writeInt8( buf, pos, NET_MAGIC_CODE );
+		pos += CPacketBufferUtil::writeInt8( buf, pos, (boost::int8_t)NET_MAGIC_CODE );
 		pos += CPacketBufferUtil::writeInt16( buf, pos, code, true );
 		pos += CPacketBufferUtil::writeInt32( buf, pos, body.size(), true );
 		buf += body;

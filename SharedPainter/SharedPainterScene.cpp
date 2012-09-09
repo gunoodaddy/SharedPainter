@@ -283,6 +283,7 @@ void CSharedPainterScene::drawSendingStatus( boost::shared_ptr<CPaintItem> item 
 		return;
 
 	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
+	Q_UNUSED(i);
 	//qDebug() << "drawSendingStatus" << item->wroteBytes() << item->totalBytes();
 	// TODO
 	// How make progress bar and handle it??

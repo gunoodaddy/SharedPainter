@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QWidget>
+#include <QDialog>
 #include "ui_TextItemDialog.h"
 
 class TextItemDialog : public QDialog

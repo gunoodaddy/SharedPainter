@@ -95,7 +95,6 @@ namespace PaintPacketBuilder
 		{		
 			std::string data = item->generateData();
 
-			int pos = 0;
 			try
 			{
 				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_IMAGE, data );
@@ -132,7 +131,6 @@ namespace PaintPacketBuilder
 	public:
 		static std::string make( void )
 		{		
-			int pos = 0;
 			try
 			{
 				std::string body;
@@ -147,7 +145,6 @@ namespace PaintPacketBuilder
 
 		static bool parse( const std::string &body )
 		{		
-			int pos = 0;
 			try
 			{
 				// NOTHING BODY
@@ -318,7 +315,6 @@ namespace PaintPacketBuilder
 	public:
 		static std::string make( void )
 		{		
-			int pos = 0;
 			try
 			{
 				std::string body;
@@ -333,7 +329,6 @@ namespace PaintPacketBuilder
 
 		static bool parse( const std::string &body )
 		{		
-			int pos = 0;
 			try
 			{
 				// NOTHING BODY

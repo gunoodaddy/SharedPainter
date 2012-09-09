@@ -481,7 +481,8 @@ public:
 
 	virtual void execute( void )
 	{
-		QDesktopServices::openUrl( QUrl::fromLocalFile(path_) );
+		if( ! QDesktopServices::openUrl( QUrl::fromLocalFile(path_) ) )
+			QMessageBox::warning( this, "", tr("cannot execute file : ") + path_ );
 	}
 
 	virtual void drawSendingStatus( size_t wroteBytes, size_t totalBytes )

@@ -33,7 +33,7 @@ public:
 		eventTarget_ = evt;
 	}
 
-	void setCursor( Qt::CursorShape shape )
+	void setCursor( QCursor shape )
 	{
 		//QApplication::setOverrideCursor( shape );
 
@@ -47,7 +47,7 @@ public:
 	void setFreePenMode( bool enable ) 
 	{
 		if( enable )
-			setCursor( Qt::ArrowCursor ); 
+			setCursor( QCursor(QPixmap(":/SharedPainter/Resources/draw_line.png")) );
 		else
 			setCursor( Qt::PointingHandCursor ); 
 
@@ -75,6 +75,8 @@ public:
 		else
 			clearLastItemBorderRect();
 	}
+
+	void drawLastItemBorderRect( void );
 
 public:
 	// IGluePaintCanvas
@@ -131,7 +133,6 @@ private:
 		return currentZValue_;
 	}
 
-	void drawLastItemBorderRect( void );
 	void clearLastItemBorderRect( void );
 
 	void addImageFileItem( const QPointF &pos, const QString &path );

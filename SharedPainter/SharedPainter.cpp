@@ -72,7 +72,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		toolBar_bgColorButton_->setToolTip( tr("Background Color") );
 
 		toolBar_MoveMode_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/move_mode.png"), "Move", this, SLOT(actionMoveMode()) );
-		toolBar_PenMode_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_mode.png"), "Pen", this, SLOT(actionFreePenMode()) );
+		toolBar_PenMode_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/draw_line.png"), "Pen", this, SLOT(actionFreePenMode()) );
 		ui.toolBar->addSeparator();
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width.png"), "Pen Width", this, SLOT(actionPenWidth()) );
 		ui.toolBar->addWidget( toolBar_penColorButton_ );
@@ -83,6 +83,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/bg_clear.png"), "Clear Background", this, SLOT(actionClearBG()) );
 		ui.toolBar->addSeparator();
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.png"), "Clear Screen", this, SLOT(actionClearScreen()) );
+		ui.toolBar->addSeparator();
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/last_item.png"), " Blink Last Added Item", this, SLOT(actionLastItem()) );
 
 		toolBar_GridLine_->setCheckable( true );
 		toolBar_MoveMode_->setCheckable( true );
@@ -236,6 +238,11 @@ void SharedPainter::actionShowLastAddItem( void )
 {
 	canvas_->setSettingShowLastAddItemBorder( !canvas_->isSettingShowLastAddItemBorder() );
 	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
+}
+
+void SharedPainter::actionLastItem( void )
+{
+	canvas_->drawLastItemBorderRect();
 }
 
 void SharedPainter::actionExportFile( void )

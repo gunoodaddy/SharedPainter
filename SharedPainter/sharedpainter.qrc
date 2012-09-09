@@ -8,5 +8,7 @@
         <file>Resources/bg_clear.png</file>
         <file>Resources/clear_screen.png</file>
         <file>Resources/move_mode.png</file>
+        <file>Resources/last_item.png</file>
+        <file>Resources/draw_line.png</file>
     </qresource>
 </RCC>

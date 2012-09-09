@@ -13,6 +13,9 @@
 #define MIN(a, b) ( (a) < (b) ? (a) : (b) )
 #endif
 
+#define CURSOR_OFFSET_X -10
+#define CURSOR_OFFSET_Y 9
+
 #define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	2	//sec
 #define DEFAULT_COVER_RECT_OFFSET				5
 
@@ -169,7 +172,7 @@ CSharedPainterScene::~CSharedPainterScene()
 
 void CSharedPainterScene::onTimer( void )
 {
-	if( !showLastAddItemBorderFlag_ || timeoutRemoveLastCoverItem_ <= 0 )
+	if( NULL == lastCoverGraphicsItem_ || timeoutRemoveLastCoverItem_ <= 0 )
 		return;
 
 	int now = time(NULL);
@@ -241,26 +244,6 @@ void CSharedPainterScene::resetBackground( const QRectF &rect )
 	image_ = newImage;	
 
 	invalidate( QRectF(), QGraphicsScene::BackgroundLayer );
-}
-
-void CSharedPainterScene::updateItem( boost::shared_ptr<CPaintItem> item )
-{
-	if( ! item )
-		return;
-
-	if( ! item->drawingObject() )
-		return;
-
-	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
-
-	if( item->isScalable() )
-	{
-		if( item->type() == PT_IMAGE_FILE )
-			setScaleImageFileItem( boost::static_pointer_cast<CImageFileItem>(item), (QGraphicsPixmapItem *)i );
-		else
-			i->setScale( item->scale() );
-	}
-	i->setPos( item->posX(), item->posY() );
 }
 
 void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileItem> image, QGraphicsPixmapItem *pixmapItem )
@@ -412,6 +395,27 @@ void CSharedPainterScene::removeItem( boost::shared_ptr<CPaintItem> item )
 	removeItem( item.get() );
 }
 
+void CSharedPainterScene::updateItem( boost::shared_ptr<CPaintItem> item )
+{
+	if( ! item )
+		return;
+
+	if( ! item->drawingObject() )
+		return;
+
+	clearLastItemBorderRect();
+
+	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
+
+	if( item->isScalable() )
+	{
+		if( item->type() == PT_IMAGE_FILE )
+			setScaleImageFileItem( boost::static_pointer_cast<CImageFileItem>(item), (QGraphicsPixmapItem *)i );
+		else
+			i->setScale( item->scale() );
+	}
+	i->setPos( item->posX(), item->posY() );
+}
 
 void CSharedPainterScene::moveItem( boost::shared_ptr<CPaintItem> item, double x, double y  )
 {
@@ -420,6 +424,8 @@ void CSharedPainterScene::moveItem( boost::shared_ptr<CPaintItem> item, double x
 
 	if( ! item->drawingObject() )
 		return;
+
+	clearLastItemBorderRect();
 
 	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
 	i->setPos( x, y );
@@ -645,6 +651,8 @@ void CSharedPainterScene::drawBackground ( QPainter * painter, const QRectF & re
 
 void CSharedPainterScene::onItemMoveBegin( boost::shared_ptr< CPaintItem > item)
 {
+	clearLastItemBorderRect();
+
 	eventTarget_->onICanvasViewEvent_BeginMove( this, item );
 }
 
@@ -734,10 +742,12 @@ void CSharedPainterScene::mousePressEvent( QGraphicsSceneMouseEvent *evt )
 	if( !drawFlag_ )
 	{
 		prevPos_ = evt->scenePos();
+		prevPos_.setX( prevPos_.x() + CURSOR_OFFSET_X );
+		prevPos_.setY( prevPos_.y() + CURSOR_OFFSET_Y );
 		drawFlag_ = true;
 
 		currLineItem_ = boost::shared_ptr<CLineItem>(new CLineItem( penClr_, penWidth_ ) );
-		currLineItem_->addPoint( evt->scenePos() );
+		currLineItem_->addPoint( prevPos_ );
 		currLineItem_->setMyItem();
 
 		currentLineZValue_ = currentZValue();
@@ -758,14 +768,17 @@ void CSharedPainterScene::mouseMoveEvent( QGraphicsSceneMouseEvent *evt )
 	if(!drawFlag_)
 		return;
 
+	QPointF to = evt->scenePos();
+	to.setX( to.x() + CURSOR_OFFSET_X );
+	to.setY( to.y() + CURSOR_OFFSET_Y );
+
 	if( currLineItem_ )
 	{
-		drawLineTo( prevPos_, evt->scenePos(), currLineItem_->color(), currLineItem_->width() );
-
-		currLineItem_->addPoint( evt->scenePos() );
+		drawLineTo( prevPos_, to, currLineItem_->color(), currLineItem_->width() );
+		currLineItem_->addPoint( to );
 	}
 
-	prevPos_ = evt->scenePos();
+	prevPos_ = to;
 }
 
 

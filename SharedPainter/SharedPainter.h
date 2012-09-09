@@ -71,7 +71,7 @@ protected slots:
 	void actionGridLine( void );
 	void actionImportFile( void );
 	void actionExportFile( void );
-	void actionShowLastAddItem( void );
+	void actionBlinkLastAddItem( void );
 	void actionLastItem( void );
 
 private:

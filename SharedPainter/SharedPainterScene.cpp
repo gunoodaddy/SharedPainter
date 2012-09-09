@@ -372,6 +372,8 @@ void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGr
 	lastItemBorderType_ = borderType;
 	lastAddItem_ = item;
 
+	clearLastItemBorderRect();
+
 	if( showLastAddItemBorderFlag_ )
 		drawLastItemBorderRect();
 }

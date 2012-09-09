@@ -49,7 +49,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
 		edit->addSeparator();
-		showLastItemAction_ = edit->addAction( "Show &Last Item", this, SLOT(actionShowLastAddItem()), Qt::CTRL+Qt::Key_L );
+		showLastItemAction_ = edit->addAction( "Blink &Last Item Always", this, SLOT(actionBlinkLastAddItem()), Qt::CTRL+Qt::Key_L );
 		edit->addSeparator();
 		edit->addAction( "&Undo", this, SLOT(actionUndo()), Qt::CTRL+Qt::Key_Z );
 		menuBar->addMenu( edit );
@@ -234,7 +234,7 @@ void SharedPainter::setCheckShowLastAddItemAction( bool checked )
 	showLastItemAction_->setChecked( checked );
 }
 
-void SharedPainter::actionShowLastAddItem( void )
+void SharedPainter::actionBlinkLastAddItem( void )
 {
 	canvas_->setSettingShowLastAddItemBorder( !canvas_->isSettingShowLastAddItemBorder() );
 	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );

@@ -7,6 +7,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
+	, lastTextPosX_(0), lastTextPosY_(0)
 {
 	ui.setupUi(this);
 
@@ -81,7 +82,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		toolBar_GridLine_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/grid_line.png"), "Grid Line", this, SLOT(actionGridLine()) );
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/bg_clear.png"), "Clear Background", this, SLOT(actionClearBG()) );
 		ui.toolBar->addSeparator();
-		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.png"), "Clear Background", this, SLOT(actionClearScreen()) );
+		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.png"), "Clear Screen", this, SLOT(actionClearScreen()) );
 
 		toolBar_GridLine_->setCheckable( true );
 		toolBar_MoveMode_->setCheckable( true );
@@ -339,8 +340,6 @@ QPointF SharedPainter::_calculateTextPos( int textSize )
 {
 	qDebug() << QCursor::pos() << ui.painterView->mapFromGlobal(QCursor::pos());
 
-	static double lastX = 0;
-	static double lastY = 0;
 	static double lastMX = 0;
 	static double lastMY = 0;
 
@@ -353,11 +352,12 @@ QPointF SharedPainter::_calculateTextPos( int textSize )
 	double mY = ui.painterView->mapFromGlobal(QCursor::pos()).y();
 	double rX = qrand() % w;
 	double rY = qrand() % h;
+	if( mX <= 0 || mY <= 0 ) mX = mY = -1.f;
 
 	double x = 0;
 	double y = 0;
 
-	if( lastY == 0 )
+	if( lastTextPosY_ == 0 )
 	{
 		// initial position #1
 		x = mX - textSize;
@@ -372,19 +372,20 @@ QPointF SharedPainter::_calculateTextPos( int textSize )
 	else
 	{
 		// continuous position
-		x = lastX;			
-		y = lastY + textSize;
+		x = lastTextPosX_;
+		y = lastTextPosY_ + textSize;
 	}
 
-	if( x == 0 || y == 0 || (y >= sH - textSize) || x >= sW )
+	if( x <= 0 || y <= 0 || (y >= sH - textSize) || x >= sW )
 	{
 		// exception postion
 		x = rX;
 		y = rY;
 	}
 
-	lastX = x;
-	lastY = y;
+	qDebug() << "text pos" << x << y << mX << mY << rX << rY;
+	lastTextPosX_ = x;
+	lastTextPosY_ = y;
 	lastMX = mX;
 	lastMY = mY;
 

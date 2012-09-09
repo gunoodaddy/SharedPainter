@@ -144,6 +144,12 @@ protected:
 	{
 		item->setCanvas( canvas_ );
 		item->draw();
+
+		if( item->type() == PT_TEXT )
+		{
+			lastTextPosX_ = item->posX();
+			lastTextPosY_ = item->posY();
+		}
 	}
 
 	virtual void onISharedPaintEvent_UpdatePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
@@ -191,7 +197,7 @@ protected:
 	{
 		setCheckGridLineAction( false );
 		canvas_->drawBackgroundGridLine( 0 );
-		canvas_->setBackgroundColor( 255, 255, 255, 255 );
+		//canvas_->setBackgroundColor( 255, 255, 255, 255 );
 		canvas_->clearBackgroundImage();
 	}
 
@@ -245,6 +251,9 @@ private:
 	QPushButton *toolBar_bgColorButton_;
 	QProgressBar *wroteProgressBar_;
 	QTimer *keyHookTimer_;
+
+	double lastTextPosX_;
+	double lastTextPosY_;
 };
 
 #endif // SHAREDPAINTER_H

@@ -5,7 +5,15 @@
 #include <QColor>
 #include <QAbstractGraphicsShapeItem>
 
-#define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	3	//sec
+#ifndef MAX
+#define MAX(a, b) ( (a) > (b) ? (a) : (b) )
+#endif
+
+#ifndef MIN
+#define MIN(a, b) ( (a) < (b) ? (a) : (b) )
+#endif
+
+#define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	2	//sec
 #define DEFAULT_COVER_RECT_OFFSET				5
 
 enum ItemBorderType {
@@ -13,6 +21,7 @@ enum ItemBorderType {
 	Border_PainterPath,
 	Border_Rect,
 };
+
 
 template<class T>
 class CMyGraphicItem : public T
@@ -149,7 +158,7 @@ CSharedPainterScene::CSharedPainterScene(void )
 
 	// Timer Setting
 	timer_ = new QTimer(this);
-	timer_->start(500);
+	timer_->start(200);
 	connect(timer_, SIGNAL(timeout()),this, SLOT(onTimer()));
 }
 
@@ -295,17 +304,42 @@ static QPainterPath createCoveringBorderPath( int borderType, QGraphicsItem *ite
 	res.setBottom( top + h + DEFAULT_COVER_RECT_OFFSET );
 
 	QPainterPath path;
-	path.addRoundedRect( rect, 12, 12 );
+	path.addRoundedRect( res, 5, 5 );
 
 	return path;
 }
 
-static QColor getComplementaryColor( const QColor &clr )
+
+static QColor getComplementaryColor( const QColor &clr, const QColor &lineClr = QColor() )
 {
-	// TODO..
-	// HOW TO??
-	int r = clr.r();
-	return Qt::black;
+	// calcualte opposite color
+	int r = 255 - clr.red();
+	int g = 255 - clr.green();
+	int b = 255 - clr.blue();
+
+	int r2 = lineClr.red();
+	int g2 = lineClr.green();
+	int b2 = lineClr.blue();
+
+	int dr = abs(r2 - r);
+	int dg = abs(g2 - g);
+	int db = abs(b2 - b);
+
+	static const int COLOR_DIFF_OFFSET = 0x20;
+	int cnt = 0, bits = 0;
+	if( dr < COLOR_DIFF_OFFSET ) { cnt++; bits |= 0x1; }
+	if( dg < COLOR_DIFF_OFFSET ) { cnt++; bits |= 0x2; }
+	if( db < COLOR_DIFF_OFFSET ) { cnt++; bits |= 0x4; }
+
+	if( dr + dg + db <= 128 )
+	{
+		if( !(bits & 0x1) ) r = r > 128 ? 0 : 255;
+		if( !(bits & 0x2) ) g = g > 128 ? 0 : 255;
+		if( !(bits & 0x4) ) b = b > 128 ? 0 : 255;
+	}
+	//qDebug() << dr << dg << db << "--" << r << g << b << "---(2)---" << r2 << g2 << b2 << bits << cnt;
+	QColor res(r, g, b);
+	return res;
 }
 
 void CSharedPainterScene::clearLastItemBorderRect( void )
@@ -332,13 +366,14 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 
 	// setting style..
 	QPainterPath path = createCoveringBorderPath( lastItemBorderType_, i );
-	if ( path.isNull() )
+	if ( path.isEmpty() )
 		return;
 
 	clearLastItemBorderRect();
 
 	QAbstractGraphicsShapeItem* lastBorderItem = addPath( path );
-	lastBorderItem->setPen( QPen(getComplementaryColor(backgroundColor_), 2) );
+	lastBorderItem->setPen( QPen(getComplementaryColor(backgroundColor_, penColor()), 2) );
+	lastBorderItem->setZValue( currentZValue() );
 	lastCoverGraphicsItem_ = lastBorderItem;
 
 	lastAddItemShowFlag_ = true;

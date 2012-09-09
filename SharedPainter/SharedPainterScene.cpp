@@ -274,7 +274,7 @@ void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileIte
 	pixmapItem->setPixmap( pixmap ); 
 }
 
-static QRectF createCoveringBorderRect( int borderType, QGraphicsItem *item )
+static QPainterPath createCoveringBorderPath( int borderType, QGraphicsItem *item )
 {
 	QRectF res = item->boundingRect();
 	qDebug() << res << item->scenePos();
@@ -294,13 +294,17 @@ static QRectF createCoveringBorderRect( int borderType, QGraphicsItem *item )
 	res.setTop( top - DEFAULT_COVER_RECT_OFFSET );
 	res.setBottom( top + h + DEFAULT_COVER_RECT_OFFSET );
 
-	return res;
+	QPainterPath path;
+	path.addRoundedRect( rect, 12, 12 );
+
+	return path;
 }
 
 static QColor getComplementaryColor( const QColor &clr )
 {
 	// TODO..
 	// HOW TO??
+	int r = clr.r();
 	return Qt::black;
 }
 
@@ -327,13 +331,13 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 		return;
 
 	// setting style..
-	QRectF path = createCoveringBorderRect( lastItemBorderType_, i );
+	QPainterPath path = createCoveringBorderPath( lastItemBorderType_, i );
 	if ( path.isNull() )
 		return;
 
 	clearLastItemBorderRect();
 
-	QAbstractGraphicsShapeItem* lastBorderItem = addRect( path );
+	QAbstractGraphicsShapeItem* lastBorderItem = addPath( path );
 	lastBorderItem->setPen( QPen(getComplementaryColor(backgroundColor_), 2) );
 	lastCoverGraphicsItem_ = lastBorderItem;
 

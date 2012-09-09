@@ -24,3 +24,7 @@
 * Qt Visual Studio Add-in (http://releases.qt-project.org/vsaddin/qt-vs-addin-1.1.11-opensource.exe)
 * boost 1.51 with asio (http://www.boostpro.com/download/)
 
+for QT Creator (on windows)
+debugging tool : http://msdn.microsoft.com/ko-kr/windows/hardware/hh852363
+
+

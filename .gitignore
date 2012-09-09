@@ -166,6 +166,7 @@ pip-log.txt
 #############
 ## Shared Painter 
 #############
+*.sp
 *.ini
 *.pro.*
 Makefile*

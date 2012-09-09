@@ -510,7 +510,8 @@ public:
 			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
 		}
 
-		itemList->addItem( item );
+		bool overwriteFlag = false;
+		itemList->addItem( item, overwriteFlag );
 
 		if( !caller_.isMainThread() )
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
@@ -679,6 +680,9 @@ private:
 	}
 	void fireObserver_ResizeMainWindow( int width, int height )
 	{
+		lastWindowWidth_ = width;
+		lastWindowHeight_ = height;
+
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{

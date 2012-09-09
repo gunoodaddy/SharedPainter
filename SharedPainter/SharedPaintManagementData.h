@@ -12,14 +12,20 @@ public:
 		qDebug() << "~CSharedPaintItemList";
 	}
 
-	void addItem( boost::shared_ptr<CPaintItem> item )
+	bool addItem( boost::shared_ptr<CPaintItem> item, bool /* output */ & overwriteFlag  )
 	{
 		std::pair< ITEM_MAP::iterator, bool > ret = itemMap_.insert( ITEM_MAP::value_type(item->itemId(), item) );
 		if( ! ret.second )
 		{
 			// overwrite
+			ret.first->second->remove();
 			ret.first->second = item;
+			overwriteFlag = true;
 		}
+		else
+			overwriteFlag = false;
+
+		return true;
 	}
 
 	boost::shared_ptr<CPaintItem> findItem( int group )

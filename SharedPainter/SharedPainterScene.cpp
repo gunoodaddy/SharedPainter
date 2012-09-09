@@ -139,7 +139,7 @@ private:
 
 CSharedPainterScene::CSharedPainterScene(void )
 : eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
-, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastAddItemShowFlag_(false)
+, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastAddItemShowFlag_(false), showLastAddItemBorderFlag_(false)
 {
 	backgroundColor_ = Qt::white;
 	penClr_ = Qt::blue;
@@ -160,7 +160,7 @@ CSharedPainterScene::~CSharedPainterScene()
 
 void CSharedPainterScene::onTimer( void )
 {
-	if( timeoutRemoveLastCoverItem_ <= 0 )
+	if( !showLastAddItemBorderFlag_ || timeoutRemoveLastCoverItem_ <= 0 )
 		return;
 
 	int now = time(NULL);
@@ -177,7 +177,7 @@ void CSharedPainterScene::onTimer( void )
 		lastAddItemShowFlag_ = !lastAddItemShowFlag_;
 	}
 
-	if( timeoutRemoveLastCoverItem_ == 0 )
+	if( timeoutRemoveLastCoverItem_ <= 0 )
 	{
 		clearLastItemBorderRect();
 	}
@@ -274,16 +274,34 @@ void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileIte
 	pixmapItem->setPixmap( pixmap ); 
 }
 
-QRectF createCoveringBorderRect( int borderType, QGraphicsItem *item )
+static QRectF createCoveringBorderRect( int borderType, QGraphicsItem *item )
 {
 	QRectF res = item->boundingRect();
+	qDebug() << res << item->scenePos();
 
-	res.setLeft( res.left() - DEFAULT_COVER_RECT_OFFSET );
-	res.setRight( res.right() + DEFAULT_COVER_RECT_OFFSET );
-	res.setTop( res.top() - DEFAULT_COVER_RECT_OFFSET );
-	res.setBottom( res.bottom() + DEFAULT_COVER_RECT_OFFSET );
+	double left = res.x();
+	double top = res.y();
+	double w = res.width();
+	double h = res.height();
+
+	if( res.x() == 0 && item->scenePos().x() != 0 )
+		left = item->scenePos().x();
+	if( res.y() == 0 && item->scenePos().y() != 0 )
+		top = item->scenePos().y();
+
+	res.setLeft( left - DEFAULT_COVER_RECT_OFFSET );
+	res.setRight( left + w + DEFAULT_COVER_RECT_OFFSET );
+	res.setTop( top - DEFAULT_COVER_RECT_OFFSET );
+	res.setBottom( top + h + DEFAULT_COVER_RECT_OFFSET );
 
 	return res;
+}
+
+static QColor getComplementaryColor( const QColor &clr )
+{
+	// TODO..
+	// HOW TO??
+	return Qt::black;
 }
 
 void CSharedPainterScene::clearLastItemBorderRect( void )
@@ -304,15 +322,20 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 	if( ! lastAddItem_->drawingObject() )
 		return;
 
-	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(lastAddItem_->drawingObject());
+	QAbstractGraphicsShapeItem* i = reinterpret_cast<QAbstractGraphicsShapeItem *>(lastAddItem_->drawingObject());
+	if( ! i )
+		return;
 
+	// setting style..
 	QRectF path = createCoveringBorderRect( lastItemBorderType_, i );
 	if ( path.isNull() )
 		return;
 
 	clearLastItemBorderRect();
 
-	lastCoverGraphicsItem_ = addRect( path );
+	QAbstractGraphicsShapeItem* lastBorderItem = addRect( path );
+	lastBorderItem->setPen( QPen(getComplementaryColor(backgroundColor_), 2) );
+	lastCoverGraphicsItem_ = lastBorderItem;
 
 	lastAddItemShowFlag_ = true;
 	lastTimeValue_ = time(NULL);
@@ -327,7 +350,8 @@ void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGr
 	lastItemBorderType_ = borderType;
 	lastAddItem_ = item;
 
-	drawLastItemBorderRect();
+	if( showLastAddItemBorderFlag_ )
+		drawLastItemBorderRect();
 }
 
 void CSharedPainterScene::removeItem( CPaintItem * item )

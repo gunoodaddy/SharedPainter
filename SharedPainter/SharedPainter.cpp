@@ -48,13 +48,15 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
 		edit->addSeparator();
-		edit->addAction( "Show &Last Item", this, SLOT(actionShowLastAddItem()), Qt::CTRL+Qt::Key_L );
+		showLastItemAction_ = edit->addAction( "Show &Last Item", this, SLOT(actionShowLastAddItem()), Qt::CTRL+Qt::Key_L );
 		edit->addSeparator();
 		edit->addAction( "&Undo", this, SLOT(actionUndo()), Qt::CTRL+Qt::Key_Z );
 		menuBar->addMenu( edit );
 
 		gridLineAction_->setCheckable( true );
 		penModeAction_->setCheckable( true );
+		showLastItemAction_->setCheckable( true );
+		setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 	}
 
 	// create tool bar
@@ -224,9 +226,15 @@ void SharedPainter::actionImportFile( void )
 	SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() );
 }
 
+void SharedPainter::setCheckShowLastAddItemAction( bool checked )
+{
+	showLastItemAction_->setChecked( checked );
+}
+
 void SharedPainter::actionShowLastAddItem( void )
 {
-	canvas_->drawLastItemBorderRect();
+	canvas_->setSettingShowLastAddItemBorder( !canvas_->isSettingShowLastAddItemBorder() );
+	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 }
 
 void SharedPainter::actionExportFile( void )

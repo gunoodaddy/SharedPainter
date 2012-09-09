@@ -75,6 +75,7 @@ protected slots:
 
 private:
 	void setCheckGridLineAction( bool checked );
+	void setCheckShowLastAddItemAction( bool checked );
 	void _requestAddItem( boost::shared_ptr<CPaintItem> item );
 	QPointF _calculateTextPos( int textSize );
 	bool getBroadcastChannelString( bool force = false );
@@ -166,6 +167,7 @@ protected:
 
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self )
 	{
+		setCheckGridLineAction( false );
 		self->clearAllItems();
 	}
 
@@ -235,6 +237,7 @@ private:
 	QLabel *joinerCountLabel_;
 	QAction *penModeAction_;
 	QAction *gridLineAction_;
+	QAction *showLastItemAction_;
 	QAction *toolBar_MoveMode_;
 	QAction *toolBar_PenMode_;
 	QAction *toolBar_GridLine_;

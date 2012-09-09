@@ -66,6 +66,16 @@ public:
 	int penWidth( void ) { return penWidth_; }
 	const QColor & penColor( void ) { return penClr_; }
 
+	bool isSettingShowLastAddItemBorder( void ) { return showLastAddItemBorderFlag_; }
+	void setSettingShowLastAddItemBorder( bool enable )
+	{
+		showLastAddItemBorderFlag_ = enable;
+		if( enable )
+			drawLastItemBorderRect();
+		else
+			clearLastItemBorderRect();
+	}
+
 public:
 	// IGluePaintCanvas
 	virtual void moveItem( boost::shared_ptr<CPaintItem> item, double x, double y  );
@@ -91,8 +101,6 @@ public:
 	}
 	virtual void setBackgroundColor( int r, int g, int b, int a );
 
-	void drawLastItemBorderRect( void );
-	void clearLastItemBorderRect( void );
 
 private slots:
 	void sceneRectChanged(const QRectF &rect);
@@ -122,6 +130,9 @@ private:
 		currentZValue_ += 0.01;
 		return currentZValue_;
 	}
+
+	void drawLastItemBorderRect( void );
+	void clearLastItemBorderRect( void );
 
 	void addImageFileItem( const QPointF &pos, const QString &path );
 	void addGeneralFileItem( const QPointF &pos, const QString &path );
@@ -166,6 +177,7 @@ private:
 	int lastItemBorderType_;
 	boost::shared_ptr<CPaintItem> lastAddItem_;
 	bool lastAddItemShowFlag_;
+	bool showLastAddItemBorderFlag_;
 };
 
 #endif // CSHAREDPAINTERSCENE_H

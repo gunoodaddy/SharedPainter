@@ -82,15 +82,21 @@ public:
 	virtual void clearBackgroundImage( void );
 	virtual void clearScreen( void )
 	{
+		lastAddItem_ = boost::shared_ptr<CPaintItem>();
 		gridLineSize_ = 0;
 		backgroundColor_ = Qt::white;
 		currentZValue_ = ZVALUE_NORMAL;
+		clearLastItemBorderRect();
 		clearBackgroundImage();
 	}
 	virtual void setBackgroundColor( int r, int g, int b, int a );
 
+	void drawLastItemBorderRect( void );
+	void clearLastItemBorderRect( void );
+
 private slots:
 	void sceneRectChanged(const QRectF &rect);
+	void onTimer( void );
 
 	// QGraphicsScene
 private:
@@ -123,7 +129,7 @@ private:
 	void drawLineStart( const QPointF &pt, const QColor &clr, int width );
 	void drawLineTo( const QPointF &pt1, const QPointF &pt2, const QColor &clr, int width );
 	void setScaleImageFileItem( boost::shared_ptr<CImageFileItem> image, QGraphicsPixmapItem *pixmapItem );
-	void commonAddItem( QGraphicsItem *item );
+	void commonAddItem( boost::shared_ptr<CPaintItem> item, QGraphicsItem *drawingItem, int borderType );
 	void internalDrawGridLine( QPainter *painter, const QRectF &rect, int gridLineSize );
 
 	inline void fireEvent_DrawItem( boost::shared_ptr<CPaintItem> item )
@@ -152,6 +158,14 @@ private:
 	qreal currentLineZValue_;
 	QColor backgroundColor_;
 	int gridLineSize_;
+
+	QTimer *timer_;
+	QGraphicsItem *lastCoverGraphicsItem_;
+	int lastTimeValue_;
+	int timeoutRemoveLastCoverItem_;
+	int lastItemBorderType_;
+	boost::shared_ptr<CPaintItem> lastAddItem_;
+	bool lastAddItemShowFlag_;
 };
 
 #endif // CSHAREDPAINTERSCENE_H

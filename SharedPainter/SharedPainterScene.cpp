@@ -5,6 +5,15 @@
 #include <QColor>
 #include <QAbstractGraphicsShapeItem>
 
+#define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	3	//sec
+#define DEFAULT_COVER_RECT_OFFSET				5
+
+enum ItemBorderType {
+	Border_Ellipse,
+	Border_PainterPath,
+	Border_Rect,
+};
+
 template<class T>
 class CMyGraphicItem : public T
 {
@@ -130,17 +139,50 @@ private:
 
 CSharedPainterScene::CSharedPainterScene(void )
 : eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
+, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastAddItemShowFlag_(false)
 {
 	backgroundColor_ = Qt::white;
 	penClr_ = Qt::blue;
 	penWidth_ = 2;
 
 	connect(this, SIGNAL(sceneRectChanged(const QRectF &)), this, SLOT(sceneRectChanged(const QRectF &)));
+
+	// Timer Setting
+	timer_ = new QTimer(this);
+	timer_->start(500);
+	connect(timer_, SIGNAL(timeout()),this, SLOT(onTimer()));
 }
 
 CSharedPainterScene::~CSharedPainterScene()
 {
 
+}
+
+void CSharedPainterScene::onTimer( void )
+{
+	if( timeoutRemoveLastCoverItem_ <= 0 )
+		return;
+
+	int now = time(NULL);
+	int elapsedSec =  now - lastTimeValue_;
+	timeoutRemoveLastCoverItem_ -= elapsedSec;
+
+	if( timeoutRemoveLastCoverItem_ > 0)
+	{
+		if( lastAddItemShowFlag_ )
+			lastCoverGraphicsItem_->show();
+		else
+			lastCoverGraphicsItem_->hide();
+
+		lastAddItemShowFlag_ = !lastAddItemShowFlag_;
+	}
+
+	if( timeoutRemoveLastCoverItem_ == 0 )
+	{
+		clearLastItemBorderRect();
+	}
+
+	lastTimeValue_ = now;
 }
 
 void CSharedPainterScene::sceneRectChanged(const QRectF &rect)
@@ -232,13 +274,61 @@ void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileIte
 	pixmapItem->setPixmap( pixmap ); 
 }
 
-
-void CSharedPainterScene::commonAddItem( QGraphicsItem *item )
+QRectF createCoveringBorderRect( int borderType, QGraphicsItem *item )
 {
-	item->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
-	addItem( item );
+	QRectF res = item->boundingRect();
+
+	res.setLeft( res.left() - DEFAULT_COVER_RECT_OFFSET );
+	res.setRight( res.right() + DEFAULT_COVER_RECT_OFFSET );
+	res.setTop( res.top() - DEFAULT_COVER_RECT_OFFSET );
+	res.setBottom( res.bottom() + DEFAULT_COVER_RECT_OFFSET );
+
+	return res;
 }
 
+void CSharedPainterScene::clearLastItemBorderRect( void )
+{
+	if( lastCoverGraphicsItem_ )
+	{
+		QGraphicsScene::removeItem( lastCoverGraphicsItem_ );
+		lastCoverGraphicsItem_ = NULL;
+	}
+	timeoutRemoveLastCoverItem_ = 0;
+}
+
+void CSharedPainterScene::drawLastItemBorderRect( void  )
+{
+	if( ! lastAddItem_ )
+		return;
+
+	if( ! lastAddItem_->drawingObject() )
+		return;
+
+	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(lastAddItem_->drawingObject());
+
+	QRectF path = createCoveringBorderRect( lastItemBorderType_, i );
+	if ( path.isNull() )
+		return;
+
+	clearLastItemBorderRect();
+
+	lastCoverGraphicsItem_ = addRect( path );
+
+	lastAddItemShowFlag_ = true;
+	lastTimeValue_ = time(NULL);
+	timeoutRemoveLastCoverItem_ = DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM;
+}
+
+void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGraphicsItem* drawingItem, int borderType )
+{
+	drawingItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
+	addItem( drawingItem );
+
+	lastItemBorderType_ = borderType;
+	lastAddItem_ = item;
+
+	drawLastItemBorderRect();
+}
 
 void CSharedPainterScene::removeItem( CPaintItem * item )
 {
@@ -311,7 +401,7 @@ void CSharedPainterScene::drawFile( boost::shared_ptr<CFileItem> file )
 		item->setPos( file->posX(), file->posY() );
 	item->setItemData( file );
 	item->setZValue( ZVALUE_TOPMOST );
-	commonAddItem( item );
+	commonAddItem( file, item, Border_Rect );
 }
 
 void CSharedPainterScene::drawImage( boost::shared_ptr<CImageFileItem> image )
@@ -324,7 +414,7 @@ void CSharedPainterScene::drawImage( boost::shared_ptr<CImageFileItem> image )
 		item->setPos( image->posX(), image->posY() );
 	item->setItemData( image );
 	item->setZValue( currentZValue() );
-	commonAddItem( item );
+	commonAddItem( image, item, Border_Rect );
 }
 
 void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )
@@ -337,7 +427,7 @@ void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )
 	item->setItemData( text );
 	item->setBrush ( QBrush(text->color()) );
 	item->setZValue( currentZValue() );
-	commonAddItem( item );
+	commonAddItem( text, item, Border_Rect );
 }
 
 
@@ -364,7 +454,7 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		pathItem->setPen( QPen(line->color(), line->width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin) );
 		pathItem->setZValue( currentZValue() );
 		pathItem->setItemData( line );
-		commonAddItem( pathItem );
+		commonAddItem( line, pathItem, Border_PainterPath );
 
 		//invalidateRect = pathItem->boundingRect();
 	}
@@ -384,7 +474,7 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		ellipseItem->setBrush( QBrush(line->color()) );
 		ellipseItem->setZValue( currentZValue() );
 		ellipseItem->setItemData( line );
-		commonAddItem( ellipseItem );
+		commonAddItem( line, ellipseItem, Border_Ellipse );
 
 		//invalidateRect = ellipseItem->boundingRect();
 	}

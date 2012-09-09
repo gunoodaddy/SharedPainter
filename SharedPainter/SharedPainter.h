@@ -71,6 +71,7 @@ protected slots:
 	void actionGridLine( void );
 	void actionImportFile( void );
 	void actionExportFile( void );
+	void actionShowLastAddItem( void );
 
 private:
 	void setCheckGridLineAction( bool checked );

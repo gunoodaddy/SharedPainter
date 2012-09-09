@@ -291,6 +291,9 @@ void SharedPainter::actionBGColor( void )
 	QColor clr = QColorDialog::getColor(LAST_COLOR, this, tr("Pen Color"));
 	LAST_COLOR = clr;
 
+	if( !clr.isValid() )
+		return
+
 	SharePaintManagerPtr()->setBackgroundColor( clr.red(), clr.green(), clr.blue(), clr.alpha() );
 
 	changeToobarButtonColor( toolBar_bgColorButton_, clr );

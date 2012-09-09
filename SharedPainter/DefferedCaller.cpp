@@ -20,6 +20,12 @@ bool CDefferedCaller::isMainThread( void )
 
 void CDefferedCaller::performMainThread( deferredMethod_t func )
 {
+	if( isMainThread() )
+	{
+		func();
+		return;
+	}
+
 	mutex_.lock();
 
 	deferredMethods_.push_back( func );

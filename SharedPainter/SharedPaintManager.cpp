@@ -83,7 +83,7 @@ bool CSharedPaintManager::startClient( void )
 	{
 		if( serverMode_ )
 		{
-			clearAllItems();
+			clearScreen();
 			serverMode_ = false;
 		}
 		return true;

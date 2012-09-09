@@ -99,7 +99,7 @@ public:
 
 	bool connectToPeer( const std::string &addr, int port )
 	{
-		clearAllItems();
+		clearScreen();
 		clearAllUsers();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
@@ -499,10 +499,7 @@ public:
 		assert( item->itemId() > 0 );
 		assert( item->owner().empty() == false );
 
-		if( !caller_.isMainThread() )
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
-		else
-			fireObserver_AddPaintItem( item );
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
 	}
 	
 	void updatePaintItem( boost::shared_ptr<CPaintItem> item )
@@ -510,10 +507,7 @@ public:
 		assert( item->itemId() > 0 );
 		assert( item->owner().empty() == false );
 	
-		if( !caller_.isMainThread() )
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintItem, this, item ) );
-		else
-			fireObserver_UpdatePaintItem( item );
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintItem, this, item ) );
 	}
 
 	void removePaintItem( const std::string &owner, int itemId )
@@ -562,8 +556,10 @@ public:
 		return resList;
 	}
 
-	void clearAllItems( void )
+	void clearAllItems( void )	// this function must be called on main thread!
 	{
+		assert( caller_.isMainThread() );
+
 		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
 		canvas_->clearScreen();
 

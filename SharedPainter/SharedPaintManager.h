@@ -255,9 +255,6 @@ public:
 	{
 		std::string allData;
 
-		// User Info
-		allData += generateJoinerInfoPacket();
-
 		// Window Resize
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_ );
 		allData += msg;
@@ -287,16 +284,6 @@ public:
 			}
 		}
 		return allData;
-	}
-
-	void sendAllSyncData( int toSessionId )
-	{
-		if( isServerMode() == false )
-			return;
-
-		std::string allData = serializeData();
-
-		sendDataToUsers( allData, toSessionId );
 	}
 
 	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
@@ -340,18 +327,18 @@ public:
 
 	void clearScreen( void )
 	{
-		clearAllItems();
-
 		std::string msg = PaintPacketBuilder::CClearScreen::make();
 		sendDataToUsers( msg );
+
+		fireObserver_ClearScreen();
 	}
 
 	void setBackgroundGridLine( int size )
 	{
-		fireObserver_SetBackgroundGridLine( size );
-
 		std::string msg = PaintPacketBuilder::CSetBackgroundGridLine::make( size );
 		sendDataToUsers( msg );
+
+		fireObserver_SetBackgroundGridLine( size );
 	}
 	
 	void notifyUpdateItem( boost::shared_ptr< CPaintItem > item )
@@ -378,6 +365,20 @@ public:
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
 		return sendDataToUsers( msg );
+	}
+
+private:
+	void sendAllSyncData( int toSessionId )
+	{
+		if( isServerMode() == false )
+			return;
+
+		std::string allData = serializeData();
+
+		// User Info
+		allData += generateJoinerInfoPacket();
+
+		sendDataToUsers( allData, toSessionId );
 	}
 
 	// User Management and Sync
@@ -498,21 +499,6 @@ public:
 		assert( item->itemId() > 0 );
 		assert( item->owner().empty() == false );
 
-		boost::shared_ptr<CSharedPaintItemList> itemList;
-		ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
-		if( it != userItemListMap_.end() )
-		{
-			itemList = it->second;
-		}
-		else
-		{
-			itemList = boost::shared_ptr<CSharedPaintItemList>( new CSharedPaintItemList( item->owner() ) );
-			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
-		}
-
-		bool overwriteFlag = false;
-		itemList->addItem( item, overwriteFlag );
-
 		if( !caller_.isMainThread() )
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
 		else
@@ -590,6 +576,28 @@ private:
 	void dispatchBroadCastPacket( boost::shared_ptr<CPacketData> packetData );
 	void dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData );
 
+	// this function must be called on main thread for ui process..
+	void _addPaintItem( boost::shared_ptr<CPaintItem> item )
+	{
+		assert( item->itemId() > 0 );
+		assert( item->owner().empty() == false );
+
+		boost::shared_ptr<CSharedPaintItemList> itemList;
+		ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
+		if( it != userItemListMap_.end() )
+		{
+			itemList = it->second;
+		}
+		else
+		{
+			itemList = boost::shared_ptr<CSharedPaintItemList>( new CSharedPaintItemList( item->owner() ) );
+			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
+		}
+
+		bool overwriteFlag = false;
+		itemList->addItem( item, overwriteFlag );
+	}
+
 	boost::shared_ptr<CSharedPaintItemList> findItemList( const std::string &owner )
 	{
 		ITEM_LIST_MAP::iterator it = userItemListMap_.find( owner );
@@ -644,7 +652,6 @@ private:
 			(*it)->onISharedPaintEvent_Disconnected( this );
 		}
 	}
-
 	void fireObserver_UpdatePaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		std::list<ISharedPaintEvent *> observers = observers_;
@@ -653,9 +660,9 @@ private:
 			(*it)->onISharedPaintEvent_UpdatePaintItem( this, item );
 		}
 	}
-	
 	void fireObserver_AddPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
+		_addPaintItem( item );
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{

@@ -58,6 +58,10 @@ protected slots:
 	void actionAddText( void );
 	void actionClearScreen( void );
 	void actionPenWidth( void );
+	void actionPenWidth2( void );
+	void actionPenWidth6( void );
+	void actionPenWidth10( void );
+	void actionPenWidth20( void );
 	void actionPenColor( void );
 	void actionPenMode( void );
 	void actionFreePenMode( void );

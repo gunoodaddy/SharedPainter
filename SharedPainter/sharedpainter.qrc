@@ -4,11 +4,14 @@
         <file>Resources/pen_width.png</file>
         <file>Resources/screenshot.png</file>
         <file>Resources/grid_line.png</file>
-        <file>Resources/pen_mode.png</file>
         <file>Resources/bg_clear.png</file>
         <file>Resources/clear_screen.png</file>
         <file>Resources/move_mode.png</file>
         <file>Resources/last_item.png</file>
         <file>Resources/draw_line.png</file>
+        <file>Resources/pen_width_6.png</file>
+        <file>Resources/pen_width_10.png</file>
+        <file>Resources/pen_width_20.png</file>
+        <file>Resources/pen_width_2.png</file>
     </qresource>
 </RCC>

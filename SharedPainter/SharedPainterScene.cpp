@@ -587,9 +587,9 @@ void CSharedPainterScene::drawBackgroundImage( boost::shared_ptr<CBackgroundImag
 
 void CSharedPainterScene::drawLineStart( const QPointF &pt, const QColor &clr, int width )
 {
-	double x = pt.x() - (width / 2);
-	double y = pt.y() - (width / 2);
-	QRectF rect( x, y, width, width );
+	double x = pt.x() - (double(width) / 2.f);
+	double y = pt.y() - (double(width) / 2.f);
+	QRectF rect( x, y, width, width);
 
 	QGraphicsEllipseItem *item = addEllipse( rect, QPen(clr, 1), QBrush(clr) );
 	item->setZValue( currentZValue() );

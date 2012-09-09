@@ -93,7 +93,7 @@ namespace PaintPacketBuilder
 	public:
 		static std::string make( boost::shared_ptr<CBackgroundImageItem> item )
 		{		
-			std::string data = item->generateData();
+			std::string data = item->serialize();
 
 			try
 			{
@@ -113,7 +113,7 @@ namespace PaintPacketBuilder
 			try
 			{
 				item = boost::shared_ptr< CBackgroundImageItem >( new CBackgroundImageItem );
-				if( !item->loadData( body ) )
+				if( !item->deserialize( body ) )
 				{
 					return boost::shared_ptr<CBackgroundImageItem>();
 				}
@@ -188,7 +188,7 @@ namespace PaintPacketBuilder
 		static std::string make( boost::shared_ptr<CPaintItem> item )
 		{		
 			std::string body;
-			std::string data = item->generateData();
+			std::string data = item->serialize();
 
 			int pos = 0;
 			try
@@ -220,7 +220,7 @@ namespace PaintPacketBuilder
 				item = CPaintItemFactory::createItem( type );
 
 				std::string itemData( (const char *)body.c_str() + pos, body.size() - pos );
-				if( !item->loadData( itemData ) )
+				if( !item->deserialize( itemData ) )
 				{
 					return boost::shared_ptr<CPaintItem>();
 				}

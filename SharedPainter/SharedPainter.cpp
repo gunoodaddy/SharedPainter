@@ -219,13 +219,13 @@ void SharedPainter::actionImportFile( void )
 	QByteArray byteArray;
 	byteArray = f.readAll();
 
-	SharePaintManagerPtr()->loadData( byteArray.data(), byteArray.size() );
+	SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() );
 }
 
 
 void SharedPainter::actionExportFile( void )
 {
-	std::string allData = SharePaintManagerPtr()->generateAllData();
+	std::string allData = SharePaintManagerPtr()->serializeData();
 	QString path;
 
 	path = QFileDialog::getSaveFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );

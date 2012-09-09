@@ -30,8 +30,8 @@ SOURCES +=  \
     SharedPainter/PaintItem.cpp \
     SharedPainter/PacketSlicer.cpp \
     SharedPainter/PacketBuffer.cpp \
-    SharedPainter/main.cpp \
     SharedPainter/DefferedCaller.cpp \
+    SharedPainter/main.cpp
 
 HEADERS  += \
     SharedPainter/WindowPacketBuilder.h \
@@ -65,6 +65,7 @@ HEADERS  += \
     SharedPainter/DefferedCaller.h \
     SharedPainter/CommonPacketBuilder.h \
     SharedPainter/BroadCastPacketBuilder.h \
+    SharedPainter/BroadCastPacketBuilder.h
 
 INCLUDEPATH += $(BOOST_DIR)
 

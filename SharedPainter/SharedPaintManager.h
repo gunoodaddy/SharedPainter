@@ -233,7 +233,7 @@ public:
 		commandMngr_.undoCommand();
 	}
 
-	void loadData( const char * data, size_t size )
+	void deserializeData( const char * data, size_t size )
 	{
 		CPacketSlicer slicer;
 		slicer.addBuffer( data, size );
@@ -251,7 +251,7 @@ public:
 		sendDataToUsers( allData );
 	}
 
-	std::string generateAllData( void )
+	std::string serializeData( void )
 	{
 		std::string allData;
 
@@ -294,7 +294,7 @@ public:
 		if( isServerMode() == false )
 			return;
 
-		std::string allData = generateAllData();
+		std::string allData = serializeData();
 
 		sendDataToUsers( allData, toSessionId );
 	}

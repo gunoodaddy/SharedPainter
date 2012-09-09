@@ -209,12 +209,12 @@ public:
 
 	// virtual methods
 public:
-	virtual bool loadData( const std::string & data, int *readPos = NULL ) 
+	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
 		return loadBasicPaintData( data, data_, readPos );
 	}
 
-	virtual std::string generateData( int *writePos = NULL ) const
+	virtual std::string serialize( int *writePos = NULL ) const
 	{
 		return generateBasicData( data_, writePos );
 	}
@@ -311,7 +311,7 @@ public:
 			canvas_->drawBackgroundImage(  boost::static_pointer_cast<CBackgroundImageItem>(shared_from_this()) );		
 	}
 
-	virtual bool loadData( const std::string & data, int *readPos = NULL )
+	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
 		try
 		{
@@ -319,7 +319,7 @@ public:
 			std::string pixmapBuf;
 			QImage::Format format;
 
-			if( ! CPaintItem::loadData( data, &pos ) )
+			if( ! CPaintItem::deserialize( data, &pos ) )
 				return false;
 
 			pos += CPacketBufferUtil::readString32( data, pos, pixmapBuf, true );
@@ -327,7 +327,7 @@ public:
 			QByteArray temp( pixmapBuf.c_str(), pixmapBuf.size() );
 			byteArray_ = temp;
 
-			//qDebug() << "########## !!!!!!!!!!!!! loadData : " << byteArray_.size() << pixmapBuf.size() ;
+			//qDebug() << "########## !!!!!!!!!!!!! deserialize : " << byteArray_.size() << pixmapBuf.size() ;
 
 			//HexDump(  pixmapBuf.c_str() + 10000, 50 );
 			//HexDump(  byteArray_.data() + 10000, 50 );
@@ -340,17 +340,17 @@ public:
 		return true;
 	}
 
-	std::string generateData( int *writePos = NULL ) const
+	std::string serialize( int *writePos = NULL ) const
 	{
 		int pos = 0;
 		std::string data;
 
-		data = CPaintItem::generateData( &pos );
+		data = CPaintItem::serialize( &pos );
 
 		std::string pixmapBuf( byteArray_.data(), byteArray_.size() );
 		pos += CPacketBufferUtil::writeString32( data, pos, pixmapBuf, true );
 
-		qDebug() << "########## generateData pixmap : "<<  data_.owner.c_str() << data_.itemId << pixmapBuf.size();
+		qDebug() << "########## serialize pixmap : "<<  data_.owner.c_str() << data_.itemId << pixmapBuf.size();
 		return data;
 	}
 
@@ -391,7 +391,7 @@ public:
 			canvas_->drawLine(  boost::static_pointer_cast<CLineItem>(shared_from_this()) );
 	}
 
-	virtual bool loadData( const std::string & data, int *readPos = NULL )
+	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
 		try
 		{
@@ -399,7 +399,7 @@ public:
 			boost::int16_t r, g, b, a, w, ptCnt;
 			int pos = 0;
 
-			if( ! CPaintItem::loadData( data, &pos ) )
+			if( ! CPaintItem::deserialize( data, &pos ) )
 				return false;
 
 			pos += CPacketBufferUtil::readInt16( data, pos, r, true );
@@ -428,12 +428,12 @@ public:
 		return true;
 	}
 
-	std::string generateData( int *writePos = NULL ) const
+	std::string serialize( int *writePos = NULL ) const
 	{
 		int pos = 0;
 		std::string data;
 
-		data = CPaintItem::generateData( &pos );
+		data = CPaintItem::serialize( &pos );
 
 		pos += CPacketBufferUtil::writeInt16( data, pos, clr_.red(), true );
 		pos += CPacketBufferUtil::writeInt16( data, pos, clr_.green(), true );
@@ -491,7 +491,7 @@ public:
 			canvas_->drawSendingStatus( shared_from_this() );
 	}
 
-	virtual bool loadData( const std::string & data, int *readPos = NULL )
+	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
 		try
 		{
@@ -500,7 +500,7 @@ public:
 
 			int pos = 0;
 
-			if( ! CPaintItem::loadData( data, &pos ) )
+			if( ! CPaintItem::deserialize( data, &pos ) )
 				return false;
 
 			pos += CPacketBufferUtil::readString16( data, pos, tempName, true );
@@ -529,7 +529,7 @@ public:
 		return true;
 	}
 
-	std::string generateData( int *writePos = NULL ) const
+	std::string serialize( int *writePos = NULL ) const
 	{
 		QFileInfo pathInfo( path_ );
 		QString fileName( pathInfo.fileName() );
@@ -543,7 +543,7 @@ public:
 
 		int pos = 0;
 		std::string data;
-		data = CPaintItem::generateData( &pos );
+		data = CPaintItem::serialize( &pos );
 	
 		pos += CPacketBufferUtil::writeString16( data, pos, toUtf8StdString(fileName), true );
 		pos += CPacketBufferUtil::writeInt32( data, pos, byteArray.size(), true );
@@ -603,7 +603,7 @@ public:
 			canvas_->drawText(  boost::static_pointer_cast<CTextItem>(shared_from_this()) );		
 	}
 
-	virtual bool loadData( const std::string & data, int *readPos = NULL )
+	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
 		try
 		{
@@ -612,7 +612,7 @@ public:
 			std::string text, fontFamily;
 			int pos = 0;
 
-			if( ! CPaintItem::loadData( data, &pos ) )
+			if( ! CPaintItem::deserialize( data, &pos ) )
 				return false;
 
 			pos += CPacketBufferUtil::readInt16( data, pos, r, true );
@@ -641,12 +641,12 @@ public:
 		return true;
 	}
 
-	std::string generateData( int *writePos = NULL ) const
+	std::string serialize( int *writePos = NULL ) const
 	{
 		int pos = 0;
 		std::string data;
 
-		data = CPaintItem::generateData( &pos );
+		data = CPaintItem::serialize( &pos );
 
 		pos += CPacketBufferUtil::writeInt16( data, pos, clr_.red(), true );
 		pos += CPacketBufferUtil::writeInt16( data, pos, clr_.green(), true );

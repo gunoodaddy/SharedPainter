@@ -163,16 +163,8 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Paint Source"
+			Name="@ Paint Source"
 			>
-			<File
-				RelativePath=".\PaintItem.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PaintItem.h"
-				>
-			</File>
 			<Filter
 				Name="Packet"
 				>
@@ -226,20 +218,28 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="Factory"
-				>
-				<File
-					RelativePath=".\PaintItemFactory.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="Joiner"
 				>
 				<File
 					RelativePath=".\PaintUser.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="Item Data"
+				>
+				<File
+					RelativePath=".\PaintItem.h"
+					>
+				</File>
+				<Filter
+					Name="Factory"
+					>
+					<File
+						RelativePath=".\PaintItemFactory.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -402,42 +402,10 @@
 				RelativePath=".\Singleton.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Shared Paint Manager"
-			>
 			<File
-				RelativePath=".\SharedPaintManagementData.h"
+				RelativePath=".\Util.h"
 				>
 			</File>
-			<File
-				RelativePath=".\SharedPaintManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SharedPaintManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SharedPaintPolicy.h"
-				>
-			</File>
-			<Filter
-				Name="Command"
-				>
-				<File
-					RelativePath=".\SharedPaintCommand.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintCommand.h"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintCommandManager.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Network"
@@ -1074,6 +1042,42 @@
 					/>
 				</FileConfiguration>
 			</File>
+		</Filter>
+		<Filter
+			Name="Shared Paint Manager"
+			>
+			<File
+				RelativePath=".\SharedPaintManagementData.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedPaintManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedPaintManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedPaintPolicy.h"
+				>
+			</File>
+			<Filter
+				Name="Command"
+				>
+				<File
+					RelativePath=".\SharedPaintCommand.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintCommandManager.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

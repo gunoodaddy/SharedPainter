@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Util.h"
 #include "PacketBuffer.h"
 #include <boost/enable_shared_from_this.hpp>
 
@@ -9,62 +10,6 @@ class CBackgroundImageItem;
 class CFileItem;
 class CTextItem;
 class CImageFileItem;
-
-static void HexDump(const void *ptr, int buflen)
-{
-	unsigned char *buf = (unsigned char*)ptr;
-	int i,j;
-	char line[1024];
-	for (i=0; i<buflen; i+=16)
-	{
-		sprintf(line ,"%06x: ", i);
-		
-		for (j=0; j<16; j++) 
-			if (i+j < buflen)
-				sprintf(line, "%s%02x ", line, buf[i+j]);
-			else
-				strcat(line, "   ");
-		
-		strcat(line, " ");
-		
-		for (j=0; j<16; j++) 
-			if (i+j < buflen)
-				sprintf(line, "%s%c", line, isprint(buf[i+j]) ? buf[i+j] : '.');
-		
-		strcat(line, "\n");
-		
-		qDebug() << line;
-	}
-}
-
-static QString generateFileDownloadPath( const QString *path = 0 )
-{
-	QString res;
-	if( path )
-		res += *path;
-	else
-		res = QDir::currentPath();
-
-	res += QDir::separator();
-	res += "Download";
-	res += QDir::separator();
-
-	QDir dir( res );
-	if ( !dir.exists() )
-		dir.mkpath( res );
-	return res;
-}
-
-static std::string toUtf8StdString( const QString &str )
-{
-	std::string res;
-
-	QByteArray a = str.toUtf8();
-
-	res.assign( a.data(), a.size() );
-
-	return res;
-}
 
 enum PaintItemType {
 	PT_LINE = 0,
@@ -274,7 +219,6 @@ public:
 		QDataStream pixmapStream(&byteArray_, QIODevice::WriteOnly);
 		pixmapStream << pixmap;
 		pixmapStream.setByteOrder( QDataStream::LittleEndian ); 
-		qDebug() << "########## setPixmap : " << pixmapStream << byteArray_.size();
 	}
 	
 	QPixmap createPixmap() 
@@ -284,10 +228,7 @@ public:
 		QDataStream pixmapStream(&byteArray_, QIODevice::ReadOnly);
 		pixmapStream.setByteOrder( QDataStream::LittleEndian ); 
 
-		qDebug() << "########## createPixmap : "  << byteArray_.size();
-
 		pixmapStream >> pixmap;
-
 		return pixmap; 
 	}
 
@@ -326,12 +267,6 @@ public:
 			
 			QByteArray temp( pixmapBuf.c_str(), pixmapBuf.size() );
 			byteArray_ = temp;
-
-			//qDebug() << "########## !!!!!!!!!!!!! deserialize : " << byteArray_.size() << pixmapBuf.size() ;
-
-			//HexDump(  pixmapBuf.c_str() + 10000, 50 );
-			//HexDump(  byteArray_.data() + 10000, 50 );
-
 		} catch(CPacketException &e) {
 			(void)e;
 			// nothing to do
@@ -349,8 +284,6 @@ public:
 
 		std::string pixmapBuf( byteArray_.data(), byteArray_.size() );
 		pos += CPacketBufferUtil::writeString32( data, pos, pixmapBuf, true );
-
-		qDebug() << "########## serialize pixmap : "<<  data_.owner.c_str() << data_.itemId << pixmapBuf.size();
 		return data;
 	}
 
@@ -511,7 +444,9 @@ public:
 			pos += CPacketBufferUtil::readString32( data, pos, fileData, true );
 
 			QString fileName = QString::fromUtf8( tempName.c_str(), tempName.size() );
-			path_ = generateFileDownloadPath() + fileName;
+			path_ = Util::generateFileDownloadPath() + fileName;
+
+			path_ = Util::checkAndChangeSameFileName( path_ );
 
 			QFile f(path_);
 			if( !f.open( QIODevice::WriteOnly ) )
@@ -549,7 +484,7 @@ public:
 		std::string data;
 		data = CPaintItem::serialize( &pos );
 	
-		pos += CPacketBufferUtil::writeString16( data, pos, toUtf8StdString(fileName), true );
+		pos += CPacketBufferUtil::writeString16( data, pos, Util::toUtf8StdString(fileName), true );
 		pos += CPacketBufferUtil::writeInt32( data, pos, byteArray.size(), true );
 		pos += CPacketBufferUtil::writeBinary( data, pos, byteArray.data(), byteArray.size() );
 		return data;
@@ -657,8 +592,8 @@ public:
 		pos += CPacketBufferUtil::writeInt16( data, pos, clr_.blue(), true );
 		pos += CPacketBufferUtil::writeInt16( data, pos, clr_.alpha(), true );
 		pos += CPacketBufferUtil::writeInt16( data, pos, font_.pixelSize(), true );
-		pos += CPacketBufferUtil::writeString16( data, pos, toUtf8StdString(text_), true );
-		pos += CPacketBufferUtil::writeString16( data, pos, toUtf8StdString(font_.family()), true );
+		pos += CPacketBufferUtil::writeString16( data, pos, Util::toUtf8StdString(text_), true );
+		pos += CPacketBufferUtil::writeString16( data, pos, Util::toUtf8StdString(font_.family()), true );
 		pos += CPacketBufferUtil::writeInt8( data, pos, font_.bold() ? 1 : 0 );
 	
 		return data;

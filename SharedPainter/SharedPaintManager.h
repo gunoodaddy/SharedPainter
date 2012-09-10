@@ -228,6 +228,11 @@ public:
 
 	// Shared Paint Action
 public:
+	void redoCommand( void )
+	{
+		commandMngr_.redoCommand();
+	}
+
 	void undoCommand( void )
 	{
 		commandMngr_.undoCommand();

@@ -52,6 +52,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		showLastItemAction_ = edit->addAction( "Blink &Last Item Always", this, SLOT(actionBlinkLastAddItem()), Qt::CTRL+Qt::Key_L );
 		edit->addSeparator();
 		edit->addAction( "&Undo", this, SLOT(actionUndo()), Qt::CTRL+Qt::Key_Z );
+		edit->addAction( "&Redo", this, SLOT(actionRedo()), Qt::CTRL+Qt::SHIFT+Qt::Key_Z );
 		menuBar->addMenu( edit );
 
 		gridLineAction_->setCheckable( true );
@@ -523,6 +524,10 @@ void SharedPainter::actionUndo( void )
 	SharePaintManagerPtr()->undoCommand();
 }
 
+void SharedPainter::actionRedo( void )
+{
+	SharePaintManagerPtr()->redoCommand();
+}
 
 void SharedPainter::actionBroadcastChannel( void )
 {

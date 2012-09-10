@@ -70,6 +70,7 @@ protected slots:
 	void actionConnect( void );
 	void actionScreenShot( void );
 	void actionUndo( void );
+	void actionRedo( void );
 	void actionServerType( void );
 	void actionClientType( void );
 	void actionGridLine( void );

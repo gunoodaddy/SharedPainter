@@ -403,6 +403,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Util.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Util.h"
 				>
 			</File>

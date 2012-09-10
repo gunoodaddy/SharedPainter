@@ -9,6 +9,10 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT)
 {
+	fontBroadCastText_ = QFont( "Times" );
+	fontBroadCastText_.setBold( true );
+	fontBroadCastText_.setPixelSize( 20 );
+
 	ui.setupUi(this);
 
 	ui.painterView->setScene( canvas );
@@ -70,6 +74,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		showLastItemAction_->setCheckable( true );
 	}
 
+
 	// create tool bar
 	{
 		ui.toolBar->setIconSize( QSize(32, 32) );
@@ -107,6 +112,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		changeToobarButtonColor( toolBar_penColorButton_, canvas_->penColor() );
 		changeToobarButtonColor( toolBar_bgColorButton_, QColor(Qt::white) );
 	}
+
 
 	// create status bar
 	{
@@ -322,7 +328,7 @@ void SharedPainter::actionGridLine( void )
 void SharedPainter::actionBGColor( void )
 {
 	static QColor LAST_COLOR = Qt::white;
-	QColor clr = QColorDialog::getColor(LAST_COLOR, this, tr("Background Color"));
+	QColor clr = QColorDialog::getColor(canvas_->backgroundColor(), this, tr("Background Color"));
 	LAST_COLOR = clr;
 
 	if( !clr.isValid() )
@@ -443,14 +449,7 @@ void SharedPainter::actionAddText( void )
 	if( res != QDialog::Accepted )
 		return;
 
-	boost::shared_ptr<CTextItem> textItem = boost::shared_ptr<CTextItem>(new CTextItem( dlg.text(), dlg.font(), dlg.textColor() ));
-	textItem->setMyItem();
-
-	QPointF pos = _calculateTextPos( textItem->font().pixelSize() );
-
-	textItem->setPos( pos.x(), pos.y() );
-
-	_requestAddItem( textItem );
+	addTextItem( dlg.text(), dlg.font(), dlg.textColor() );
 }
 
 

@@ -65,6 +65,7 @@ public:
 	int backgroundGridLineSize( void ) { return gridLineSize_; }
 	int penWidth( void ) { return penWidth_; }
 	const QColor & penColor( void ) { return penClr_; }
+	const QColor & backgroundColor( void ) { return backgroundColor_; }
 
 	bool isSettingShowLastAddItemBorder( void ) { return showLastAddItemBorderFlag_; }
 	void setSettingShowLastAddItemBorder( bool enable )

@@ -298,39 +298,6 @@ static QPainterPath createCoveringBorderPath( int borderType, QGraphicsItem *ite
 	return path;
 }
 
-
-static QColor getComplementaryColor( const QColor &clr, const QColor &lineClr = QColor() )
-{
-	// calcualte opposite color
-	int r = 255 - clr.red();
-	int g = 255 - clr.green();
-	int b = 255 - clr.blue();
-
-	int r2 = lineClr.red();
-	int g2 = lineClr.green();
-	int b2 = lineClr.blue();
-
-	int dr = abs(r2 - r);
-	int dg = abs(g2 - g);
-	int db = abs(b2 - b);
-
-	static const int COLOR_DIFF_OFFSET = 0x20;
-	int cnt = 0, bits = 0;
-	if( dr < COLOR_DIFF_OFFSET ) { cnt++; bits |= 0x1; }
-	if( dg < COLOR_DIFF_OFFSET ) { cnt++; bits |= 0x2; }
-	if( db < COLOR_DIFF_OFFSET ) { cnt++; bits |= 0x4; }
-
-	if( dr + dg + db <= 128 )
-	{
-		if( !(bits & 0x1) ) r = r > 128 ? 0 : 255;
-		if( !(bits & 0x2) ) g = g > 128 ? 0 : 255;
-		if( !(bits & 0x4) ) b = b > 128 ? 0 : 255;
-	}
-	//qDebug() << dr << dg << db << "--" << r << g << b << "---(2)---" << r2 << g2 << b2 << bits << cnt;
-	QColor res(r, g, b);
-	return res;
-}
-
 void CSharedPainterScene::clearLastItemBorderRect( void )
 {
 	if( lastCoverGraphicsItem_ )
@@ -361,7 +328,7 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 	clearLastItemBorderRect();
 
 	QAbstractGraphicsShapeItem* lastBorderItem = addPath( path );
-	lastBorderItem->setPen( QPen(getComplementaryColor(backgroundColor_, penColor()), 2) );
+	lastBorderItem->setPen( QPen( Util::getComplementaryColor(backgroundColor_, penColor() ), 2) );
 	lastBorderItem->setZValue( currentZValue() );
 	lastCoverGraphicsItem_ = lastBorderItem;
 
@@ -510,16 +477,15 @@ void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )
 
 void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 {
-	if( line->pointSize() <= 0 )
+	if( line->pointCount() <= 0 )
 		return;
 
-	QRectF invalidateRect;
 	QPainterPath painterPath;
 
 	painterPath.moveTo( *line->point( 0 ) );
-	if( line->pointSize() > 1 )
+	if( line->pointCount() > 1 )
 	{
-		for( size_t i = 1; i < line->pointSize(); i++ )
+		for( size_t i = 1; i < line->pointCount(); i++ )
 		{
 			painterPath.lineTo( *line->point( i ) );
 		}
@@ -532,8 +498,6 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		pathItem->setZValue( currentZValue() );
 		pathItem->setItemData( line );
 		commonAddItem( line, pathItem, Border_PainterPath );
-
-		//invalidateRect = pathItem->boundingRect();
 	}
 	else
 	{
@@ -552,11 +516,7 @@ void CSharedPainterScene::drawLine( boost::shared_ptr<CLineItem> line )
 		ellipseItem->setZValue( currentZValue() );
 		ellipseItem->setItemData( line );
 		commonAddItem( line, ellipseItem, Border_Ellipse );
-
-		//invalidateRect = ellipseItem->boundingRect();
 	}
-
-	//invalidate( invalidateRect );
 }
 
 

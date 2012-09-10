@@ -298,7 +298,7 @@ public:
 	CLineItem( void ) : CPaintItem() { }
 	CLineItem( const QColor &color, int width ) : CPaintItem(), clr_(color), w_(width) { }
 
-	size_t pointSize( void) const { return listList_.size(); }
+	size_t pointCount( void) const { return listList_.size(); }
 	const QPointF *point( size_t index ) const 
 	{
 		if( listList_.size() <= index )

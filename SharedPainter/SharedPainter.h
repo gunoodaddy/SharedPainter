@@ -87,6 +87,18 @@ public:
 	     trayIcon_->showMessage( PROGRAME_TEXT, str, icon, DEFAULT_TRAY_MESSAGE_DURATION_MSEC );
  	}
 
+	void addTextItem( const QString &str, const QFont &font, const QColor &textColor )
+	{
+		boost::shared_ptr<CTextItem> textItem = boost::shared_ptr<CTextItem>(new CTextItem( str, font, textColor ));
+		textItem->setMyItem();
+
+		QPointF pos = _calculateTextPos( font.pixelSize() );
+
+		textItem->setPos( pos.x(), pos.y() );
+
+		_requestAddItem( textItem );
+	}
+
 protected:
 	void closeEvent( QCloseEvent *evt );
 	void moveEvent( QMoveEvent * evt );
@@ -297,6 +309,8 @@ protected:
 	{
 		QString msg = QString::fromUtf8( message.c_str(), message.size() );
 		showTrayMessage( msg );
+
+		addTextItem( msg, fontBroadCastText_, Util::getComplementaryColor(canvas_->backgroundColor()) );
 	}
 
 
@@ -330,6 +344,7 @@ private:
 	Status status_;
 	QSystemTrayIcon *trayIcon_;
 	QMenu *trayIconMenu_;
+	QFont fontBroadCastText_;
 };
 
 #endif // SHAREDPAINTER_H

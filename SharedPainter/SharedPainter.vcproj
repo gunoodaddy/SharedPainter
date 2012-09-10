@@ -361,7 +361,7 @@
 							Name="VCCustomBuildTool"
 							Description="Rcc&apos;ing $(InputFileName)..."
 							CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\pen_mode.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png"
+							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png"
 							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 						/>
 					</FileConfiguration>
@@ -372,7 +372,7 @@
 							Name="VCCustomBuildTool"
 							Description="Rcc&apos;ing $(InputFileName)..."
 							CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\pen_mode.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png"
+							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png"
 							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 						/>
 					</FileConfiguration>
@@ -823,6 +823,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\draw_line.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\grid_line.ico"
 				>
 				<FileConfiguration
@@ -844,6 +864,26 @@
 			</File>
 			<File
 				RelativePath=".\Resources\grid_line.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\last_item.png"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -983,6 +1023,86 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\pen_width_10.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\pen_width_2.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\pen_width_20.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\pen_width_6.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\scheenshot.ico"
 				>
 				<FileConfiguration
@@ -1024,6 +1144,46 @@
 			</File>
 			<File
 				RelativePath=".\Resources\screenshot.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\tray_connect.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\tray_disconnect.png"
 				>
 				<FileConfiguration
 					Name="Release|Win32"

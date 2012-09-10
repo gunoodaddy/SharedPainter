@@ -12,6 +12,14 @@ class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent
 	Q_OBJECT
 
 public:
+	enum Status
+	{
+		INIT,
+		CONNECTED,
+		CONNECTFAILED,
+		DISCONNECTED,
+	};
+
 	SharedPainter(CSharedPainterScene* canvas, QWidget *parent = 0, Qt::WFlags flags = 0);
 	~SharedPainter();
 
@@ -31,7 +39,55 @@ public:
 		str += QString::number(count);
 		joinerCountLabel_->setText( str );
 	}
+	void setStatus( Status status )
+	{
+		QString msg;
+		switch( status )
+		{
+		case INIT:
+			msg = tr("Not connected");
+			break;
+		case CONNECTED:
+			msg = tr("Connected");
+			break;
+		case DISCONNECTED:
+			msg = tr("Disconnected");
+			break;
+		case CONNECTFAILED:
+			msg = tr("Connect Failure");
+			break;
+		}
 
+		setStatusBar_Network( msg );
+		setTrayIcon( status );
+	}
+
+	void setTrayIcon( Status status )
+	{
+		status_ = status;
+
+		QIcon icon;
+		switch( status )
+		{
+		case CONNECTED:
+			icon = QIcon( QPixmap(":/SharedPainter/Resources/tray_connect.png") );
+			break;
+		default:
+			icon = QIcon( QPixmap(":/SharedPainter/Resources/tray_disconnect.png") );
+			break;
+		}
+		trayIcon_->setIcon( icon );
+		setWindowIcon( icon );
+	}
+
+	void showTrayMessage( const QString &str )
+	{
+	     QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information;
+
+	     trayIcon_->showMessage( PROGRAME_TEXT, str, icon, DEFAULT_TRAY_MESSAGE_DURATION_MSEC );
+ 	}
+
+protected:
 	void closeEvent( QCloseEvent *evt );
 	void moveEvent( QMoveEvent * evt );
 	void showEvent ( QShowEvent * evt );
@@ -52,6 +108,9 @@ public:
 	
 protected slots:
 	void onTimer( void );
+	void onTrayMessageClicked( void );
+	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
+
 	void actionBroadcastChannel( void );
 	void actionClearBG( void );
 	void actionBGColor( void );
@@ -78,6 +137,7 @@ protected slots:
 	void actionExportFile( void );
 	void actionBlinkLastAddItem( void );
 	void actionLastItem( void );
+	void actionOpenApp( void );
 
 private:
 	void setCheckGridLineAction( bool checked );
@@ -104,17 +164,17 @@ protected:
 	// ISharedPaintEvent
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self )
 	{
-		setStatusBar_Network("Connected");
+		setStatus( CONNECTED );
 	}
 
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self )
 	{
-		setStatusBar_Network("Connect Failure");
+		setStatus( CONNECTFAILED );
 	}
 
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self )
 	{
-		setStatusBar_Network("Disconnected");
+		setStatus( DISCONNECTED );
 	}
 
 	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self )
@@ -137,7 +197,7 @@ protected:
 		wroteProgressBar_->setValue( wroteBytes );
 
 		/*
-                // TODO
+		// TODO
 		ITEM_LIST list = self->findItem( packetId );
 		for( size_t i = 0; i < list.size(); i++ )
 		{
@@ -203,7 +263,6 @@ protected:
 	{
 		setCheckGridLineAction( false );
 		canvas_->drawBackgroundGridLine( 0 );
-		//canvas_->setBackgroundColor( 255, 255, 255, 255 );
 		canvas_->clearBackgroundImage();
 	}
 
@@ -260,6 +319,10 @@ private:
 
 	double lastTextPosX_;
 	double lastTextPosY_;
+
+	Status status_;
+	QSystemTrayIcon *trayIcon_;
+	QMenu *trayIconMenu_;
 };
 
 #endif // SHAREDPAINTER_H

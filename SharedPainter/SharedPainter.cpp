@@ -7,11 +7,12 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
-	, lastTextPosX_(0), lastTextPosY_(0)
+	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT)
 {
 	ui.setupUi(this);
 
 	ui.painterView->setScene( canvas );
+	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
 	canvas_->setEvent( this );
 
 	SharePaintManagerPtr()->registerObserver( this );
@@ -23,12 +24,6 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	{
 		// File Menu
 		QMenu* file = new QMenu( "&File", menuBar );
-		file->addAction( "&Connect", this, SLOT(actionConnect()), Qt::CTRL+Qt::Key_N );
-		file->addAction( "&Broadcast Channel", this, SLOT(actionBroadcastChannel()), Qt::CTRL+Qt::Key_H );
-		QMenu* broadCastTypeMenu = file->addMenu( "BroadCast Type" );
-		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
-		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
-		file->addSeparator();
 		file->addAction( "&Import from file", this, SLOT(actionImportFile()), Qt::CTRL+Qt::Key_I );
 		file->addAction( "&Export to file", this, SLOT(actionExportFile()),  Qt::CTRL+Qt::Key_E );
 		file->addSeparator();
@@ -55,6 +50,15 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		edit->addAction( "&Redo", this, SLOT(actionRedo()), Qt::CTRL+Qt::SHIFT+Qt::Key_Z );
 		menuBar->addMenu( edit );
 
+		// Network Menu
+		QMenu* network = new QMenu( "&Network", menuBar );
+		network->addAction( "&Connect", this, SLOT(actionConnect()), Qt::CTRL+Qt::Key_N );
+		network->addAction( "&Broadcast Channel", this, SLOT(actionBroadcastChannel()), Qt::CTRL+Qt::Key_H );
+		QMenu* broadCastTypeMenu = network->addMenu( "BroadCast Type" );
+		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
+		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
+		menuBar->addMenu( network );
+		
 		gridLineAction_->setCheckable( true );
 		penModeAction_->setCheckable( true );
 		showLastItemAction_->setCheckable( true );
@@ -110,11 +114,28 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
-		setStatusBar_Network( tr("Not Connected") );
 		setStatusBar_BroadCastType( tr("None Type") );
 		setStatusBar_JoinerCnt( 1 );	// my self 
 	}
 	
+
+	// create system tray
+	{
+		trayIconMenu_ = new QMenu(this);
+		trayIconMenu_->addAction("&O&pen", this, SLOT(actionOpenApp()));
+		trayIconMenu_->addSeparator();
+		trayIconMenu_->addAction("E&xit", this, SLOT(actionExit()));
+
+		trayIcon_ = new QSystemTrayIcon(this);
+		trayIcon_->setContextMenu(trayIconMenu_);
+
+		connect(trayIcon_, SIGNAL(messageClicked()), this, SLOT(onTrayMessageClicked()));
+		connect(trayIcon_, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
+	}
+
+	setStatus( INIT );
+	trayIcon_->show();
+
 	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	ui.painterView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	setCursor( Qt::ArrowCursor ); 
@@ -148,43 +169,6 @@ SharedPainter::~SharedPainter()
 	delete keyHookTimer_;
 }
 
-/*
-static bool checkKeyPressed( int virtKey )
-{
-	bool res = false;
-#ifdef Q_WS_WIN
-	static WORD pressKey[256] = {0, };
-
-	WORD state = ::GetAsyncKeyState( virtKey );
-	if( state & 0x1 )
-	{
-		if( pressKey[ virtKey ] == 0 )
-		{
-			res = true;
-		}
-	}
-	pressKey[ virtKey ] = state;
-#endif
-	return res;
-}
-*/
-
-void SharedPainter::onTimer( void )
-{
-	//if(!isActiveWindow())
-	//	return;
-	//
-	//if( checkKeyPressed( 'P' ) )
-	//{
-	//	penModeAction_->setChecked( !penModeAction_->isChecked() );
-	//	actionPenMode();	
-	//}
-	//else if( checkKeyPressed( 'T' ) )
-	//{
-	//	actionAddText();
-	//}
-}
-
 
 // this logic is for fixing bug that the center "Enter key" don't work.
 bool SharedPainter::eventFilter(QObject *object, QEvent *event)
@@ -200,9 +184,48 @@ bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 	return QMainWindow::eventFilter(object,event);
 }
 
+void SharedPainter::onTimer( void )
+{
+	//if(!isActiveWindow())
+	//	return;
+	//
+	//if( Util::checkKeyPressed( 'P' ) )
+	//{
+	//	penModeAction_->setChecked( !penModeAction_->isChecked() );
+	//	actionPenMode();	
+	//}
+	//else if( Util::checkKeyPressed( 'T' ) )
+	//{
+	//	actionAddText();
+	//}
+}
+
+void SharedPainter::onTrayMessageClicked( void )
+{
+	show();
+}
+
+void SharedPainter::onTrayActivated( QSystemTrayIcon::ActivationReason reason )
+{
+	switch ( reason ) 
+	{
+	case QSystemTrayIcon::Trigger:
+	case QSystemTrayIcon::DoubleClick:
+		show();
+		break;
+	default:
+		;
+	}
+}
+
+
+void SharedPainter::actionOpenApp( void )
+{
+}
 
 void SharedPainter::actionExit( void )
 {
+	trayIcon_->hide();
 	close();
 }
 
@@ -587,12 +610,23 @@ void SharedPainter::showEvent( QShowEvent * evt )
 
 void SharedPainter::closeEvent( QCloseEvent *evt )
 {
+	if (trayIcon_->isVisible()) {
+		QMessageBox::information(this, tr("Systray"),
+			tr("The program will keep running in the "
+			"system tray. To terminate the program, "
+			"choose <b>Exit</b> in the context menu "
+			"of the system tray entry."));
+		hide();
+		evt->ignore();
+		return;
+	}
+
 	SettingManagerPtr()->save();
 	SharePaintManagerPtr()->clearAllItems();
 
 	QMainWindow::closeEvent( evt );
 }
-
+ 
 
 void SharedPainter::moveEvent( QMoveEvent * evt )
 {

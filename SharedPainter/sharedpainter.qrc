@@ -13,5 +13,7 @@
         <file>Resources/pen_width_10.png</file>
         <file>Resources/pen_width_20.png</file>
         <file>Resources/pen_width_2.png</file>
+        <file>Resources/tray_connect.png</file>
+        <file>Resources/tray_disconnect.png</file>
     </qresource>
 </RCC>

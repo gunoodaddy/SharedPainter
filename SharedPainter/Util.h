@@ -2,6 +2,26 @@
 
 namespace Util
 {
+	static bool checkKeyPressed( int virtKey )
+	{
+		bool res = false;
+		// TODO : multiplatform issue!
+#ifdef Q_WS_WIN
+		static WORD pressKey[256] = {0, };
+
+		WORD state = ::GetAsyncKeyState( virtKey );
+		if( state & 0x1 )
+		{
+			if( pressKey[ virtKey ] == 0 )
+			{
+				res = true;
+			}
+		}
+		pressKey[ virtKey ] = state;
+#endif
+		return res;
+	}
+
 	static void HexDump(const void *ptr, int buflen)
 	{
 		unsigned char *buf = (unsigned char*)ptr;

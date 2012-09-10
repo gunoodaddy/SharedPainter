@@ -5,6 +5,8 @@
 ## Features
 
 * Automatically server finding by udp broadcast (if same network)
+* TCP directly connection to host (host with NAT not available yet..)
+* Multiuser sharing
 * Free Pen Object
 * Text Object
 * Background Image (Screen shot)
@@ -15,7 +17,6 @@
 * All Objects Position
 * Object Remove
 * Undo
-* Multiuser sharing
 
 ## Requirement
 * Now, you can build with Qt Creator (tested in Windows only..)

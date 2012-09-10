@@ -13,6 +13,11 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 	ui.painterView->setScene( canvas );
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
+	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+	ui.painterView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+
+	setCursor( Qt::ArrowCursor ); 
+
 	canvas_->setEvent( this );
 
 	SharePaintManagerPtr()->registerObserver( this );
@@ -57,12 +62,12 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		QMenu* broadCastTypeMenu = network->addMenu( "BroadCast Type" );
 		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
 		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
+		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
 		menuBar->addMenu( network );
 		
 		gridLineAction_->setCheckable( true );
 		penModeAction_->setCheckable( true );
 		showLastItemAction_->setCheckable( true );
-		setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 	}
 
 	// create tool bar
@@ -131,14 +136,15 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 		connect(trayIcon_, SIGNAL(messageClicked()), this, SLOT(onTrayMessageClicked()));
 		connect(trayIcon_, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
+		trayIcon_->show();
 	}
 
-	setStatus( INIT );
-	trayIcon_->show();
+	// Setting applying
+	SharePaintManagerPtr()->setBroadCastChannel( SettingManagerPtr()->broadCastChannel() );
+	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 
-	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-	ui.painterView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-	setCursor( Qt::ArrowCursor ); 
+	// change status to "init"
+	setStatus( INIT );
 
 	// Pen mode activated..
 	actionFreePenMode();
@@ -550,6 +556,16 @@ void SharedPainter::actionUndo( void )
 void SharedPainter::actionRedo( void )
 {
 	SharePaintManagerPtr()->redoCommand();
+}
+
+void SharedPainter::actionBroadcastTextMessage( void )
+{
+	bool ok;
+	QString msg = QInputDialog::getText(this, tr("Broadcast Text Message"), tr("Message:"), QLineEdit::Normal, "", &ok);
+	if( ! ok )
+		return;
+
+	SharePaintManagerPtr()->sendBroadCastTextMessage( SettingManagerPtr()->broadCastChannel(), Util::toUtf8StdString( msg ) );
 }
 
 void SharedPainter::actionBroadcastChannel( void )

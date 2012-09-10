@@ -35,13 +35,14 @@ public:
 	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, const std::string &owner, int itemId ) = 0;
 	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, const std::string &owner, int itemId, double x, double y ) = 0;
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
-	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size ) = 0;
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_ClearBackground( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
+	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port ) = 0;
+	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &message ) = 0;
 };
 
 
@@ -51,6 +52,8 @@ private:
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
 	typedef std::map< std::string, boost::shared_ptr<CPaintUser> > USER_MAP;
 	typedef std::vector< boost::shared_ptr<CPaintSession> > SESSION_LIST;
+
+	static const int DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG	= 3338;
 
 public:
 	CSharedPaintManager(void);
@@ -66,8 +69,14 @@ public:
 		if( netPeerServer_ )
 			netPeerServer_->close();
 
-		if( broadCastSession_ )
-			broadCastSession_->close();
+		if( broadCastSessionForConnection_ )
+			broadCastSessionForConnection_->close();
+
+		if( broadCastSessionForSendMessage_ )
+			broadCastSessionForSendMessage_->close();
+
+		if( broadCastSessionForRecvMessage_ )
+			broadCastSessionForRecvMessage_->close();
 
 		clearAllUsers();
 		clearAllSessions();
@@ -224,6 +233,14 @@ public:
 		SESSION_LIST sessionList = sessionList_;
 
 		return sendDataToUsers( sessionList, msg, toSessionId );
+	}
+
+	void sendBroadCastTextMessage( const std::string &broadcastChannel, const std::string &msg )
+	{
+		std::string data;
+		data = BroadCastPacketBuilder::CTextMessage::make( broadcastChannel, myId_, msg );
+
+		broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
 	}
 
 	// Shared Paint Action
@@ -753,6 +770,14 @@ private:
 			(*it)->onISharedPaintEvent_SetBackgroundGridLine( this, size );
 		}
 	}
+	void fireObserver_ReceivedTextMessage( const std::string &broadcastChannel, const std::string &message )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ReceivedTextMessage( this, broadcastChannel, message );
+		}
+	}
 	void fireObserver_GetServerInfo( const std::string &broadcastChannel, const std::string &addr, int port )
 	{
 		std::list<ISharedPaintEvent *> observers = observers_;
@@ -980,7 +1005,10 @@ private:
 	boost::recursive_mutex mutexSession_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
 	CPacketSlicer broadCastPacketSlicer_;
-	boost::shared_ptr< CNetBroadCastSession > broadCastSession_;
+	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForConnection_;
+	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForSendMessage_;
+	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForRecvMessage_;
+	std::string broadcastChannel_;
 
 	// seding byte management
 	boost::recursive_mutex mutexSendInfo_;

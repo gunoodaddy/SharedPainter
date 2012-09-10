@@ -112,6 +112,7 @@ protected slots:
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 
 	void actionBroadcastChannel( void );
+	void actionBroadcastTextMessage( void );
 	void actionClearBG( void );
 	void actionBGColor( void );
 	void actionAddText( void );
@@ -179,9 +180,12 @@ protected:
 
 	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self )
 	{
+		if( isActiveWindow() == false )
+		{
 #ifdef Q_WS_WIN
-		::FlashWindow( winId(), TRUE);
+			::FlashWindow( winId(), TRUE);
 #endif
+		}
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
@@ -273,11 +277,13 @@ protected:
 		resizeFreezingFlag_ = false;
 	}
 	
+	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
+	{
+		setStatusBar_JoinerCnt( self->userCount() );
+	}
+
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port )
 	{
-		if( broadcastChannel != SettingManagerPtr()->broadCastChannel() )
-			return;
-
 		if( !self->isConnected() && !self->isServerMode() )
 		{
 			if( self->isConnecting() )
@@ -286,10 +292,11 @@ protected:
 			self->connectToPeer( addr, port );
 		}
 	}
-
-	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
+	
+	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &message )
 	{
-		setStatusBar_JoinerCnt( self->userCount() );
+		QString msg = QString::fromUtf8( message.c_str(), message.size() );
+		showTrayMessage( msg );
 	}
 
 

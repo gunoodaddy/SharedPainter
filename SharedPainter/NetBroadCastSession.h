@@ -30,44 +30,35 @@ public:
 		broadCastMsg_ = msg;
 	}
 
-	bool startSend( int port, const std::string &msg, int second = 0 )
+	void sendData( int port, const std::string &data )
 	{
-		broadCastPort_ = port;
+		if( socket_.is_open() )
+		{
+			boost::asio::ip::udp::endpoint senderEndpoint( boost::asio::ip::address_v4::broadcast(), port );             
+			socket_.send_to( boost::asio::buffer(data), senderEndpoint); 
+		}
+	}
 
-		setBroadCastMessage( msg );
-
-		// open socket
+	bool openUdp( void )
+	{
 		socket_.close();
 
 		boost::system::error_code error; 
-		socket_.open(boost::asio::ip::udp::v4(), error); 
+		socket_.open( boost::asio::ip::udp::v4(), error ); 
+
 		if (!error) 
 		{ 
 			stopBroadCastMsgFlag_ = false;
 
 			socket_.set_option( boost::asio::ip::udp::socket::reuse_address(true) ); 
 			socket_.set_option( boost::asio::socket_base::broadcast(true) ); 
-
-			if( second <= 0 )
-				second = DEFAULT_SEND_SEC;
-
-			_start_broadcast_timer( second );
 			return true;
 		} 
 	
 		return false;
 	}
 
-	void sendData( const std::string &data )
-	{
-		if( socket_.is_open() )
-		{
-			boost::asio::ip::udp::endpoint senderEndpoint( boost::asio::ip::address_v4::broadcast(), broadCastPort_ );             
-			socket_.send_to( boost::asio::buffer(data), senderEndpoint); 
-		}
-	}
-
-	bool startRead( int port )
+	bool listenUdp( int port )
 	{
 		try
 		{
@@ -90,6 +81,24 @@ public:
 		stopBroadCastMsgFlag_ = true;
 		socket_.close();
 		broadcast_timer_.cancel();
+	}
+
+	bool startSend( int port, const std::string &msg, int second = 0 )
+	{
+		broadCastPort_ = port;
+
+		if( openUdp() )
+		{
+			setBroadCastMessage(msg);
+
+			if( second <= 0 )
+				second = DEFAULT_SEND_SEC;
+
+			_start_broadcast_timer( second );
+			return true;
+		} 
+
+		return false;
 	}
 
 	void _start_receive_from( void )
@@ -129,7 +138,7 @@ public:
 		{
 			broadcast_timer_.expires_at( boost::posix_time::pos_infin );
 
-			sendData( broadCastMsg_ );
+			sendData( broadCastPort_, broadCastMsg_ );
 		}
 
 		_start_broadcast_timer( sendMsgSecond_ );

@@ -58,6 +58,17 @@ CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1),
 	myUserInfo_->setData( data );
 
 	backgroundColor_ = Qt::white;
+
+	broadCastSessionForSendMessage_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForSendMessage_->setEvent( this );
+	broadCastSessionForSendMessage_->openUdp();
+
+	broadCastSessionForRecvMessage_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForRecvMessage_->setEvent( this );
+	if( broadCastSessionForRecvMessage_->listenUdp( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG ) == false )
+	{
+		// TODO : ignore this error..
+	}
 }
 
 CSharedPaintManager::~CSharedPaintManager(void)
@@ -73,13 +84,13 @@ bool CSharedPaintManager::startClient( void )
 	if( netPeerServer_ )
 		netPeerServer_->close();
 
-	if( broadCastSession_ )
-		broadCastSession_->close();
+	if( broadCastSessionForConnection_ )
+		broadCastSessionForConnection_->close();
 
-	broadCastSession_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
-	broadCastSession_->setEvent( this );
+	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForConnection_->setEvent( this );
 
-	if( broadCastSession_->startRead( DEFAULT_BROADCAST_PORT ) )
+	if( broadCastSessionForConnection_->listenUdp( DEFAULT_BROADCAST_PORT ) )
 	{
 		if( serverMode_ )
 		{
@@ -96,8 +107,10 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 	std::string myIp = getMyIPAddress();
 	std::string broadCastMsg = BroadCastPacketBuilder::CServerInfo::make( channel, myIp, acceptPort_ );
 	
-	if( broadCastSession_ )
-		broadCastSession_->setBroadCastMessage( broadCastMsg );
+	if( broadCastSessionForConnection_ )
+		broadCastSessionForConnection_->setBroadCastMessage( broadCastMsg );
+
+	broadcastChannel_ = channel;
 }
 
 void CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
@@ -126,13 +139,13 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 	std::string myIp = getMyIPAddress();
 
 	std::string broadCastMsg = BroadCastPacketBuilder::CServerInfo::make( broadCastChannel, myIp, acceptPort_ );
-	if( broadCastSession_ )
-		broadCastSession_->close();
+	if( broadCastSessionForConnection_ )
+		broadCastSessionForConnection_->close();
 
-	broadCastSession_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
-	broadCastSession_->setEvent( this );
+	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForConnection_->setEvent( this );
 
-	broadCastSession_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
+	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 }
 
 // this function need to check session pointer null check!
@@ -261,7 +274,26 @@ void CSharedPaintManager::dispatchBroadCastPacket( boost::shared_ptr<CPacketData
 			int port;
 			if( BroadCastPacketBuilder::CServerInfo::parse( packetData->body, broadcastChannel, addr, port ) )
 			{
+				if( broadcastChannel_ != broadcastChannel )
+					return;
+
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_GetServerInfo, this, broadcastChannel, addr, port ) );
+			}
+		}
+		break;
+
+	case CODE_BROAD_TEXT_MESSAGE:
+		{
+			std::string message, broadcastChannel, myId;
+			if( BroadCastPacketBuilder::CTextMessage::parse( packetData->body, broadcastChannel, myId, message ) )
+			{
+				if( broadcastChannel_ != broadcastChannel )
+					return;
+
+				if( myId_ == myId )	// ignore myself message..
+					return;
+	
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedTextMessage, this, broadcastChannel, message ) );
 			}
 		}
 		break;

@@ -16,6 +16,7 @@
 * Window Resize
 * All Objects Position
 * Object Remove
+* Export/Import file
 * Undo/Redo
 * System tray
 

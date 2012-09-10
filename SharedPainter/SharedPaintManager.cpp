@@ -55,7 +55,7 @@ CSharedPaintManager::CSharedPaintManager(void) : canvas_(NULL), acceptPort_(-1),
 	data.userId = myId_;
 
 	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
-	myUserInfo_->loadData( data );
+	myUserInfo_->setData( data );
 
 	backgroundColor_ = Qt::white;
 }

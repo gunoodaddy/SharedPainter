@@ -32,7 +32,7 @@ namespace SystemPacketBuilder
 				pos += CPacketBufferUtil::readString8( body, pos, userInfo.userId );
 
 				boost::shared_ptr<CPaintUser> user = boost::shared_ptr<CPaintUser>(new CPaintUser);
-				user->loadData( userInfo );
+				user->setData( userInfo );
 				return user;
 
 			}catch(...)

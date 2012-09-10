@@ -13,7 +13,7 @@ public:
 
 	void setSessionId( int sessionId ) { sessionId_ = sessionId; }
 	int sessionId( void ) { return sessionId_; }
-	void loadData( const struct SPaintUserInfoData &info ) { data_ = info; }
+	void setData( const struct SPaintUserInfoData &info ) { data_ = info; }
 
 	const std::string &userId( void ) { return data_.userId; }
 

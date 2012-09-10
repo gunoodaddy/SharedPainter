@@ -556,7 +556,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Generated Files"
+			Name="Generated Files (do not delete me)"
 			Filter="moc;h;cpp"
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			SourceControlFiles="false"

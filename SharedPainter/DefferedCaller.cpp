@@ -18,14 +18,8 @@ bool CDefferedCaller::isMainThread( void )
 	return false;
 }
 
-void CDefferedCaller::performMainThread( deferredMethod_t func )
+void CDefferedCaller::performMainThreadAlwaysDeffered( FUNC_TYPE func )
 {
-	if( isMainThread() )
-	{
-		func();
-		return;
-	}
-
 	mutex_.lock();
 
 	deferredMethods_.push_back( func );
@@ -36,15 +30,26 @@ void CDefferedCaller::performMainThread( deferredMethod_t func )
 	QApplication::postEvent(this, evt);
 }
 
+void CDefferedCaller::performMainThread( FUNC_TYPE func )
+{
+	if( isMainThread() )
+	{
+		func();
+		return;
+	}
+
+	performMainThreadAlwaysDeffered( func );
+}
+
 
 void CDefferedCaller::customEvent(QEvent* e)
 {
 	mutex_.lock();
-	std::list<deferredMethod_t> methods = deferredMethods_;
+	std::list<FUNC_TYPE> methods = deferredMethods_;
 	mutex_.unlock();
 
 	// MUST be lock-free status..
-	for( std::list<deferredMethod_t>::iterator it = methods.begin(); it != methods.end(); it++) 
+	for( std::list<FUNC_TYPE>::iterator it = methods.begin(); it != methods.end(); it++) 
 	{
 		(*it)();
 	}

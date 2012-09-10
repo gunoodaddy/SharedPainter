@@ -790,7 +790,7 @@ private:
 	}
 	void removeSession( int sessionId )
 	{
-		caller_.performMainThread( boost::bind(&CSharedPaintManager::_delayedRemoveSession, this, sessionId) );
+		caller_.performMainThreadAlwaysDeffered( boost::bind(&CSharedPaintManager::_delayedRemoveSession, this, sessionId) );
 	}
 
 protected:

@@ -12,19 +12,20 @@
 class CDefferedCaller : public QObject
 {
 public:
-	typedef boost::function< void () > deferredMethod_t;
+	typedef boost::function< void () > FUNC_TYPE;
 
 	CDefferedCaller(void);
 	~CDefferedCaller(void);
 
 	bool isMainThread( void );
-	void performMainThread( deferredMethod_t func );
+	void performMainThreadAlwaysDeffered( FUNC_TYPE func );
+	void performMainThread( FUNC_TYPE func );	// if on main thread now, just call directly!
 
 private:
 	void customEvent(QEvent* e);
 
 private:
-	std::list<deferredMethod_t> deferredMethods_;
+	std::list<FUNC_TYPE> deferredMethods_;
 	boost::recursive_mutex mutex_;
 	static boost::thread::id mainThreadId_;
 };

@@ -211,7 +211,9 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 		{
 			boost::shared_ptr<CPaintItem> item = PaintPacketBuilder::CAddItem::parse( packetData->body );
 			if( item )
+			{
 				addPaintItem( item );
+			}
 		}
 		break;
 	case CODE_PAINT_UPDATE_ITEM:

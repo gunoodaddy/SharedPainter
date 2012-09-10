@@ -16,34 +16,34 @@ public:
 			redoCommandList_.pop();
 	}
 
-	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command )
+	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command, bool sendData = true )
 	{
-		bool ret = command->execute();
+		bool ret = command->execute( sendData );
 		if( ret )
 			commandList_.push( command );
 
 		return ret;
 	}
 
-	void redoCommand( void )
+	void redoCommand( bool sendData = true )
 	{
 		if( redoCommandList_.size() <= 0 )
 			return;
 
 		boost::shared_ptr< CSharedPaintCommand > command = redoCommandList_.top();
-		command->execute();
+		command->execute( sendData );
 
 		commandList_.push( command );
 		redoCommandList_.pop();
 	}
 
-	void undoCommand( void )
+	void undoCommand( bool sendData = true )
 	{
 		if( commandList_.size() <= 0 )
 			return;
 
 		boost::shared_ptr< CSharedPaintCommand > command = commandList_.top();
-		command->undo();
+		command->undo( sendData );
 
 		redoCommandList_.push( command );
 		commandList_.pop();

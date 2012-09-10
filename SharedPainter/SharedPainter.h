@@ -130,7 +130,7 @@ protected slots:
 	void actionAddText( void );
 	void actionClearScreen( void );
 	void actionPenWidth( void );
-	void actionPenWidth2( void );
+	void actionPenWidth3( void );
 	void actionPenWidth6( void );
 	void actionPenWidth10( void );
 	void actionPenWidth20( void );
@@ -327,6 +327,7 @@ private:
 	QLabel *broadCastTypeLabel_;
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
+	QAction *penWidthAction_;
 	QAction *penModeAction_;
 	QAction *gridLineAction_;
 	QAction *showLastItemAction_;

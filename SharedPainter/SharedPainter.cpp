@@ -42,7 +42,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		// Edit Menu
 		QMenu* edit = new QMenu( "&Edit", menuBar );
 		QMenu* penMenu = edit->addMenu( "Pen Setting" );
-		penMenu->addAction( "Pen &Width", this, SLOT(actionPenWidth()), Qt::CTRL+Qt::Key_V );
+		penWidthAction_ = penMenu->addAction( "Pen &Width", this, SLOT(actionPenWidth()), Qt::CTRL+Qt::Key_V );
 		penMenu->addAction( "Pen &Color", this, SLOT(actionPenColor()), Qt::CTRL+Qt::Key_C );
 		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::CTRL+Qt::Key_A );
 		edit->addAction( "&Text", this, SLOT(actionAddText()), Qt::Key_Enter|Qt::Key_Return );
@@ -90,11 +90,19 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		toolBar_PenMode_ = ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/draw_line.png"), "Pen", this, SLOT(actionFreePenMode()) );
 		ui.toolBar->addSeparator();
 		ui.toolBar->addWidget( toolBar_penColorButton_ );
-		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width.png"), "Pen Width", this, SLOT(actionPenWidth()) );
-		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width_20.png"), "Pen Width 20", this, SLOT(actionPenWidth20()) );
-		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width_10.png"), "Pen Width 10", this, SLOT(actionPenWidth10()) );
-		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width_6.png"), "Pen Width 6", this, SLOT(actionPenWidth6()) );
-		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/pen_width_2.png"), "Pen Width 2", this, SLOT(actionPenWidth2()) );
+		
+		QToolButton *penWidthButton = new QToolButton();
+		QMenu *menuPenWidth = new QMenu();
+		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_20.png"), "Pen Width 20", this, SLOT(actionPenWidth20()) );
+		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_10.png"), "Pen Width 10", this, SLOT(actionPenWidth10()) );
+		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_6.png"), "Pen Width 6", this, SLOT(actionPenWidth6()) );
+		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_2.png"), "Pen Width 3", this, SLOT(actionPenWidth3()) );
+		menuPenWidth->addAction( penWidthAction_ );
+		penWidthButton->setIcon( QIcon(":/SharedPainter/Resources/pen_width.png") );
+		penWidthButton->setMenu( menuPenWidth );
+		penWidthButton->connect( penWidthButton, SIGNAL(clicked()), penWidthButton, SLOT(showMenu()) );
+		ui.toolBar->addWidget( penWidthButton );
+
 		ui.toolBar->addSeparator();
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/screenshot.png"), "Screen Shot", this, SLOT(actionScreenShot()) );
 		ui.toolBar->addWidget( toolBar_bgColorButton_ );
@@ -148,6 +156,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	// Setting applying
 	SharePaintManagerPtr()->setBroadCastChannel( SettingManagerPtr()->broadCastChannel() );
 	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
+	actionPenWidth3();
 
 	// change status to "init"
 	setStatus( INIT );
@@ -466,9 +475,9 @@ void SharedPainter::actionPenWidth( void )
 	canvas_->setPenSetting( canvas_->penColor(), width );
 }
 
-void SharedPainter::actionPenWidth2( void )
+void SharedPainter::actionPenWidth3( void )
 {
-	canvas_->setPenSetting( canvas_->penColor(), 2 );
+	canvas_->setPenSetting( canvas_->penColor(), 3 );
 }
 
 void SharedPainter::actionPenWidth6( void )

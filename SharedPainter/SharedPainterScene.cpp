@@ -569,14 +569,6 @@ void CSharedPainterScene::drawLineTo( const QPointF &pt1, const QPointF &pt2, co
 	item->setZValue( currentLineZValue_ );
 
 	tempLineItemList_.push_back( item );
-
-	/*	QPainter painter(&image_);
-	painter.setPen(QPen(clr, width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-	painter.drawLine(pt1, pt2);
-
-	int rad = (width / 2) + 2;
-	invalidate( QRectF(pt1, pt2).normalized().adjusted(-rad, -rad, +rad, +rad), QGraphicsScene::BackgroundLayer);
-	*/
 }
 
 

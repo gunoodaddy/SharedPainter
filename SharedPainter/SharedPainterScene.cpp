@@ -59,11 +59,17 @@ public:
 
 	void hoverEnterEvent( QGraphicsSceneHoverEvent * event )
 	{
+		if( scene_->isFreePenMode() )
+			return;
+
 		scene_->setCursor( Qt::OpenHandCursor ); 
 	}
 
 	void hoverLeaveEvent( QGraphicsSceneHoverEvent * event )
 	{
+		if( scene_->isFreePenMode() )
+			return;
+
 		scene_->setCursor( Qt::PointingHandCursor ); 
 	}
 

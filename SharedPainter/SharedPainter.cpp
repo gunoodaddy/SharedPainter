@@ -292,11 +292,11 @@ void SharedPainter::actionGridLine( void )
 void SharedPainter::actionBGColor( void )
 {
 	static QColor LAST_COLOR = Qt::white;
-	QColor clr = QColorDialog::getColor(LAST_COLOR, this, tr("Pen Color"));
+	QColor clr = QColorDialog::getColor(LAST_COLOR, this, tr("Background Color"));
 	LAST_COLOR = clr;
 
 	if( !clr.isValid() )
-		return
+		return;
 
 	SharePaintManagerPtr()->setBackgroundColor( clr.red(), clr.green(), clr.blue(), clr.alpha() );
 

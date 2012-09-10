@@ -1243,6 +1243,14 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath=".\icon1.ico"
+			>
+		</File>
+		<File
+			RelativePath=".\Resources\SharedPainter.ico"
+			>
+		</File>
 	</Files>
 	<Globals>
 		<Global

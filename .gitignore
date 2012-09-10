@@ -1,3 +1,14 @@
+
+#############
+## Shared Painter 
+#############
+SharedPainter/GeneratedFiles/*
+*.sp
+*.ini
+*.pro.*
+Makefile*
+ui_*.h
+
 #################
 ## Eclipse
 #################
@@ -162,12 +173,3 @@ pip-log.txt
 # Mac crap
 .DS_Store
 
-
-#############
-## Shared Painter 
-#############
-*.sp
-*.ini
-*.pro.*
-Makefile*
-ui_*.h

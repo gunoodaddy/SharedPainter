@@ -27,10 +27,10 @@ SOURCES +=  \
     SharedPainter/SharedPaintCommand.cpp \
     SharedPainter/SettingManager.cpp \
     SharedPainter/PaintSession.cpp \
-    SharedPainter/PaintItem.cpp \
     SharedPainter/PacketSlicer.cpp \
     SharedPainter/PacketBuffer.cpp \
     SharedPainter/DefferedCaller.cpp \
+    SharedPainter/Util.cpp \
     SharedPainter/main.cpp
 
 HEADERS  += \

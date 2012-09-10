@@ -23,7 +23,7 @@
 ### Common Requirements
 * Qt 4.8.2+ (http://qt-project.org/downloads) <br>
   *You should install the Qt SDK for reducing your stamina waste..*
-* boost 1.51 with asio (http://www.boostpro.com/download/)
+* boost 1.51 with asio (if Windows, just download this : http://www.boostpro.com/download/)
 
 ### Visual Studio 2008 Build Requirements
 * Visual Studio 2008 (not express version)

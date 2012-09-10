@@ -25,6 +25,7 @@
 * boost 1.51 with asio (http://www.boostpro.com/download/)
 * debugging tool(for QT Creator on windows) : http://msdn.microsoft.com/ko-kr/windows/hardware/hh852363
 
-* You should install the Qt SDK for reducing your stamina waste.. 
+* You should install the Qt SDK for reducing your stamina waste..
+* Now, you can build with Qt Creator (tested in Windows only..)
 
 

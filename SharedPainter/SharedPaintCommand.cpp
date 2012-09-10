@@ -2,95 +2,92 @@
 #include "SharedPaintCommand.h"
 #include "SharedPaintManager.h"
 
-bool CAddItemCommand::execute( bool sendData )
+bool CAddItemCommand::execute( void )
 {
-	if ( sendData )
+	boost::shared_ptr<CAddItemTask> task = boost::shared_ptr<CAddItemTask>(new CAddItemTask(manager_, item_));
+	if( task->doit( true ) )
 	{
-		std::string msg = PaintPacketBuilder::CAddItem::make( item_ );
-		int packetId = manager_->sendDataToUsers( msg );
-		item_->setPacketId( packetId );
+		cmdManager_->pushTask( task );
+		return true;
 	}
-	manager_->addPaintItem( item_ );
-	return true;
+	return false;
 }
 
-void CAddItemCommand::undo( bool sendData )
+bool CAddItemCommand::undo( void )
 {
-	if ( sendData )
+	boost::shared_ptr<CRemoveItemTask> task = boost::shared_ptr<CRemoveItemTask>(new CRemoveItemTask(manager_, item_));
+	if( task->doit( true ) )
 	{
-		std::string msg = PaintPacketBuilder::CRemoveItem::make( item_->owner(), item_->itemId() );
-		manager_->sendDataToUsers( msg );
+		cmdManager_->pushTask( task );
+		return true;
 	}
-	manager_->removePaintItem( item_->owner(), item_->itemId() );
-}
-
-
-bool CRemoveItemCommand::execute( bool sendData )
-{
-	if ( sendData )
-	{
-		std::string msg = PaintPacketBuilder::CRemoveItem::make( item_->owner(), item_->itemId() );
-		manager_->sendDataToUsers( msg );
-	}
-	manager_->removePaintItem( item_->owner(), item_->itemId() );
-	return true;
-}
-
-void CRemoveItemCommand::undo( bool sendData )
-{
-	if( sendData )
-	{
-		std::string msg = PaintPacketBuilder::CAddItem::make( item_ );
-		int packetId = manager_->sendDataToUsers( msg );
-		item_->setPacketId( packetId );
-	}
-	manager_->addPaintItem( item_ );
-}
-
-bool CUpdateItemCommand::execute( bool sendData )
-{
-	if( sendData )
-	{
-		std::string msg = PaintPacketBuilder::CUpdateItem::make( item_ );
-		int packetId = manager_->sendDataToUsers( msg );
-		item_->setPacketId( packetId );
-	}
-	item_->setData( data_ );
-	manager_->updatePaintItem( item_ );
-	return true;
-}
-
-void CUpdateItemCommand::undo( bool sendData )
-{
-	if( sendData )
-	{
-		std::string msg = PaintPacketBuilder::CUpdateItem::make( item_ );
-		int packetId = manager_->sendDataToUsers( msg );
-		item_->setPacketId( packetId );
-	}
-	item_->setData( prevData_ );
-	manager_->updatePaintItem( item_ );
+	return false;
 }
 
 
-bool CMoveItemCommand::execute( bool sendData )
+bool CRemoveItemCommand::execute( void )
 {
-	if( sendData )
+	boost::shared_ptr<CRemoveItemTask> task = boost::shared_ptr<CRemoveItemTask>(new CRemoveItemTask(manager_, item_));
+	if( task->doit( true ) )
 	{
-		std::string msg = PaintPacketBuilder::CMoveItem::make( item_->owner(), item_->itemId(), posX_, posY_ );	
-		manager_->sendDataToUsers( msg );
+		cmdManager_->pushTask( task );
+		return true;
 	}
-
-	manager_->movePaintItem( item_, posX_, posY_ );
-	return true;
+	return false;
 }
 
-void CMoveItemCommand::undo( bool sendData )
+bool CRemoveItemCommand::undo( void )
 {
-	if( sendData )
+	boost::shared_ptr<CAddItemTask> task = boost::shared_ptr<CAddItemTask>(new CAddItemTask(manager_, item_));
+	if( task->doit( true ) )
 	{
-		std::string msg = PaintPacketBuilder::CMoveItem::make( item_->owner(), item_->itemId(), prevX_, prevY_ );
-		manager_->sendDataToUsers( msg );
+		cmdManager_->pushTask( task );
+		return true;
 	}
-	manager_->movePaintItem( item_, prevX_, prevY_ );
+	return false;
+}
+
+bool CUpdateItemCommand::execute( void )
+{
+	boost::shared_ptr<CUpdateItemTask> task = boost::shared_ptr<CUpdateItemTask>(new CUpdateItemTask(manager_, item_, data_));
+	if( task->doit( true ) )
+	{
+		cmdManager_->pushTask( task );
+		return true;
+	}
+	return false;
+}
+
+bool CUpdateItemCommand::undo( void )
+{
+	boost::shared_ptr<CUpdateItemTask> task = boost::shared_ptr<CUpdateItemTask>(new CUpdateItemTask(manager_, item_, prevData_));
+	if( task->doit( true ) )
+	{
+		cmdManager_->pushTask( task );
+		return true;
+	}
+	return false;
+}
+
+
+bool CMoveItemCommand::execute( void )
+{
+	boost::shared_ptr<CMoveItemTask> task = boost::shared_ptr<CMoveItemTask>(new CMoveItemTask(manager_, item_, posX_, posY_));
+	if( task->doit( true ) )
+	{
+		cmdManager_->pushTask( task );
+		return true;
+	}
+	return false;
+}
+
+bool CMoveItemCommand::undo( void )
+{
+	boost::shared_ptr<CMoveItemTask> task = boost::shared_ptr<CMoveItemTask>(new CMoveItemTask(manager_, item_, prevX_, prevY_));
+	if( task->doit( true ) )
+	{
+		cmdManager_->pushTask( task );
+		return true;
+	}
+	return false;
 }

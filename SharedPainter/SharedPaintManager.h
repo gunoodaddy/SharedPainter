@@ -10,7 +10,6 @@
 #include "SystemPacketBuilder.h"
 #include "SharedPaintPolicy.h"
 #include "DefferedCaller.h"
-#include "SharedPaintManagementData.h"
 #include "SharedPaintCommandManager.h"
 #include "PaintSession.h"
 #include "NetPeerServer.h"
@@ -355,7 +354,7 @@ public:
 			sendDataToUsers( msg );
 		}
 
-		fireObserver_ClearScreen();
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ClearScreen, this ) );
 	}
 
 	void setBackgroundGridLine( int size )
@@ -698,6 +697,7 @@ private:
 	void fireObserver_AddPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		_addPaintItem( item );
+
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
@@ -741,6 +741,8 @@ private:
 	}
 	void fireObserver_ClearScreen( void )
 	{
+		clearAllItems();
+
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{

@@ -26,6 +26,7 @@ SOURCES +=  \
     SharedPainter/SharedPainterScene.cpp \
     SharedPainter/SharedPainter.cpp \
     SharedPainter/SharedPaintCommand.cpp \
+    SharedPainter/SharedPaintTask.cpp \
     SharedPainter/SettingManager.cpp \
     SharedPainter/PaintSession.cpp \
     SharedPainter/PacketSlicer.cpp \
@@ -47,6 +48,7 @@ HEADERS  += \
     SharedPainter/SharedPainter.h \
     SharedPainter/SharedPaintCommandManager.h \
     SharedPainter/SharedPaintCommand.h \
+    SharedPainter/SharedPaintTask.h \
     SharedPainter/SettingManager.h \
     SharedPainter/resource.h \
     SharedPainter/PaintUser.h \

@@ -2,7 +2,7 @@
 #############
 ## Shared Painter 
 #############
-SharedPainter/GeneratedFiles/*
+GeneratedFiles/
 *.sp
 *.ini
 *.pro.*

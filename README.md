@@ -16,7 +16,7 @@
 * Window Resize
 * All Objects Position
 * Object Remove
-* Undo
+* Undo/Redo
 
 ## Requirement
 * Now, you can build with Qt Creator (tested in Windows only..)

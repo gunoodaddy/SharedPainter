@@ -88,12 +88,14 @@ public:
 	
 	void setPos( double x, double y ) 
 	{
+		mutex_.lock();
 		prevData_.posX = data_.posX;
 		prevData_.posY = data_.posY;
 		prevData_.posSetFlag = data_.posSetFlag;
 		data_.posX = x;
 		data_.posY = y;
 		data_.posSetFlag = true;
+		mutex_.unlock();
 	}
 	void setScale( double scale ) { prevData_.scale = data_.scale; data_.scale = scale; }
 	double scale( void ) { return data_.scale; }
@@ -199,6 +201,7 @@ protected:
 	int packetId_;
 	size_t wroteBytes_;
 	size_t totalBytes_;
+	boost::recursive_mutex mutex_;
 
 	struct SPaintData data_;
 	struct SPaintData prevData_;

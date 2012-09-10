@@ -80,7 +80,8 @@ bool CMoveItemCommand::execute( bool sendData )
 		std::string msg = PaintPacketBuilder::CMoveItem::make( item_->owner(), item_->itemId(), posX_, posY_ );	
 		manager_->sendDataToUsers( msg );
 	}
-	item_->move( posX_, posY_ );
+
+	manager_->movePaintItem( item_, posX_, posY_ );
 	return true;
 }
 
@@ -91,5 +92,5 @@ void CMoveItemCommand::undo( bool sendData )
 		std::string msg = PaintPacketBuilder::CMoveItem::make( item_->owner(), item_->itemId(), prevX_, prevY_ );
 		manager_->sendDataToUsers( msg );
 	}
-	item_->move( prevX_, prevY_ );
+	manager_->movePaintItem( item_, prevX_, prevY_ );
 }

@@ -646,7 +646,7 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 	}
 
 	SettingManagerPtr()->save();
-	SharePaintManagerPtr()->clearAllItems();
+	SharePaintManagerPtr()->clearScreen( false );
 
 	QMainWindow::closeEvent( evt );
 }

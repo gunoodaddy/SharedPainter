@@ -74,4 +74,67 @@ namespace SystemPacketBuilder
 			return false;
 		}
 	};
+
+	class CRedoCommand
+	{
+	public:
+		static std::string make( void )
+		{		
+			try
+			{
+				std::string body;
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_REDO, body );
+			}catch(...)
+			{
+
+			}
+
+			return "";
+		}
+
+		static bool parse( const std::string &body )
+		{		
+			try
+			{
+				// NOTHING BODY
+				return true;
+			}catch(...)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
+	class CUndoCommand
+	{
+	public:
+		static std::string make( void )
+		{		
+			try
+			{
+				std::string body;
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_UNDO, body );
+			}catch(...)
+			{
+
+			}
+
+			return "";
+		}
+
+		static bool parse( const std::string &body )
+		{		
+			try
+			{
+				// NOTHING BODY
+				return true;
+			}catch(...)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
 };

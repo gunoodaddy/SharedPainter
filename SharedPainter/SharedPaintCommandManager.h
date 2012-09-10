@@ -22,6 +22,9 @@ public:
 		if( ret )
 			commandList_.push( command );
 
+		while( redoCommandList_.size() > 0 )
+			redoCommandList_.pop();
+
 		return ret;
 	}
 

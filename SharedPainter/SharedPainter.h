@@ -239,24 +239,19 @@ protected:
 		item->update();
 	}
 
-	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, const std::string &owner, int itemId )
+	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
 	{
-		self->removePaintItem( owner, itemId );
+		item->remove();
 	}
 
-	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, const std::string &owner, int itemId, double x, double y )
+	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item, double x, double y )
 	{
-		boost::shared_ptr<CPaintItem> item = self->findItem( owner, itemId );
-		if( item )
-		{
-			item->move( x, y );
-		}
+		item->move( x, y );
 	}
 
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self )
 	{
 		setCheckGridLineAction( false );
-		self->clearAllItems();
 	}
 
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size )

@@ -17,6 +17,7 @@
 * All Objects Position
 * Object Remove
 * Undo/Redo
+* System tray
 
 ## Requirement
 * Now, you can build with Qt Creator (tested in Windows only..)

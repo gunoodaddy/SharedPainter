@@ -131,14 +131,17 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		statusBarLabel_ = new QLabel();
 		broadCastTypeLabel_ = new QLabel();
 		joinerCountLabel_ = new QLabel();
+		playbackStatusLabel_ = new QLabel();
 		wroteProgressBar_ = new QProgressBar();
 		ui.statusBar->addPermanentWidget( broadCastTypeLabel_ );
-		ui.statusBar->addPermanentWidget( joinerCountLabel_, 1 );
+		ui.statusBar->addPermanentWidget( joinerCountLabel_ );
+		ui.statusBar->addPermanentWidget( playbackStatusLabel_, 1 );
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
 		setStatusBar_BroadCastType( tr("None Type") );
 		setStatusBar_JoinerCnt( 1 );	// my self 
+		setStatusBar_PlaybackStatus( 0, 0 );
 	}
 	
 
@@ -230,7 +233,9 @@ void SharedPainter::onPlaybackSliderValueChanged( int value )
 	if( playbackSliderFreezingFlag_ )
 		return;
 
-	SharePaintManagerPtr()->plabackTo( value - 1 );
+	SharePaintManagerPtr()->plabackTo( value - 1);
+
+	setStatusBar_PlaybackStatus( value, toolBar_SliderPlayback_->maximum() );
 }
 
 void SharedPainter::onTrayMessageClicked( void )

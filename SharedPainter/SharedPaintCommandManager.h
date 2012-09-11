@@ -4,12 +4,15 @@
 #include "SharedPaintCommand.h"
 #include "SharedPaintManagementData.h"
 
+class CSharedPaintManager;
+
 class CSharedPaintCommandManager
 {
 public:
+	static const int DEFAULT_INIT_PLAYBACK_POS = -2;	// unreachable value
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
 
-	CSharedPaintCommandManager() : currentPlayPos_(0) { }
+	CSharedPaintCommandManager( CSharedPaintManager *spManager ) : spManager_(spManager), currentPlayPos_(DEFAULT_INIT_PLAYBACK_POS) { }
 
 	void clear( void )
 	{
@@ -64,22 +67,9 @@ public:
 		return historyTaskList_;
 	}
 
-	bool executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData = true )
-	{
-		task->setCommandManager( this );
+	bool executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData = true );
 
-		mutex_.lock();
-		historyTaskList_.push_back( task );
-		currentPlayPos_ = historyTaskList_.size() - 1;
-		mutex_.unlock();
-
-		if( !task->execute( sendData ) )
-			return false;
-
-		return true;
-	}
-
-	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command, bool sendData = true )
+	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command )
 	{
 		command->setCommandManager( this );
 
@@ -98,7 +88,7 @@ public:
 		return ret;
 	}
 
-	bool redoCommand( bool sendData = true )
+	bool redoCommand( void  )
 	{
 		if( redoCommandList_.size() <= 0 )
 			return false;
@@ -115,7 +105,7 @@ public:
 		return ret;
 	}
 
-	bool undoCommand( bool sendData = true )
+	bool undoCommand( void )
 	{
 		if( commandList_.size() <= 0 )
 			return false;
@@ -182,6 +172,8 @@ private:
 
 protected:
 	typedef std::stack< boost::shared_ptr< CSharedPaintCommand > > COMMAND_LIST;
+
+	CSharedPaintManager *spManager_;
 
 	TASK_ARRAY historyTaskList_;
 	ITEM_SET historyItemSet_;		// for iterating

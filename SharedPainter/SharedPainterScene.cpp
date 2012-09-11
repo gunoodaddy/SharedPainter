@@ -275,7 +275,7 @@ void CSharedPainterScene::setScaleImageFileItem( boost::shared_ptr<CImageFileIte
 static QPainterPath createCoveringBorderPath( int borderType, QGraphicsItem *item )
 {
 	QRectF res = item->boundingRect();
-	qDebug() << res << item->scenePos();
+	qDebug() << "createCoveringBorderPath" << res << item->scenePos();
 
 	double left = res.x();
 	double top = res.y();

@@ -28,25 +28,25 @@ bool CRemoveItemCommand::undo( void )
 
 bool CUpdateItemCommand::execute( void )
 {
-	boost::shared_ptr<CUpdateItemTask> task = boost::shared_ptr<CUpdateItemTask>(new CUpdateItemTask(spMngr_, item_->owner(), item_->itemId(), data_));
+	boost::shared_ptr<CUpdateItemTask> task = boost::shared_ptr<CUpdateItemTask>(new CUpdateItemTask(spMngr_, item_->owner(), item_->itemId(), prevData_, data_));
 	return cmdMngr_->executeTask( task );
 }
 
 bool CUpdateItemCommand::undo( void )
 {
-	boost::shared_ptr<CUpdateItemTask> task = boost::shared_ptr<CUpdateItemTask>(new CUpdateItemTask(spMngr_, item_->owner(), item_->itemId(), prevData_));
+	boost::shared_ptr<CUpdateItemTask> task = boost::shared_ptr<CUpdateItemTask>(new CUpdateItemTask(spMngr_, item_->owner(), item_->itemId(), prevData_, data_));
 	return cmdMngr_->executeTask( task );
 }
 
 
 bool CMoveItemCommand::execute( void )
 {
-	boost::shared_ptr<CMoveItemTask> task = boost::shared_ptr<CMoveItemTask>(new CMoveItemTask(spMngr_, item_->owner(), item_->itemId(), posX_, posY_));
+	boost::shared_ptr<CMoveItemTask> task = boost::shared_ptr<CMoveItemTask>(new CMoveItemTask(spMngr_, item_->owner(), item_->itemId(), prevX_, prevY_, posX_, posY_));
 	return cmdMngr_->executeTask( task );
 }
 
 bool CMoveItemCommand::undo( void )
 {
-	boost::shared_ptr<CMoveItemTask> task = boost::shared_ptr<CMoveItemTask>(new CMoveItemTask(spMngr_, item_->owner(), item_->itemId(), prevX_, prevY_));
+	boost::shared_ptr<CMoveItemTask> task = boost::shared_ptr<CMoveItemTask>(new CMoveItemTask(spMngr_, item_->owner(), item_->itemId(), prevX_, prevY_, posX_, posY_));
 	return cmdMngr_->executeTask( task );
 }

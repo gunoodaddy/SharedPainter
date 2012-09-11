@@ -275,6 +275,7 @@ void SharedPainter::actionImportFile( void )
 	QByteArray byteArray;
 	byteArray = f.readAll();
 
+	SharePaintManagerPtr()->clearScreen( true );
 	SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() );
 }
 

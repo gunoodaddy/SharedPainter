@@ -6,7 +6,7 @@ class CSharedPaintTask;
 class CSharedPaintManager;
 class CSharedPaintCommandManager;
 
-typedef std::list< boost::shared_ptr<CSharedPaintTask> > TASK_LIST;
+typedef std::vector< boost::shared_ptr<CSharedPaintTask> > TASK_ARRAY;
 
 enum TaskType {
 	Task_AddItem = 0,

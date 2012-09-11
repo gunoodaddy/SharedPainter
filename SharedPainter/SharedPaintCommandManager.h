@@ -9,7 +9,7 @@ class CSharedPaintCommandManager
 public:
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
 
-	CSharedPaintCommandManager() { }
+	CSharedPaintCommandManager() : currentPlayPos_(0) { }
 
 	void clear( void )
 	{
@@ -46,6 +46,11 @@ public:
 		return historyItemSet_.size();
 	}
 
+	size_t historyTaskCount( void ) 
+	{ 
+		return historyTaskList_.size();
+	}
+
 	void lock( void ) { mutex_.lock(); }
 	void unlock( void ) { mutex_.unlock(); }
 
@@ -54,7 +59,7 @@ public:
 		return historyItemSet_;
 	}
 
-	const TASK_LIST &historyTaskList( void )
+	const TASK_ARRAY &historyTaskList( void )
 	{
 		return historyTaskList_;
 	}
@@ -68,6 +73,8 @@ public:
 
 		boost::recursive_mutex::scoped_lock autolock(mutex_);
 		historyTaskList_.push_back( task );
+
+		currentPlayPos_ = historyTaskList_.size() - 1;
 		return true;
 	}
 
@@ -124,6 +131,8 @@ public:
 		return ret;
 	}
 
+	void playbackTo( int position );
+
 	void addHistoryItem( boost::shared_ptr<CPaintItem> item )
 	{
 		boost::recursive_mutex::scoped_lock autolock(mutex_);
@@ -156,6 +165,10 @@ public:
 	}
 
 private:
+
+	void _playforwardTo( int from, int to );
+	void _playbackwardTo( int from, int to );
+
 	// not thread safe..
 	boost::shared_ptr<CSharedPaintItemList> _findItemList( const std::string &owner )	
 	{
@@ -169,7 +182,7 @@ private:
 protected:
 	typedef std::stack< boost::shared_ptr< CSharedPaintCommand > > COMMAND_LIST;
 
-	TASK_LIST historyTaskList_;
+	TASK_ARRAY historyTaskList_;
 	ITEM_SET historyItemSet_;		// for iterating
 	ITEM_LIST_MAP userItemListMap_;	// for searching
 
@@ -177,4 +190,6 @@ protected:
 	COMMAND_LIST redoCommandList_;
 
 	boost::recursive_mutex mutex_;
+
+	int currentPlayPos_;
 };

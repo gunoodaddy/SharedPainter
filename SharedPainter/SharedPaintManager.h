@@ -313,8 +313,8 @@ public:
 		// History all task
 		commandMngr_.lock();
 		size_t taskSize = 0;
-		const TASK_LIST &taskList = commandMngr_.historyTaskList();
-		TASK_LIST::const_iterator itTask = taskList.begin();
+		const TASK_ARRAY &taskList = commandMngr_.historyTaskList();
+		TASK_ARRAY::const_iterator itTask = taskList.begin();
 		for( ; itTask != taskList.end(); itTask++ )
 		{
 			std::string msg = TaskPacketBuilder::CExecuteTask::make( boost::const_pointer_cast<CSharedPaintTask>(*itTask) );
@@ -414,6 +414,12 @@ public:
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
 		return sendDataToUsers( msg );
+	}
+
+	size_t historyTaskCount( void ) { return commandMngr_.historyTaskCount(); }
+	void plabackTo( int position )
+	{
+		commandMngr_.playbackTo( position );
 	}
 
 private:

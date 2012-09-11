@@ -112,6 +112,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.png"), "Clear Screen", this, SLOT(actionClearScreen()) );
 		ui.toolBar->addSeparator();
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/last_item.png"), " Blink Last Added Item", this, SLOT(actionLastItem()) );
+		toolBar_SliderPlayback_ = new QSlider(Qt::Horizontal);
+		ui.toolBar->addWidget( toolBar_SliderPlayback_ );
+		connect( toolBar_SliderPlayback_, SIGNAL(valueChanged(int)), this, SLOT(onPlaybackSliderValueChanged(int)) );
 
 		toolBar_GridLine_->setCheckable( true );
 		toolBar_MoveMode_->setCheckable( true );
@@ -221,6 +224,11 @@ void SharedPainter::onTimer( void )
 	//}
 }
 
+void SharedPainter::onPlaybackSliderValueChanged( int value )
+{
+	SharePaintManagerPtr()->plabackTo( value );
+}
+
 void SharedPainter::onTrayMessageClicked( void )
 {
 	show();
@@ -237,11 +245,6 @@ void SharedPainter::onTrayActivated( QSystemTrayIcon::ActivationReason reason )
 	default:
 		;
 	}
-}
-
-
-void SharedPainter::actionOpenApp( void )
-{
 }
 
 void SharedPainter::actionExit( void )

@@ -122,6 +122,7 @@ protected slots:
 	void onTimer( void );
 	void onTrayMessageClicked( void );
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
+	void onPlaybackSliderValueChanged( int value  );
 
 	void actionBroadcastChannel( void );
 	void actionBroadcastTextMessage( void );
@@ -150,7 +151,6 @@ protected slots:
 	void actionExportFile( void );
 	void actionBlinkLastAddItem( void );
 	void actionLastItem( void );
-	void actionOpenApp( void );
 
 private:
 	void setCheckGridLineAction( bool checked );
@@ -232,6 +232,8 @@ protected:
 			lastTextPosX_ = item->posX();
 			lastTextPosY_ = item->posY();
 		}
+
+		toolBar_SliderPlayback_->setRange( 0, self->historyTaskCount()-1 );
 	}
 
 	virtual void onISharedPaintEvent_UpdatePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
@@ -329,6 +331,7 @@ private:
 	QAction *toolBar_MoveMode_;
 	QAction *toolBar_PenMode_;
 	QAction *toolBar_GridLine_;
+	QSlider *toolBar_SliderPlayback_;
 	QPushButton *toolBar_penColorButton_;
 	QPushButton *toolBar_bgColorButton_;
 	QProgressBar *wroteProgressBar_;

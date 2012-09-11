@@ -1242,6 +1242,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\SharedPaintCommandManager.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\SharedPaintCommandManager.h"
 					>
 				</File>

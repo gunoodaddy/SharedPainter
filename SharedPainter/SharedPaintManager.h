@@ -8,6 +8,7 @@
 #include "WindowPacketBuilder.h"
 #include "BroadCastPacketBuilder.h"
 #include "SystemPacketBuilder.h"
+#include "TaskPacketBuilder.h"
 #include "SharedPaintPolicy.h"
 #include "DefferedCaller.h"
 #include "SharedPaintCommandManager.h"
@@ -19,6 +20,10 @@
 
 #define SharePaintManagerPtr()		CSingleton<CSharedPaintManager>::Instance()
 
+class CAddItemTask;
+class CRemoveItemTask;
+class CUpdateItemTask;
+class CMoveItemTask;
 class CSharedPaintManager;
 
 class ISharedPaintEvent
@@ -292,23 +297,43 @@ public:
 		if( backgroundImageItem_ )
 			allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
 		
-		// All Paint Item
-		ITEM_LIST_MAP::iterator it = userItemListMap_.begin();
-		for( ; it != userItemListMap_.end(); it++ )
+		// History all paint item
+		commandMngr_.lock();
+		size_t itemSize = 0;
+		const ITEM_SET &set = commandMngr_.historyItemSet();
+		ITEM_SET::const_iterator itItem = set.begin();
+		for( ; itItem != set.end(); itItem++ )
 		{
-			CSharedPaintItemList::ITEM_MAP &map = it->second->itemMap();
-			CSharedPaintItemList::ITEM_MAP::iterator itItem = map.begin();
-			for( ; itItem != map.end(); itItem++ )
-			{
-				std::string msg = PaintPacketBuilder::CAddItem::make( itItem->second );
-				allData += msg;
-			}
+			std::string msg = PaintPacketBuilder::CCreateItem::make( *itItem );
+			allData += msg;
+			itemSize += msg.size();
 		}
+		commandMngr_.unlock();
+
+		// History all task
+		commandMngr_.lock();
+		size_t taskSize = 0;
+		const TASK_LIST &taskList = commandMngr_.historyTaskList();
+		TASK_LIST::const_iterator itTask = taskList.begin();
+		for( ; itTask != taskList.end(); itTask++ )
+		{
+			std::string msg = TaskPacketBuilder::CExecuteTask::make( boost::const_pointer_cast<CSharedPaintTask>(*itTask) );
+			allData += msg;
+			taskSize += msg.size();
+		}
+		commandMngr_.unlock();
+
+		qDebug() << "SharedPaintManager::serializeData() size = " << allData.size() << ", task size = " << taskSize << ", item size = " << itemSize;
 		return allData;
 	}
 
 	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
+		std::string msg = PaintPacketBuilder::CCreateItem::make( item );
+		sendDataToUsers( msg );
+
+		commandMngr_.addHistoryItem( item );
+
 		boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( this, item ));
 		return commandMngr_.executeCommand( command );
 	}
@@ -518,34 +543,34 @@ private:
 
 	// Internal Action ( for SharedPaintCommand )
 public:
-	void addPaintItem( boost::shared_ptr<CPaintItem> item )
-	{
-		assert( item->itemId() > 0 );
-		assert( item->owner().empty() == false );
+	//void addPaintItem( boost::shared_ptr<CPaintItem> item )
+	//{
+	//	assert( item->itemId() > 0 );
+	//	assert( item->owner().empty() == false );
 
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
-	}
-	
-	void updatePaintItem( boost::shared_ptr<CPaintItem> item )
-	{
-		assert( item->itemId() > 0 );
-		assert( item->owner().empty() == false );
-	
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintItem, this, item ) );
-	}
+	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
+	//}
+	//
+	//void updatePaintItem( boost::shared_ptr<CPaintItem> item )
+	//{
+	//	assert( item->itemId() > 0 );
+	//	assert( item->owner().empty() == false );
+	//
+	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintItem, this, item ) );
+	//}
 
-	void removePaintItem( const std::string &owner, int itemId )
-	{
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::_removePaintItem, this, owner, itemId ) );
-	}
+	//void removePaintItem( const std::string &owner, int itemId )
+	//{
+	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::_removePaintItem, this, owner, itemId ) );
+	//}
 
-	void movePaintItem( boost::shared_ptr<CPaintItem> item, double x, double y  )
-	{
-		assert( item->itemId() > 0 );
-		assert( item->owner().empty() == false );
-	
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_MovePaintItem, this, item, x, y ) );
-	}
+	//void movePaintItem( boost::shared_ptr<CPaintItem> item, double x, double y  )
+	//{
+	//	assert( item->itemId() > 0 );
+	//	assert( item->owner().empty() == false );
+	//
+	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_MovePaintItem, this, item, x, y ) );
+	//}
 
 
 private:
@@ -557,45 +582,7 @@ private:
 		canvas_->clearScreen();
 
 		// all data clear
-		userItemListMap_.clear();
 		commandMngr_.clear();
-	}
-
-	boost::shared_ptr<CPaintItem> findItem( const std::string &owner, int itemId )
-	{
-		boost::shared_ptr<CSharedPaintItemList> itemList = findItemList( owner );
-		if( !itemList )
-			return boost::shared_ptr<CPaintItem>();
-
-		return itemList->findItem( itemId );
-	}
-
-	ITEM_LIST findItem( int packetId )	// always find in my item list
-	{
-		ITEM_LIST resList;
-		boost::shared_ptr<CSharedPaintItemList> itemList = findItemList( myId() );
-		if( !itemList )
-			return resList;
-
-		CSharedPaintItemList::ITEM_MAP::iterator itItem = itemList->itemMap().begin();
-		for( ; itItem != itemList->itemMap().end(); itItem++ )
-		{
-			if( itItem->second->packetId() == packetId )
-			{
-				resList.push_back( itItem->second );
-			}
-		}
-
-		return resList;
-	}
-	
-	boost::shared_ptr<CSharedPaintItemList> findItemList( const std::string &owner )
-	{
-		ITEM_LIST_MAP::iterator it = userItemListMap_.find( owner );
-		if( it == userItemListMap_.end() )
-			return boost::shared_ptr<CSharedPaintItemList>();
-
-		return it->second;
 	}
 
 	boost::shared_ptr<CPaintSession> findSession( int sessionId )
@@ -616,46 +603,6 @@ private:
 private:
 	void dispatchBroadCastPacket( boost::shared_ptr<CPacketData> packetData );
 	void dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData );
-
-	// this function must be called on main thread for ui process..
-	void _addPaintItem( boost::shared_ptr<CPaintItem> item )
-	{
-		assert( item->itemId() > 0 );
-		assert( item->owner().empty() == false );
-
-		boost::shared_ptr<CSharedPaintItemList> itemList;
-		ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
-		if( it != userItemListMap_.end() )
-		{
-			itemList = it->second;
-		}
-		else
-		{
-			itemList = boost::shared_ptr<CSharedPaintItemList>( new CSharedPaintItemList( item->owner() ) );
-			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
-		}
-
-		bool overwriteFlag = false;
-		itemList->addItem( item, overwriteFlag );
-	}
-
-	void _removePaintItem( const std::string &owner, int itemId )
-	{
-		if( itemId < 0 )
-			return;
-
-		boost::shared_ptr<CSharedPaintItemList> itemList = findItemList( owner );
-		if( !itemList )
-			return;
-
-		boost::shared_ptr<CPaintItem> item = itemList->findItem( itemId );
-		if( !item )
-			return;
-
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_RemovePaintItem, this, item ) );
-
-		itemList->removeItem( itemId );
-	}
 
 private:
 	// observer methods
@@ -696,7 +643,7 @@ private:
 	}
 	void fireObserver_AddPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
-		_addPaintItem( item );
+		//_addPaintItem( item );
 
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
@@ -993,6 +940,11 @@ protected:
 	}
 
 private:
+	friend class CAddItemTask;
+	friend class CRemoveItemTask;
+	friend class CUpdateItemTask;
+	friend class CMoveItemTask;
+
 	std::string myId_;
 	CDefferedCaller caller_;
 
@@ -1004,7 +956,8 @@ private:
 
 	// paint item
 	IGluePaintCanvas *canvas_;
-	ITEM_LIST_MAP userItemListMap_;
+
+	// for paint item temporary caching..
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 	int lastWindowWidth_;
 	int lastWindowHeight_;

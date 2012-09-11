@@ -9,20 +9,21 @@ class CSharedPaintCommandManager;
 class CSharedPaintCommand
 {
 public:
-	CSharedPaintCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : manager_(manager), item_(item){ }
+	CSharedPaintCommand( CSharedPaintManager *spMngr, boost::shared_ptr<CPaintItem> item ) 
+		: cmdMngr_(NULL), spMngr_(spMngr), item_(item){ }
 	virtual ~CSharedPaintCommand( void ) { }
 
 private:
 	virtual bool execute( void ) = 0;
 	virtual bool undo( void ) = 0;
 
-	void setManager( CSharedPaintCommandManager * manager ) { cmdManager_ = manager; }
 	boost::shared_ptr<CPaintItem> item( void ) { return item_; }
+	void setCommandManager( CSharedPaintCommandManager *cmdManager ) { cmdMngr_ = cmdManager; }
 
 protected:
 	friend class CSharedPaintCommandManager;
-	CSharedPaintManager *manager_;
-	CSharedPaintCommandManager *cmdManager_;
+	CSharedPaintCommandManager *cmdMngr_;
+	CSharedPaintManager *spMngr_;
 	boost::shared_ptr<CPaintItem> item_;
 };
 
@@ -30,7 +31,7 @@ protected:
 class CAddItemCommand : public CSharedPaintCommand
 {
 public:
-	CAddItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : CSharedPaintCommand(manager, item) { }
+	CAddItemCommand( CSharedPaintManager *spMngr, boost::shared_ptr<CPaintItem> item ) : CSharedPaintCommand(spMngr, item) { }
 	~CAddItemCommand( void ) 
 	{
 		qDebug() << "~CAddItemCommand";
@@ -43,7 +44,7 @@ public:
 class CRemoveItemCommand : public CSharedPaintCommand
 {
 public:
-	CRemoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) : CSharedPaintCommand(manager, item) { }
+	CRemoveItemCommand( CSharedPaintManager *spMngr, boost::shared_ptr<CPaintItem> item ) : CSharedPaintCommand(spMngr, item) { }
 	~CRemoveItemCommand( void ) 
 	{
 		qDebug() << "~CRemoveItemCommand";
@@ -57,8 +58,8 @@ public:
 class CUpdateItemCommand : public CSharedPaintCommand
 {
 public:
-	CUpdateItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) 
-		: CSharedPaintCommand(manager, item)
+	CUpdateItemCommand( CSharedPaintManager *spMngr, boost::shared_ptr<CPaintItem> item ) 
+		: CSharedPaintCommand(spMngr, item)
 		, prevData_(item->prevData()), data_(item->data()) { }
 	~CUpdateItemCommand( void ) 
 	{
@@ -77,8 +78,8 @@ private:
 class CMoveItemCommand : public CSharedPaintCommand
 {
 public:
-	CMoveItemCommand( CSharedPaintManager *manager, boost::shared_ptr<CPaintItem> item ) 
-		: CSharedPaintCommand(manager, item)
+	CMoveItemCommand( CSharedPaintManager *spMngr, boost::shared_ptr<CPaintItem> item ) 
+		: CSharedPaintCommand(spMngr, item)
 		, prevX_(item_->prevData().posX), prevY_(item_->prevData().posY)
 		, posX_(item->posX()), posY_(item->posY()) { }
 	~CMoveItemCommand( void ) 

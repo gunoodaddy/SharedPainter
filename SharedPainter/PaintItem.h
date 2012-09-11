@@ -3,6 +3,7 @@
 #include "Util.h"
 #include "PacketBuffer.h"
 #include <boost/enable_shared_from_this.hpp>
+#include <set>
 
 class CPaintItem;
 class CLineItem;
@@ -21,6 +22,7 @@ enum PaintItemType {
 };
 
 typedef std::vector< boost::shared_ptr<CPaintItem> > ITEM_LIST;
+typedef std::set< boost::shared_ptr<CPaintItem> > ITEM_SET;
 
 class IGluePaintCanvas
 {
@@ -108,12 +110,13 @@ public:
 	void setMyItem( void ) { mine_ = true; }
 	bool isMyItem( void ) { return mine_; }
 
-	void setPacketId( int packetId ) { packetId_ = packetId; }
-	int packetId( void ) { return packetId_; }
+	// TODO : this work is not complete.
+	//void setPacketId( int packetId ) { packetId_ = packetId; }
+	//int packetId( void ) { return packetId_; }
 	size_t wroteBytes( void ) { return wroteBytes_; }
 	size_t totalBytes( void ) { return totalBytes_; }
 
-	static bool loadBasicPaintData( const std::string & data, struct SPaintData &res, int *readPos = NULL ) 
+	static bool deserializeBasicData( const std::string & data, struct SPaintData &res, int *readPos = NULL ) 
 	{
 		try
 		{
@@ -137,7 +140,7 @@ public:
 		return true;
 	}
 
-	static std::string generateBasicData( const struct SPaintData &data, int *writePos = NULL )
+	static std::string serializeBasicData( const struct SPaintData &data, int *writePos = NULL )
 	{
 		int pos = writePos ? *writePos : 0;
 		std::string buf;
@@ -158,12 +161,12 @@ public:
 public:
 	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
-		return loadBasicPaintData( data, data_, readPos );
+		return deserializeBasicData( data, data_, readPos );
 	}
 
 	virtual std::string serialize( int *writePos = NULL ) const
 	{
-		return generateBasicData( data_, writePos );
+		return serializeBasicData( data_, writePos );
 	}
 
 	virtual PaintItemType type( void ) const = 0;

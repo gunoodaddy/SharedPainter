@@ -157,32 +157,7 @@ namespace PaintPacketBuilder
 		}
 	};
 
-	class CUpdateItem
-	{
-	public:
-		static std::string make( boost::shared_ptr<CPaintItem> item )
-		{		
-			std::string body = CPaintItem::generateBasicData( item->data() );
-
-			try
-			{
-				return CommonPacketBuilder::makePacket( CODE_PAINT_UPDATE_ITEM, body );
-			}catch(...)
-			{
-				
-			}
-
-			return "";
-		}
-
-		static bool parse( const std::string &body, struct SPaintData &data )
-		{		
-			bool res = CPaintItem::loadBasicPaintData( body, data );
-			return res;
-		}
-	};
-
-	class CAddItem
+	class CCreateItem
 	{
 	public:
 		static std::string make( boost::shared_ptr<CPaintItem> item )
@@ -196,7 +171,7 @@ namespace PaintPacketBuilder
 				pos += CPacketBufferUtil::writeInt16( body, pos, item->type(), true );
 				body += data;
 
-				return CommonPacketBuilder::makePacket( CODE_PAINT_ADD_ITEM, body );
+				return CommonPacketBuilder::makePacket( CODE_PAINT_CREATE_ITEM, body );
 			}catch(...)
 			{
 				
@@ -230,83 +205,6 @@ namespace PaintPacketBuilder
 			}
 
 			return item;
-		}
-	};
-
-	class CMoveItem
-	{
-	public:
-		static std::string make( const std::string &owner, int itemId, double x, double y )
-		{		
-			int pos = 0;
-			try
-			{
-				std::string body;
-				pos += CPacketBufferUtil::writeString8( body, pos, owner  );
-				pos += CPacketBufferUtil::writeInt32( body, pos, itemId, true );
-				pos += CPacketBufferUtil::writeDouble( body, pos, x, true );
-				pos += CPacketBufferUtil::writeDouble( body, pos, y, true );
-				pos = 0;
-
-				return CommonPacketBuilder::makePacket( CODE_PAINT_MOVE_ITEM, body );
-			}catch(...)
-			{
-				
-			}
-
-			return "";
-		}
-
-		static bool parse( const std::string &body, std::string &owner, int &itemId, double &x, double &y )
-		{		
-			int pos = 0;
-			try
-			{
-				pos += CPacketBufferUtil::readString8( body, pos, owner );
-				pos += CPacketBufferUtil::readInt32( body, pos, itemId, true );
-				pos += CPacketBufferUtil::readDouble( body, pos, x, true );
-				pos += CPacketBufferUtil::readDouble( body, pos, y, true );
-			}catch(...)
-			{
-				return false;
-			}
-			return true;
-		}
-	};
-
-	class CRemoveItem
-	{
-	public:
-		static std::string make( const std::string &owner, int itemId )
-		{		
-			int pos = 0;
-			try
-			{
-				std::string body;
-				pos += CPacketBufferUtil::writeString8( body, pos, owner  );
-				pos += CPacketBufferUtil::writeInt32( body, pos, itemId, true );
-
-				return CommonPacketBuilder::makePacket( CODE_PAINT_REMOVE_ITEM, body );
-			}catch(...)
-			{
-
-			}
-
-			return "";
-		}
-
-		static bool parse( const std::string &body, std::string &owner, int &itemId )
-		{		
-			int pos = 0;
-			try
-			{
-				pos += CPacketBufferUtil::readString8( body, pos, owner );
-				pos += CPacketBufferUtil::readInt32( body, pos, itemId, true );
-			}catch(...)
-			{
-				return false;
-			}
-			return true;
 		}
 	};
 

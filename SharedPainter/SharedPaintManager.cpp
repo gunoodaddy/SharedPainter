@@ -153,18 +153,6 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 {
 	switch( packetData->code )
 	{
-	case CODE_SYSTEM_REDO:
-		{
-			PaintPacketBuilder::CClearScreen::parse( packetData->body );	// nothing to do..
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::redoCommand, this, false ) );
-		}
-		break;
-	case CODE_SYSTEM_UNDO:
-		{
-			PaintPacketBuilder::CClearScreen::parse( packetData->body );	// nothing to do..
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::undoCommand, this, false ) );
-		}
-		break;
 	case CODE_SYSTEM_JOIN:
 		{
 			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerUser::parse( packetData->body );
@@ -219,60 +207,27 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			}
 		}
 		break;	
-	case CODE_PAINT_ADD_ITEM:
+	case CODE_PAINT_CREATE_ITEM:
 		{
-			boost::shared_ptr<CPaintItem> item = PaintPacketBuilder::CAddItem::parse( packetData->body );
+			std::string owner;
+			int itemId;
+			boost::shared_ptr<CPaintItem> item = PaintPacketBuilder::CCreateItem::parse( packetData->body );
 			if( item )
 			{
-				boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( this, item ));
-				commandMngr_.executeCommand( command, false );
+				commandMngr_.addHistoryItem( item );
 			}
 		}
 		break;
-	case CODE_PAINT_UPDATE_ITEM:
-		{
-			struct SPaintData data;
-			if( PaintPacketBuilder::CUpdateItem::parse( packetData->body, data ) )
-			{
-				boost::shared_ptr<CPaintItem> item = findItem( data.owner, data.itemId );
-				if( item )
-				{
-					item->setData( data );
-					boost::shared_ptr<CUpdateItemCommand> command = boost::shared_ptr<CUpdateItemCommand>(new CUpdateItemCommand( this, item ));
-					commandMngr_.executeCommand( command, false );
-				}
-			}
-		}
-		break;
-	case CODE_PAINT_REMOVE_ITEM:
+	case CODE_TASK_EXECUTE:
 		{
 			std::string owner;
 			int itemId;
-			if( PaintPacketBuilder::CRemoveItem::parse( packetData->body, owner, itemId ) )
+			boost::shared_ptr<CSharedPaintTask> task = TaskPacketBuilder::CExecuteTask::parse( packetData->body );
+			if( task )
 			{
-				boost::shared_ptr<CPaintItem> item = findItem( owner, itemId );
-				if( item )
-				{
-					boost::shared_ptr<CRemoveItemCommand> command = boost::shared_ptr<CRemoveItemCommand>(new CRemoveItemCommand( this, item ));
-					commandMngr_.executeCommand( command, false );
-				}
-			}
-		}
-		break;
-	case CODE_PAINT_MOVE_ITEM:
-		{
-			std::string owner;
-			double x, y;
-			int itemId;
-			if( PaintPacketBuilder::CMoveItem::parse( packetData->body, owner, itemId, x, y ) )
-			{
-				boost::shared_ptr<CPaintItem> item = findItem( owner, itemId );
-				if( item )
-				{
-					item->setPos( x, y );
-					boost::shared_ptr<CMoveItemCommand> command = boost::shared_ptr<CMoveItemCommand>(new CMoveItemCommand( this, item ));
-					commandMngr_.executeCommand( command, false );
-				}
+				task->setSharedPaintManager( this );
+
+				commandMngr_.executeTask( task, false );
 			}
 		}
 		break;

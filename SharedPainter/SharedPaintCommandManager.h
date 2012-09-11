@@ -13,32 +13,80 @@ public:
 
 	void clear( void )
 	{
+		clearHistoryItem();
+		clearHistoryTask();
+		clearHistoryCommand();
+	}
+
+	void clearHistoryItem( void )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
+	
+		historyItemSet_.clear();
+		userItemListMap_.clear();
+	}
+
+	void clearHistoryTask( void )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
+		historyTaskList_.clear();
+	}
+
+	void clearHistoryCommand( void )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
 		while( commandList_.size() > 0 )
 			commandList_.pop();
 		while( redoCommandList_.size() > 0 )
 			redoCommandList_.pop();
 	}
 
-	void pushTask( boost::shared_ptr<CSharedPaintTask> task )
+	size_t historyItemCount( void ) 
+	{ 
+		return historyItemSet_.size();
+	}
+
+	void lock( void ) { mutex_.lock(); }
+	void unlock( void ) { mutex_.unlock(); }
+
+	const ITEM_SET &historyItemSet( void )
 	{
+		return historyItemSet_;
+	}
+
+	const TASK_LIST &historyTaskList( void )
+	{
+		return historyTaskList_;
+	}
+
+	bool executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData = true )
+	{
+		task->setCommandManager( this );
+
+		if( !task->doit( sendData ) )
+			return false;
+
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
 		historyTaskList_.push_back( task );
+		return true;
 	}
 
 	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command, bool sendData = true )
 	{
+		command->setCommandManager( this );
+
 		bool ret = command->execute();
-		command->setManager( this );
 
 		if( ret )
 		{
-			addItem( command->item() );
+			boost::recursive_mutex::scoped_lock autolock(mutex_);
+
 			commandList_.push( command );
+
+			// redo-list clear
+			while( redoCommandList_.size() > 0 )
+				redoCommandList_.pop();
 		}
-
-		// redo-list clear
-		while( redoCommandList_.size() > 0 )
-			redoCommandList_.pop();
-
 		return ret;
 	}
 
@@ -50,8 +98,12 @@ public:
 		boost::shared_ptr< CSharedPaintCommand > command = redoCommandList_.top();
 		bool ret = command->execute();
 
-		commandList_.push( command );
-		redoCommandList_.pop();
+		if( ret )
+		{
+			boost::recursive_mutex::scoped_lock autolock(mutex_);
+			commandList_.push( command );
+			redoCommandList_.pop();
+		}
 		return ret;
 	}
 
@@ -62,14 +114,20 @@ public:
 
 		boost::shared_ptr< CSharedPaintCommand > command = commandList_.top();
 		bool ret = command->undo();
-
-		redoCommandList_.push( command );
-		commandList_.pop();
+		
+		if( ret )
+		{
+			boost::recursive_mutex::scoped_lock autolock(mutex_);
+			redoCommandList_.push( command );
+			commandList_.pop();
+		}
 		return ret;
 	}
 
-	void addItem( boost::shared_ptr<CPaintItem> item )
+	void addHistoryItem( boost::shared_ptr<CPaintItem> item )
 	{
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
+
 		boost::shared_ptr<CSharedPaintItemList> itemList;
 		ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
 		if( it != userItemListMap_.end() )
@@ -82,27 +140,24 @@ public:
 			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
 		}
 
-		bool overwriteFlag = false;
-		itemList->addItem( item, overwriteFlag );
+		if(itemList->addItem( item ))
+			historyItemSet_.insert( item );
 	}
 
-	void removeItem( const std::string &owner, int itemId )
+	boost::shared_ptr<CPaintItem> findItem( const std::string &owner, int itemId )
 	{
-		if( itemId < 0 )
-			return;
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
 
-		boost::shared_ptr<CSharedPaintItemList> itemList = findItemList( owner );
+		boost::shared_ptr<CSharedPaintItemList> itemList = _findItemList( owner );
 		if( !itemList )
-			return;
+			return boost::shared_ptr<CPaintItem>();
 
-		boost::shared_ptr<CPaintItem> item = itemList->findItem( itemId );
-		if( !item )
-			return;
-
-		itemList->removeItem( itemId );
+		return itemList->findItem( itemId );
 	}
 
-	boost::shared_ptr<CSharedPaintItemList> findItemList( const std::string &owner )
+private:
+	// not thread safe..
+	boost::shared_ptr<CSharedPaintItemList> _findItemList( const std::string &owner )	
 	{
 		ITEM_LIST_MAP::iterator it = userItemListMap_.find( owner );
 		if( it == userItemListMap_.end() )
@@ -113,10 +168,13 @@ public:
 
 protected:
 	typedef std::stack< boost::shared_ptr< CSharedPaintCommand > > COMMAND_LIST;
-	typedef std::list< boost::shared_ptr<CSharedPaintTask> > TASK_LIST;
 
 	TASK_LIST historyTaskList_;
+	ITEM_SET historyItemSet_;		// for iterating
+	ITEM_LIST_MAP userItemListMap_;	// for searching
+
 	COMMAND_LIST commandList_;
 	COMMAND_LIST redoCommandList_;
-	ITEM_LIST_MAP userItemListMap_;
+
+	boost::recursive_mutex mutex_;
 };

@@ -200,6 +200,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\TaskPacketBuilder.h"
+						>
+					</File>
+					<File
 						RelativePath=".\WindowPacketBuilder.h"
 						>
 					</File>
@@ -1241,6 +1245,26 @@
 					RelativePath=".\SharedPaintCommandManager.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="Task"
+				>
+				<File
+					RelativePath=".\SharedPaintTask.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintTask.h"
+					>
+				</File>
+				<Filter
+					Name="Factory"
+					>
+					<File
+						RelativePath=".\SharedPaintTaskFactory.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<File

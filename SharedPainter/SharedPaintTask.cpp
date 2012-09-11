@@ -14,7 +14,7 @@ void CSharedPaintTask::sendPacket( void )
 	spMngr_->sendDataToUsers( msg );
 }
 
-bool CAddItemTask::doit( bool sendData )
+bool CAddItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -32,7 +32,13 @@ bool CAddItemTask::doit( bool sendData )
 	return true;
 }
 
-bool CRemoveItemTask::doit( bool sendData )
+void CAddItemTask::rollback( void )
+{
+	// TODO
+}
+
+
+bool CRemoveItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -49,7 +55,13 @@ bool CRemoveItemTask::doit( bool sendData )
 	return true;
 }
 
-bool CUpdateItemTask::doit( bool sendData )
+void CRemoveItemTask::rollback( void )
+{
+	// TODO
+}
+
+
+bool CUpdateItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -67,7 +79,13 @@ bool CUpdateItemTask::doit( bool sendData )
 	return true;
 }
 
-bool CMoveItemTask::doit( bool sendData )
+void CUpdateItemTask::rollback( void )
+{
+	// TODO
+}
+
+
+bool CMoveItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -83,3 +101,9 @@ bool CMoveItemTask::doit( bool sendData )
 	}
 	return true;
 }
+
+void CMoveItemTask::rollback( void )
+{
+	// TODO
+}
+

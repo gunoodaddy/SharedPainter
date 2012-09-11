@@ -23,6 +23,7 @@ SOURCES +=  \
     SharedPainter/TextItemDialog.cpp \
     SharedPainter/stdafx.cpp \
     SharedPainter/SharedPaintManager.cpp \
+    SharedPainter/SharedPaintCommandManager.cpp \
     SharedPainter/SharedPainterScene.cpp \
     SharedPainter/SharedPainter.cpp \
     SharedPainter/SharedPaintCommand.cpp \

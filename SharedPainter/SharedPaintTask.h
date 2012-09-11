@@ -81,8 +81,8 @@ public:
 	}
 
 	virtual TaskType type( void ) = 0;
-	virtual bool doit( bool sendData = true ) = 0;
-
+	virtual bool execute( bool sendData = true ) = 0;
+	virtual void rollback( void ) = 0;
 protected:
 	friend class CSharedPaintCommandManager;
 	CSharedPaintCommandManager *cmdMngr_;
@@ -103,7 +103,8 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_AddItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 };
 
 
@@ -118,7 +119,8 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_RemoveItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 };
 
 
@@ -134,11 +136,11 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_UpdateItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 
 	virtual std::string serialize( int *writePos = NULL )
 	{
-		int pos = 0;
 		std::string data;
 
 		data = CSharedPaintTask::serialize();
@@ -180,7 +182,8 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_MoveItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 
 	virtual std::string serialize( int *writePos = NULL )
 	{

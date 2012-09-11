@@ -233,7 +233,16 @@ protected:
 			lastTextPosY_ = item->posY();
 		}
 
-		toolBar_SliderPlayback_->setRange( 0, self->historyTaskCount()-1 );
+		qDebug() << toolBar_SliderPlayback_->maximum() << toolBar_SliderPlayback_->value() << self->historyTaskCount();
+		bool lastPosFlag = false;
+		if( toolBar_SliderPlayback_->value() == toolBar_SliderPlayback_->maximum() )
+			lastPosFlag = true;
+		toolBar_SliderPlayback_->setRange( 0, self->historyTaskCount() );
+
+		playbackSliderFreezingFlag_ = true;
+		if( lastPosFlag )
+			toolBar_SliderPlayback_->setValue( toolBar_SliderPlayback_->maximum() );
+		playbackSliderFreezingFlag_ = false;
 	}
 
 	virtual void onISharedPaintEvent_UpdatePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
@@ -319,6 +328,7 @@ private:
 	int currPaintItemId_;
 	int currPacketId_;
 	bool resizeFreezingFlag_;
+	bool playbackSliderFreezingFlag_;
 	bool screenShotMode_;
 	QPoint orgPos_;
 	QLabel *broadCastTypeLabel_;

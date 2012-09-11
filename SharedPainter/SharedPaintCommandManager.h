@@ -68,13 +68,14 @@ public:
 	{
 		task->setCommandManager( this );
 
-		if( !task->doit( sendData ) )
+		mutex_.lock();
+		historyTaskList_.push_back( task );
+		currentPlayPos_ = historyTaskList_.size() - 1;
+		mutex_.unlock();
+
+		if( !task->execute( sendData ) )
 			return false;
 
-		boost::recursive_mutex::scoped_lock autolock(mutex_);
-		historyTaskList_.push_back( task );
-
-		currentPlayPos_ = historyTaskList_.size() - 1;
 		return true;
 	}
 

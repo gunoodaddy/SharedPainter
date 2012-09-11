@@ -68,7 +68,7 @@ HEADERS  += \
     SharedPainter/DefferedCaller.h \
     SharedPainter/CommonPacketBuilder.h \
     SharedPainter/BroadCastPacketBuilder.h \
-    SharedPainter/BroadCastPacketBuilder.h
+    SharedPainter/TaskPacketBuilder.h
 
 INCLUDEPATH += $(BOOST_DIR)
 

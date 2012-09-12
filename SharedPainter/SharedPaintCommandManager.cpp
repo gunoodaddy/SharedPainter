@@ -12,15 +12,12 @@ bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask
 	// check current playback position
 	{
 		boost::recursive_mutex::scoped_lock autolock(mutex_);
+
+		bool playbackWorkingFlag = isPlaybackMode();
+
 		historyTaskList_.push_back( task );
 
-		bool playbackWorkingFlag = false;
-		if( DEFAULT_INIT_PLAYBACK_POS != currentPlayPos_ /* init position */
-				&& (historyTaskList_.size() - 2 != currentPlayPos_ /* previous last position */ ) )
-		{
-			playbackWorkingFlag = true;
-		}
-		else
+		if( ! playbackWorkingFlag )
 			currentPlayPos_ = historyTaskList_.size() - 1;
 
 		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddTask, spManager_, historyTaskList_.size(), playbackWorkingFlag ) );
@@ -54,6 +51,11 @@ void CSharedPaintCommandManager::playbackTo( int position )
 
 void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 {
+	if( from < -1 || from >= (int)historyTaskList_.size() )
+		return;
+	if( to < 0 || to >= (int)historyTaskList_.size() )
+		return;
+
 	for( int i = from + 1; i <= to; i++ )
 	{
 		qDebug() << "_playforwardTo" << i << from << to;
@@ -63,6 +65,11 @@ void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 
 void CSharedPaintCommandManager::_playbackwardTo( int from, int to )
 {
+	if( from < 0 || from >= (int)historyTaskList_.size() )
+		return;
+	if( to < -1 || to >= (int)historyTaskList_.size() )
+		return;
+
 	for( int i = from; i > to; i-- )
 	{
 		qDebug() << "_playbackwardTo" << i << from << to;

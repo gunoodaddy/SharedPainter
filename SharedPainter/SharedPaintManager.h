@@ -417,7 +417,12 @@ public:
 		return sendDataToUsers( msg );
 	}
 
+	// Playback
+public:
+	bool isPlaybackMode( void ) { return commandMngr_.isPlaybackMode(); }
+
 	size_t historyTaskCount( void ) { return commandMngr_.historyTaskCount(); }
+
 	void plabackTo( int position )
 	{
 		commandMngr_.playbackTo( position );

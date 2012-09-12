@@ -31,6 +31,7 @@ public:
 
 	void clearHistoryTask( void )
 	{
+		currentPlayPos_ = DEFAULT_INIT_PLAYBACK_POS;
 		boost::recursive_mutex::scoped_lock autolock(mutex_);
 		historyTaskList_.clear();
 	}
@@ -120,6 +121,16 @@ public:
 			commandList_.pop();
 		}
 		return ret;
+	}
+
+	bool isPlaybackMode( void )
+	{
+		if( DEFAULT_INIT_PLAYBACK_POS == currentPlayPos_ /* init position */
+				|| (historyTaskList_.size() - 1 == currentPlayPos_ /* last position */ ) )
+		{
+			return false;
+		}
+		return true;
 	}
 
 	void playbackTo( int position );

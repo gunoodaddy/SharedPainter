@@ -157,7 +157,7 @@ private:
 
 CSharedPainterScene::CSharedPainterScene(void )
 : eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
-, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastAddItemShowFlag_(false), showLastAddItemBorderFlag_(false)
+, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastAddItemShowFlag_(false), showLastAddItemBorderFlag_(false), freezeActionFlag_(false)
 {
 	backgroundColor_ = Qt::white;
 	penClr_ = Qt::blue;

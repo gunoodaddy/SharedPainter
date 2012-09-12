@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/SharedPainter">
-        <file>Resources/pen_color.ico</file>
         <file>Resources/pen_width.png</file>
         <file>Resources/screenshot.png</file>
         <file>Resources/grid_line.png</file>
@@ -15,5 +14,6 @@
         <file>Resources/pen_width_2.png</file>
         <file>Resources/tray_connect.png</file>
         <file>Resources/tray_disconnect.png</file>
+        <file>Resources/draw_disabled.png</file>
     </qresource>
 </RCC>

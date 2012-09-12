@@ -33,25 +33,65 @@ public:
 		eventTarget_ = evt;
 	}
 
-	void setCursor( QCursor shape )
+	void setCursor( QCursor cursor )
 	{
-		//QApplication::setOverrideCursor( shape );
+		QList<QGraphicsView *> list = views();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			list.at(i)->setCursor( cursor );
+		}
+	}
+
+	bool freezeAction( void )
+	{
+		if( freezeActionFlag_ )
+			return false;
+
+		// TODO
+		// When this view become disabled state, the cursor has changed to default cursor automatically..
+		// I don't know how to avoid this problem.
+		// SO I call QApplication::setOverrideCursor()...
+
+		//setCursor( QCursor(QPixmap(":/SharedPainter/Resources/draw_disabled.png")) );
+	
+		QList<QGraphicsView *> list = views();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			list.at(i)->setEnabled( false );
+		}
+
+		freezeActionFlag_ = true;
+		return true;
+	}
+
+	bool thawAction( void )
+	{
+		if( ! freezeActionFlag_ )
+			return false;
+
+		freezeActionFlag_ = false;
 
 		QList<QGraphicsView *> list = views();
 		for (int i = 0; i < list.size(); ++i)
 		{
-			list.at(i)->setCursor( shape );
+			list.at(i)->setEnabled( true );
 		}
+
+		setFreePenMode( freePenMode_ );
+		return true;
 	}
 
 	void setFreePenMode( bool enable ) 
 	{
+		freePenMode_ = enable; 
+
+		if( freezeActionFlag_ )
+			return;
+
 		if( enable )
 			setCursor( QCursor(QPixmap(":/SharedPainter/Resources/draw_line.png")) );
 		else
 			setCursor( Qt::PointingHandCursor ); 
-
-		freePenMode_ = enable; 
 	}
 	void resetBackground( const QRectF &rect );
 	void setPenSetting( const QColor &clr, int width )
@@ -180,6 +220,7 @@ private:
 	boost::shared_ptr<CPaintItem> lastAddItem_;
 	bool lastAddItemShowFlag_;
 	bool showLastAddItemBorderFlag_;
+	bool freezeActionFlag_;
 };
 
 #endif // CSHAREDPAINTERSCENE_H

@@ -112,6 +112,7 @@ protected:
 	void moveEvent( QMoveEvent * evt );
 	void showEvent ( QShowEvent * evt );
 	void resizeEvent( QResizeEvent *evt );
+	void keyPressEvent( QKeyEvent *evt );
 	bool eventFilter(QObject *object, QEvent *event);
 	void changeEvent ( QEvent * event )
 	{
@@ -272,6 +273,11 @@ protected:
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self )
 	{
 		setCheckGridLineAction( false );
+
+		// clear playback info
+		toolBar_SliderPlayback_->setRange( 0, 0 );
+		setStatusBar_PlaybackStatus( 0, 0 );
+		canvas_->thawAction();
 	}
 
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size )

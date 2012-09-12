@@ -349,43 +349,6 @@
 					</FileConfiguration>
 				</File>
 			</Filter>
-			<Filter
-				Name="Resource Files"
-				Filter="qrc;*"
-				UniqueIdentifier="{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}"
-				ParseFiles="false"
-				>
-				<File
-					RelativePath=".\sharedpainter.qrc"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							Description="Rcc&apos;ing $(InputFileName)..."
-							CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png"
-							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							Description="Rcc&apos;ing $(InputFileName)..."
-							CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-							AdditionalDependencies="$(InputPath);.\Resources\pen_color.ico;.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png"
-							Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\SharedPainter.rc"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Packet Buffer"
@@ -414,6 +377,66 @@
 				RelativePath=".\Util.h"
 				>
 			</File>
+			<Filter
+				Name="Shared Paint Manager"
+				>
+				<File
+					RelativePath=".\SharedPaintManagementData.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintManager.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintPolicy.h"
+					>
+				</File>
+				<Filter
+					Name="Command"
+					>
+					<File
+						RelativePath=".\SharedPaintCommand.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\SharedPaintCommand.h"
+						>
+					</File>
+					<File
+						RelativePath=".\SharedPaintCommandManager.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\SharedPaintCommandManager.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Task"
+					>
+					<File
+						RelativePath=".\SharedPaintTask.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\SharedPaintTask.h"
+						>
+					</File>
+					<Filter
+						Name="Factory"
+						>
+						<File
+							RelativePath=".\SharedPaintTaskFactory.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Network"
@@ -831,6 +854,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\draw_disabled.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Resources\draw_line.png"
 				>
 				<FileConfiguration
@@ -1171,6 +1214,36 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\sharedpainter.qrc"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Rcc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputPath);.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png;.\Resources\draw_disabled.png"
+						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Rcc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputPath);.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png;.\Resources\draw_disabled.png"
+						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\SharedPainter.rc"
+				>
+			</File>
+			<File
 				RelativePath=".\Resources\tray_connect.png"
 				>
 				<FileConfiguration
@@ -1210,66 +1283,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-		</Filter>
-		<Filter
-			Name="Shared Paint Manager"
-			>
-			<File
-				RelativePath=".\SharedPaintManagementData.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SharedPaintManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SharedPaintManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SharedPaintPolicy.h"
-				>
-			</File>
-			<Filter
-				Name="Command"
-				>
-				<File
-					RelativePath=".\SharedPaintCommand.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintCommand.h"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintCommandManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintCommandManager.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Task"
-				>
-				<File
-					RelativePath=".\SharedPaintTask.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintTask.h"
-					>
-				</File>
-				<Filter
-					Name="Factory"
-					>
-					<File
-						RelativePath=".\SharedPaintTaskFactory.h"
-						>
-					</File>
-				</Filter>
-			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\icon1.ico"

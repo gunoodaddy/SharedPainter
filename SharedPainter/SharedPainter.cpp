@@ -148,7 +148,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	// create system tray
 	{
 		trayIconMenu_ = new QMenu(this);
-		trayIconMenu_->addAction("&O&pen", this, SLOT(actionOpenApp()));
+		trayIconMenu_->addAction("&O&pen", this, SLOT(show()));
 		trayIconMenu_->addSeparator();
 		trayIconMenu_->addAction("E&xit", this, SLOT(actionExit()));
 
@@ -245,6 +245,19 @@ void SharedPainter::onPlaybackSliderValueChanged( int value )
 	SharePaintManagerPtr()->plabackTo( value - 1);
 
 	setStatusBar_PlaybackStatus( value, toolBar_SliderPlayback_->maximum() );
+
+	bool playback = SharePaintManagerPtr()->isPlaybackMode();
+
+	if( playback )
+	{
+		if( canvas_->freezeAction() )
+			qApp->setOverrideCursor(QCursor(QPixmap(":/SharedPainter/Resources/draw_disabled.png"))); 
+	}
+	else
+	{
+		qApp->restoreOverrideCursor(); 
+		canvas_->thawAction();
+	}
 }
 
 void SharedPainter::onTrayMessageClicked( void )
@@ -644,6 +657,11 @@ bool SharedPainter::getBroadcastChannelString( bool force )
 
 	SettingManagerPtr()->setBroadCastChannel( channel.toStdString() );
 	return true;
+}
+
+void SharedPainter::keyPressEvent( QKeyEvent *evt )
+{
+
 }
 
 void SharedPainter::showEvent( QShowEvent * evt )

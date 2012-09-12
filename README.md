@@ -18,6 +18,7 @@
 * Object Remove
 * Export/Import file
 * Undo/Redo
+* Playback 
 * System tray
 
 ## Requirement

@@ -541,6 +541,14 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<Filter
+				Name="stylesheet"
+				>
+				<File
+					RelativePath=".\UIStyleSheet.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Deffered Caller"

@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "sharedpainter.h"
 #include "TextItemDialog.h"
+#include "UIStyleSheet.h"
 
 static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
@@ -120,9 +121,12 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		toolBar_MoveMode_->setCheckable( true );
 		toolBar_PenMode_->setCheckable( true );
 
+		toolBar_SliderPlayback_->setStyleSheet( gStyleSheet_Slider );
 		toolBar_SliderPlayback_->setRange(0, 0);
 		changeToobarButtonColor( toolBar_penColorButton_, canvas_->penColor() );
 		changeToobarButtonColor( toolBar_bgColorButton_, QColor(Qt::white) );
+
+
 	}
 
 

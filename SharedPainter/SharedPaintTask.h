@@ -81,8 +81,8 @@ public:
 	}
 
 	virtual TaskType type( void ) = 0;
-	virtual bool doit( bool sendData = true ) = 0;
-
+	virtual bool execute( bool sendData = true ) = 0;
+	virtual void rollback( void ) = 0;
 protected:
 	friend class CSharedPaintCommandManager;
 	CSharedPaintCommandManager *cmdMngr_;
@@ -103,7 +103,8 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_AddItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 };
 
 
@@ -118,7 +119,8 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_RemoveItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 };
 
 
@@ -126,22 +128,23 @@ class CUpdateItemTask : public CSharedPaintTask
 {
 public:
 	CUpdateItemTask( void ) : CSharedPaintTask() { }
-	CUpdateItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId, const struct SPaintData &data ) : CSharedPaintTask(manager, owner, itemId)
-		, paintData_(data) { }
+	CUpdateItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId, const struct SPaintData &prevData, const struct SPaintData &data ) : CSharedPaintTask(manager, owner, itemId)
+	  , prevPaintData_(prevData), paintData_(data) { }
 	virtual  ~CUpdateItemTask( void )
 	{
 		qDebug() << "~CUpdateItemTask";
 	}
 
 	virtual TaskType type( void ) { return Task_UpdateItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 
 	virtual std::string serialize( int *writePos = NULL )
 	{
-		int pos = 0;
 		std::string data;
 
 		data = CSharedPaintTask::serialize();
+		data += CPaintItem::serializeBasicData( prevPaintData_ );
 		data += CPaintItem::serializeBasicData( paintData_ );
 		return data;
 	}
@@ -154,6 +157,7 @@ public:
 			if( ! CSharedPaintTask::deserialize( data, &pos ) )
 				return false;
 
+			CPaintItem::deserializeBasicData( data, prevPaintData_, &pos );
 			CPaintItem::deserializeBasicData( data, paintData_, &pos );
 		} catch(CPacketException &e) {
 			(void)e;
@@ -164,6 +168,7 @@ public:
 	}
 
 private:
+	struct SPaintData prevPaintData_;
 	struct SPaintData paintData_;
 };
 
@@ -172,15 +177,16 @@ class CMoveItemTask : public CSharedPaintTask
 {
 public:
 	CMoveItemTask( void ) : CSharedPaintTask() { }
-	CMoveItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId, double posX, double posY ) : CSharedPaintTask(manager, owner, itemId)
-		, posX_(posX), posY_(posY) { }
+	CMoveItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId, double prevPosX, double prevPosY, double posX, double posY ) : CSharedPaintTask(manager, owner, itemId)
+		, prevPosX_(prevPosX), prevPosY_(prevPosY), posX_(posX), posY_(posY) { }
 	virtual  ~CMoveItemTask( void )
 	{
 		qDebug() << "~CMoveItemCommand";
 	}
 
 	virtual TaskType type( void ) { return Task_MoveItem; }
-	virtual bool doit( bool sendData = true );
+	virtual bool execute( bool sendData = true );
+	virtual void rollback( void );
 
 	virtual std::string serialize( int *writePos = NULL )
 	{
@@ -188,6 +194,8 @@ public:
 		std::string data;
 
 		data = CSharedPaintTask::serialize( &pos );
+		pos += CPacketBufferUtil::writeDouble( data, pos, prevPosX_, true );
+		pos += CPacketBufferUtil::writeDouble( data, pos, prevPosY_, true );
 		pos += CPacketBufferUtil::writeDouble( data, pos, posX_, true );
 		pos += CPacketBufferUtil::writeDouble( data, pos, posY_, true );
 		return data;
@@ -200,7 +208,8 @@ public:
 			int pos = 0;
 			if( ! CSharedPaintTask::deserialize( data, &pos ) )
 				return false;
-
+			pos += CPacketBufferUtil::readDouble( data, pos, prevPosX_, true );
+			pos += CPacketBufferUtil::readDouble( data, pos, prevPosY_, true );
 			pos += CPacketBufferUtil::readDouble( data, pos, posX_, true );
 			pos += CPacketBufferUtil::readDouble( data, pos, posY_, true );
 			return true;
@@ -211,6 +220,8 @@ public:
 	}
 
 private:
+	double prevPosX_;
+	double prevPosY_;
 	double posX_;
 	double posY_;
 };

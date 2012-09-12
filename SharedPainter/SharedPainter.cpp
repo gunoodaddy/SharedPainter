@@ -6,7 +6,7 @@ static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
+	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), playbackSliderFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT)
 {
 	fontBroadCastText_ = QFont( "Times" );
@@ -120,6 +120,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		toolBar_MoveMode_->setCheckable( true );
 		toolBar_PenMode_->setCheckable( true );
 
+		toolBar_SliderPlayback_->setRange(0, 0);
 		changeToobarButtonColor( toolBar_penColorButton_, canvas_->penColor() );
 		changeToobarButtonColor( toolBar_bgColorButton_, QColor(Qt::white) );
 	}
@@ -130,14 +131,17 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		statusBarLabel_ = new QLabel();
 		broadCastTypeLabel_ = new QLabel();
 		joinerCountLabel_ = new QLabel();
+		playbackStatusLabel_ = new QLabel();
 		wroteProgressBar_ = new QProgressBar();
 		ui.statusBar->addPermanentWidget( broadCastTypeLabel_ );
-		ui.statusBar->addPermanentWidget( joinerCountLabel_, 1 );
+		ui.statusBar->addPermanentWidget( joinerCountLabel_ );
+		ui.statusBar->addPermanentWidget( playbackStatusLabel_, 1 );
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
 		setStatusBar_BroadCastType( tr("None Type") );
 		setStatusBar_JoinerCnt( 1 );	// my self 
+		setStatusBar_PlaybackStatus( 0, 0 );
 	}
 	
 
@@ -200,9 +204,18 @@ bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 	if( event->type() == QEvent::KeyPress )
 	{
 		QKeyEvent *keyEvt = (QKeyEvent*)event;
+
 		if( keyEvt->key() == 0x1000004 )
 		{
 			actionAddText();
+		}
+		else if( keyEvt->key() == Qt::Key_Left || keyEvt->key() == Qt::Key_Right )
+		{
+			int step = keyEvt->key() == Qt::Key_Left ? -1 : +1;
+
+			int newValue = toolBar_SliderPlayback_->value() + step;
+			if( newValue >= 0 && newValue < toolBar_SliderPlayback_->maximum() )
+				toolBar_SliderPlayback_->setValue( newValue );
 		}
 	}
 	return QMainWindow::eventFilter(object,event);
@@ -226,7 +239,12 @@ void SharedPainter::onTimer( void )
 
 void SharedPainter::onPlaybackSliderValueChanged( int value )
 {
-	SharePaintManagerPtr()->plabackTo( value );
+	if( playbackSliderFreezingFlag_ )
+		return;
+
+	SharePaintManagerPtr()->plabackTo( value - 1);
+
+	setStatusBar_PlaybackStatus( value, toolBar_SliderPlayback_->maximum() );
 }
 
 void SharedPainter::onTrayMessageClicked( void )

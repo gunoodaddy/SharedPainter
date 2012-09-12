@@ -3,7 +3,7 @@
 #include "SharedPaintManager.h"
 #include "TaskPacketBuilder.h"
 
-#define DEBUG_PRINT_TASK()	qDebug() << __FUNCTION__ << sendData << "history item cnt : " << cmdMngr_->historyItemCount();
+#define DEBUG_PRINT_TASK()	qDebug() << __FUNCTION__ << "history item cnt : " << cmdMngr_->historyItemCount();
 
 static CDefferedCaller gCaller;
 
@@ -14,7 +14,7 @@ void CSharedPaintTask::sendPacket( void )
 	spMngr_->sendDataToUsers( msg );
 }
 
-bool CAddItemTask::doit( bool sendData )
+bool CAddItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -32,7 +32,19 @@ bool CAddItemTask::doit( bool sendData )
 	return true;
 }
 
-bool CRemoveItemTask::doit( bool sendData )
+void CAddItemTask::rollback( void )
+{
+	DEBUG_PRINT_TASK();
+
+	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
+	if( item )
+	{
+		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_RemovePaintItem, spMngr_, item ) );
+	}
+}
+
+
+bool CRemoveItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -49,7 +61,19 @@ bool CRemoveItemTask::doit( bool sendData )
 	return true;
 }
 
-bool CUpdateItemTask::doit( bool sendData )
+void CRemoveItemTask::rollback( void )
+{
+	DEBUG_PRINT_TASK();
+
+	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
+	if( item )
+	{
+		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, spMngr_, item ) );
+	}
+}
+
+
+bool CUpdateItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -67,7 +91,20 @@ bool CUpdateItemTask::doit( bool sendData )
 	return true;
 }
 
-bool CMoveItemTask::doit( bool sendData )
+void CUpdateItemTask::rollback( void )
+{
+	DEBUG_PRINT_TASK();
+
+	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
+	if( item )
+	{
+		item->setData( prevPaintData_ );
+		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintItem, spMngr_, item ) );
+	}
+}
+
+
+bool CMoveItemTask::execute( bool sendData )
 {
 	DEBUG_PRINT_TASK();
 
@@ -83,3 +120,15 @@ bool CMoveItemTask::doit( bool sendData )
 	}
 	return true;
 }
+
+void CMoveItemTask::rollback( void )
+{
+	DEBUG_PRINT_TASK();
+
+	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
+	if( item )
+	{
+		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_MovePaintItem, spMngr_, item, prevPosX_, prevPosY_ ) );
+	}
+}
+

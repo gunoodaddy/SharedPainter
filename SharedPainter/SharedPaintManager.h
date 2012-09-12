@@ -47,6 +47,7 @@ public:
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port ) = 0;
 	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &message ) = 0;
+	virtual void onISharedPaintEvent_AddTask( CSharedPaintManager *self, int totalTaskCount, bool playBackWorking ) = 0;
 };
 
 
@@ -249,14 +250,14 @@ public:
 
 	// Shared Paint Action
 public:
-	void redoCommand( bool sendData = true )
+	void redoCommand( void )
 	{
-		commandMngr_.redoCommand( sendData );
+		commandMngr_.redoCommand();
 	}
 
-	void undoCommand( bool sendData = true )
+	void undoCommand( void )
 	{
-		commandMngr_.undoCommand( sendData );
+		commandMngr_.undoCommand();
 	}
 
 	void deserializeData( const char * data, size_t size )
@@ -547,38 +548,6 @@ private:
 		return allData;
 	}
 
-	// Internal Action ( for SharedPaintCommand )
-public:
-	//void addPaintItem( boost::shared_ptr<CPaintItem> item )
-	//{
-	//	assert( item->itemId() > 0 );
-	//	assert( item->owner().empty() == false );
-
-	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddPaintItem, this, item ) );
-	//}
-	//
-	//void updatePaintItem( boost::shared_ptr<CPaintItem> item )
-	//{
-	//	assert( item->itemId() > 0 );
-	//	assert( item->owner().empty() == false );
-	//
-	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintItem, this, item ) );
-	//}
-
-	//void removePaintItem( const std::string &owner, int itemId )
-	//{
-	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::_removePaintItem, this, owner, itemId ) );
-	//}
-
-	//void movePaintItem( boost::shared_ptr<CPaintItem> item, double x, double y  )
-	//{
-	//	assert( item->itemId() > 0 );
-	//	assert( item->owner().empty() == false );
-	//
-	//	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_MovePaintItem, this, item, x, y ) );
-	//}
-
-
 private:
 	void clearAllItems( void )	// this function must be called on main thread!
 	{
@@ -774,6 +743,16 @@ private:
 			(*it)->onISharedPaintEvent_ReceivedPacket( this );
 		}
 	}
+
+	void fireObserver_AddTask( int totalTaskCount, bool playBackWorking )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_AddTask( this, totalTaskCount, playBackWorking );
+		}
+	}
+
 	// delaying remove session feature
 private:
 	void _delayedRemoveSession( int sessionId )
@@ -946,6 +925,7 @@ protected:
 	}
 
 private:
+	friend class CSharedPaintCommandManager;
 	friend class CAddItemTask;
 	friend class CRemoveItemTask;
 	friend class CUpdateItemTask;

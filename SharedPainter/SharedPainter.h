@@ -39,6 +39,14 @@ public:
 		str += QString::number(count);
 		joinerCountLabel_->setText( str );
 	}
+	void setStatusBar_PlaybackStatus( int current, int total )
+	{
+		QString str = tr("  Playback Position : ");
+		str += QString::number(current);
+		str += "/";
+		str += QString::number(total);
+		playbackStatusLabel_->setText( str );
+	}
 	void setStatus( Status status )
 	{
 		QString msg;
@@ -222,6 +230,18 @@ protected:
 		*/
 	}
 
+	virtual void onISharedPaintEvent_AddTask( CSharedPaintManager *self, int totalTaskCount, bool playBackWorking )
+	{
+		qDebug() << "onISharedPaintEvent_AddTask" << totalTaskCount << playBackWorking;
+		toolBar_SliderPlayback_->setRange( 0, totalTaskCount );
+		playbackSliderFreezingFlag_ = true;
+		if( ! playBackWorking )
+			toolBar_SliderPlayback_->setValue( toolBar_SliderPlayback_->maximum() );
+		playbackSliderFreezingFlag_ = false;
+
+		setStatusBar_PlaybackStatus( toolBar_SliderPlayback_->value(), toolBar_SliderPlayback_->maximum() );
+	}
+
 	virtual void onISharedPaintEvent_AddPaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
 	{
 		item->setCanvas( canvas_ );
@@ -232,8 +252,6 @@ protected:
 			lastTextPosX_ = item->posX();
 			lastTextPosY_ = item->posY();
 		}
-
-		toolBar_SliderPlayback_->setRange( 0, self->historyTaskCount()-1 );
 	}
 
 	virtual void onISharedPaintEvent_UpdatePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
@@ -319,11 +337,13 @@ private:
 	int currPaintItemId_;
 	int currPacketId_;
 	bool resizeFreezingFlag_;
+	bool playbackSliderFreezingFlag_;
 	bool screenShotMode_;
 	QPoint orgPos_;
 	QLabel *broadCastTypeLabel_;
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
+	QLabel *playbackStatusLabel_;
 	QAction *penWidthAction_;
 	QAction *penModeAction_;
 	QAction *gridLineAction_;

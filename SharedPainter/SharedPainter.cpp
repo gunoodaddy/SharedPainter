@@ -204,9 +204,18 @@ bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 	if( event->type() == QEvent::KeyPress )
 	{
 		QKeyEvent *keyEvt = (QKeyEvent*)event;
+
 		if( keyEvt->key() == 0x1000004 )
 		{
 			actionAddText();
+		}
+		else if( keyEvt->key() == Qt::Key_Left || keyEvt->key() == Qt::Key_Right )
+		{
+			int step = keyEvt->key() == Qt::Key_Left ? -1 : +1;
+
+			int newValue = toolBar_SliderPlayback_->value() + step;
+			if( newValue >= 0 && newValue < toolBar_SliderPlayback_->maximum() )
+				toolBar_SliderPlayback_->setValue( newValue );
 		}
 	}
 	return QMainWindow::eventFilter(object,event);

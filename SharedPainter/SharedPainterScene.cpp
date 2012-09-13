@@ -19,6 +19,10 @@
 #define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	2	//sec
 #define DEFAULT_COVER_RECT_OFFSET				5
 
+#define ITEM_SCALE_STEP	0.1f
+#define ITEM_SCALE_MIN	0.1f
+#define ITEM_SCALE_MAX	3.0f
+
 enum ItemBorderType {
 	Border_Ellipse,
 	Border_PainterPath,
@@ -134,13 +138,13 @@ public:
 		{
 			double sc = r->scale();
 			if( event->delta() < 0 )
-				sc -= 0.5;
+				sc -= ITEM_SCALE_STEP;
 			else
-				sc += 0.5;
+				sc += ITEM_SCALE_STEP;
 
-			if( sc > 3 )
+			if( sc > ITEM_SCALE_MAX )
 				return;
-			if( sc < 0.3 )
+			if( sc < ITEM_SCALE_MIN )
 				return;
 
 			r->setScale( sc );
@@ -443,17 +447,29 @@ void CSharedPainterScene::drawFile( boost::shared_ptr<CFileItem> file )
 	commonAddItem( file, item, Border_Rect );
 }
 
-void CSharedPainterScene::drawImage( boost::shared_ptr<CImageFileItem> image )
+void CSharedPainterScene::drawImage( boost::shared_ptr<CImageItem> image )
 {
 	CMyGraphicItem<QGraphicsPixmapItem> *item = new CMyGraphicItem<QGraphicsPixmapItem>( this );
-
-	setScaleImageFileItem( image, item );
+	item->setPixmap( image->createPixmap() ); 
 
 	if( image->isAvailablePosition() )
 		item->setPos( image->posX(), image->posY() );
 	item->setItemData( image );
 	item->setZValue( currentZValue() );
 	commonAddItem( image, item, Border_Rect );
+}
+
+void CSharedPainterScene::drawImageFile( boost::shared_ptr<CImageFileItem> imageFile )
+{
+	CMyGraphicItem<QGraphicsPixmapItem> *item = new CMyGraphicItem<QGraphicsPixmapItem>( this );
+
+	setScaleImageFileItem( imageFile, item );
+
+	if( imageFile->isAvailablePosition() )
+		item->setPos( imageFile->posX(), imageFile->posY() );
+	item->setItemData( imageFile );
+	item->setZValue( currentZValue() );
+	commonAddItem( imageFile, item, Border_Rect );
 }
 
 void CSharedPainterScene::drawText( boost::shared_ptr<CTextItem> text )

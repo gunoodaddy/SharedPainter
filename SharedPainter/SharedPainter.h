@@ -100,11 +100,16 @@ public:
 		boost::shared_ptr<CTextItem> textItem = boost::shared_ptr<CTextItem>(new CTextItem( str, font, textColor ));
 		textItem->setMyItem();
 
-		QPointF pos = _calculateTextPos( font.pixelSize() );
-
+		QPointF pos = Util::calculateNewTextPos( 
+			canvas_->sceneRect().width(), canvas_->sceneRect().height(), 
+			ui.painterView->mapFromGlobal(QCursor::pos()).x(),
+			ui.painterView->mapFromGlobal(QCursor::pos()).y(),
+			font.pixelSize(), 
+			&lastTextPosX_, &lastTextPosY_ );
+	
 		textItem->setPos( pos.x(), pos.y() );
 
-		_requestAddItem( textItem );
+		requestAddItem( textItem );
 	}
 
 protected:
@@ -133,6 +138,7 @@ protected slots:
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	void onPlaybackSliderValueChanged( int value  );
 
+	void actionClipboardPaste( void );
 	void actionBroadcastChannel( void );
 	void actionBroadcastTextMessage( void );
 	void actionClearBG( void );
@@ -162,10 +168,9 @@ protected slots:
 	void actionLastItem( void );
 
 private:
+	void requestAddItem( boost::shared_ptr<CPaintItem> item );
 	void setCheckGridLineAction( bool checked );
 	void setCheckShowLastAddItemAction( bool checked );
-	void _requestAddItem( boost::shared_ptr<CPaintItem> item );
-	QPointF _calculateTextPos( int textSize );
 	bool getBroadcastChannelString( bool force = false );
 	void changeToobarButtonColor( QPushButton *button, const QColor &clr )
 	{

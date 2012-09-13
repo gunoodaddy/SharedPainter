@@ -24,6 +24,9 @@ namespace Util
 		return res;
 	}
 
+	QPointF calculateNewItemPos( int sceneWidth, int sceneHeight, int mouseX, int mouseY, int targetWidth, int targetHeight, double *lastItemPosX = NULL, double *lastItemPosY = NULL );
+	QPointF calculateNewTextPos( int sceneWidth, int sceneHeight, int mouseX, int mouseY, int textSize, double *lastTextPosX = NULL, double *lastTextPosY = NULL );
+
 	void HexDump(const void *ptr, int buflen);
 
 	inline QString generateFileDownloadPath( const QString *path = 0 )

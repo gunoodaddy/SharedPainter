@@ -942,6 +942,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\icon1.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\Resources\last_item.png"
 				>
 				<FileConfiguration
@@ -1222,6 +1226,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Resources\SharedPainter.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\sharedpainter.qrc"
 				>
 				<FileConfiguration
@@ -1292,14 +1300,6 @@
 				</FileConfiguration>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\icon1.ico"
-			>
-		</File>
-		<File
-			RelativePath=".\Resources\SharedPainter.ico"
-			>
-		</File>
 	</Files>
 	<Globals>
 		<Global

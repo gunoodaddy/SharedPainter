@@ -43,16 +43,18 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		// Edit Menu
 		QMenu* edit = new QMenu( "&Edit", menuBar );
 		QMenu* penMenu = edit->addMenu( "Pen Setting" );
-		penWidthAction_ = penMenu->addAction( "Pen &Width", this, SLOT(actionPenWidth()), Qt::CTRL+Qt::Key_V );
-		penMenu->addAction( "Pen &Color", this, SLOT(actionPenColor()), Qt::CTRL+Qt::Key_C );
+		penWidthAction_ = penMenu->addAction( "Pen &Width", this, SLOT(actionPenWidth()), Qt::ALT+Qt::Key_V );
+		penMenu->addAction( "Pen &Color", this, SLOT(actionPenColor()), Qt::ALT+Qt::Key_C );
 		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::CTRL+Qt::Key_A );
 		edit->addAction( "&Text", this, SLOT(actionAddText()), Qt::Key_Enter|Qt::Key_Return );
 		gridLineAction_ = edit->addAction( "&Draw Grid Line", this, SLOT(actionGridLine()));
-		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_C );
+		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_B );
 		edit->addAction( "&Screen Shot", this, SLOT(actionScreenShot()), Qt::CTRL+Qt::Key_S );
 		edit->addSeparator();
 		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
+		edit->addSeparator();
+		edit->addAction( "&Paste clipboard", this, SLOT(actionClipboardPaste()), Qt::CTRL+Qt::Key_V );
 		edit->addSeparator();
 		showLastItemAction_ = edit->addAction( "Blink &Last Item Always", this, SLOT(actionBlinkLastAddItem()), Qt::CTRL+Qt::Key_L );
 		edit->addSeparator();
@@ -434,62 +436,6 @@ void SharedPainter::actionConnect( void )
 }
 
 
-QPointF SharedPainter::_calculateTextPos( int textSize )
-{
-	qDebug() << QCursor::pos() << ui.painterView->mapFromGlobal(QCursor::pos());
-
-	static double lastMX = 0;
-	static double lastMY = 0;
-
-	int sW = canvas_->sceneRect().width();
-	int sH = canvas_->sceneRect().height();
-	int w = DEFAULT_TEXT_ITEM_POS_REGION_W; if( w > sW ) w = sW;
-	int h = DEFAULT_TEXT_ITEM_POS_REGION_H; if( h > sH ) h = sH;
-
-	double mX = ui.painterView->mapFromGlobal(QCursor::pos()).x();
-	double mY = ui.painterView->mapFromGlobal(QCursor::pos()).y();
-	double rX = qrand() % w;
-	double rY = qrand() % h;
-	if( mX <= 0 || mY <= 0 ) mX = mY = -1.f;
-
-	double x = 0;
-	double y = 0;
-
-	if( lastTextPosY_ == 0 )
-	{
-		// initial position #1
-		x = mX - textSize;
-		y = mY - textSize;
-	}
-	else if( mX != lastMX || mY != lastMY )
-	{
-		// initial position #2
-		x = mX - textSize;
-		y = mY - textSize;
-	}
-	else
-	{
-		// continuous position
-		x = lastTextPosX_;
-		y = lastTextPosY_ + textSize;
-	}
-
-	if( x <= 0 || y <= 0 || (y >= sH - textSize) || x >= sW )
-	{
-		// exception postion
-		x = rX;
-		y = rY;
-	}
-
-	qDebug() << "text pos" << x << y << mX << mY << rX << rY;
-	lastTextPosX_ = x;
-	lastTextPosY_ = y;
-	lastMX = mX;
-	lastMY = mY;
-
-	return QPointF(x, y);
-}
-
 void SharedPainter::actionAddText( void )
 {
 	TextItemDialog dlg(this);
@@ -643,6 +589,41 @@ void SharedPainter::actionClientType( void )
 		setStatusBar_BroadCastType( tr("None Type") );
 }
 
+void SharedPainter::actionClipboardPaste( void )
+{
+	const QClipboard *clipboard = QApplication::clipboard();
+	const QMimeData *mimeData = clipboard->mimeData();
+
+	 if (mimeData->hasImage()) 
+	 {
+		 int w = 0;
+		 int h = 0;
+		 int lX = 0, lY = 0;
+		 boost::shared_ptr<CImageItem> item = boost::shared_ptr<CImageItem>(new CImageItem());
+		 item->setPixmap( qvariant_cast<QPixmap>(mimeData->imageData()) );
+		 item->setMyItem();
+
+		 QPointF pos = Util::calculateNewItemPos( canvas_->sceneRect().width(), canvas_->sceneRect().height(), 
+			 ui.painterView->mapFromGlobal(QCursor::pos()).x(),
+			 ui.painterView->mapFromGlobal(QCursor::pos()).y(),
+			 w, h );
+
+		item->setPos( pos.x(), pos.y() );
+		requestAddItem( item );
+     } 
+	 //else if (mimeData->hasHtml()) 
+	 //{
+  //       setText(mimeData->html());
+  //       setTextFormat(Qt::RichText);
+  //   } 
+	 //else if (mimeData->hasText())
+	 //{
+  //       setText(mimeData->text());
+  //       setTextFormat(Qt::PlainText);
+  //   } 
+}
+
+
 bool SharedPainter::getBroadcastChannelString( bool force )
 {
 	if( !force && SettingManagerPtr()->broadCastChannel().empty() == false )	// already setting
@@ -663,10 +644,10 @@ bool SharedPainter::getBroadcastChannelString( bool force )
 	return true;
 }
 
-void SharedPainter::keyPressEvent( QKeyEvent *evt )
-{
-
-}
+void SharedPainter::keyPressEvent ( QKeyEvent * event )  
+{ 
+	QWidget::keyPressEvent(event); 
+} 
 
 void SharedPainter::showEvent( QShowEvent * evt )
 {
@@ -736,7 +717,7 @@ void SharedPainter::resizeEvent( QResizeEvent *evt )
 }
 
 
-void SharedPainter::_requestAddItem( boost::shared_ptr<CPaintItem> item )
+void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
 {
 	item->setOwner( SharePaintManagerPtr()->myId() );
 	item->setItemId( currPaintItemId_++ );
@@ -747,7 +728,7 @@ void SharedPainter::_requestAddItem( boost::shared_ptr<CPaintItem> item )
 
 void SharedPainter::onICanvasViewEvent_BeginMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
 {
-
+	// nothing to do
 }
 
 void SharedPainter::onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
@@ -757,7 +738,7 @@ void SharedPainter::onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost
 
 void SharedPainter::onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item  )
 {
-	_requestAddItem( item );
+	requestAddItem( item );
 }
 
 void SharedPainter::onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )

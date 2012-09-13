@@ -5,15 +5,19 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <set>
 
+extern int _debug_paint_item_cnt;
+
 class CPaintItem;
 class CLineItem;
 class CBackgroundImageItem;
 class CFileItem;
 class CTextItem;
+class CImageItem;
 class CImageFileItem;
 
 enum PaintItemType {
 	PT_LINE = 0,
+	PT_IMAGE,
 	PT_BG_IMAGE,
 	PT_FILE,
 	PT_IMAGE_FILE,
@@ -31,7 +35,8 @@ public:
 	virtual void drawLine( boost::shared_ptr<CLineItem> line ) = 0;
 	virtual void drawFile( boost::shared_ptr<CFileItem> file ) = 0;
 	virtual void drawText( boost::shared_ptr<CTextItem> text ) = 0;
-	virtual void drawImage( boost::shared_ptr<CImageFileItem> image ) = 0;
+	virtual void drawImage( boost::shared_ptr<CImageItem> image ) = 0;
+	virtual void drawImageFile( boost::shared_ptr<CImageFileItem> imageFile ) = 0;
 	virtual void removeItem( CPaintItem * item ) = 0;
 	virtual void removeItem( boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void moveItem( boost::shared_ptr<CPaintItem> item, double x, double y ) = 0;
@@ -67,10 +72,13 @@ public:
 		data_.posSetFlag = false;
 
 		prevData_ = data_;
+
+		_debug_paint_item_cnt++;
 	}
 	virtual ~CPaintItem( void ) 
 	{ 
-		qDebug() << "CPaintItem deleted.. " << this; 
+		--_debug_paint_item_cnt;
+		qDebug() << "CPaintItem deleted.. " << this << _debug_paint_item_cnt; 
 		remove(); 
 	}
 
@@ -210,14 +218,13 @@ protected:
 	struct SPaintData prevData_;
 };
 
-
-class CBackgroundImageItem : public CPaintItem
+class CImageItem : public CPaintItem
 {
 public:
-	CBackgroundImageItem( void ) : CPaintItem() { }
-	virtual ~CBackgroundImageItem( void ) 
+	CImageItem( void ) : CPaintItem() { }
+	virtual ~CImageItem( void ) 
 	{ 
-		qDebug() << "CBackgroundImageItem deleted.. " << this; 
+		qDebug() << "CImageItem deleted.. " << this; 
 	}
 	void setPixmap( const QPixmap &pixmap ) 
 	{ 
@@ -240,23 +247,16 @@ public:
 
 	virtual PaintItemType type( void ) const
 	{
-		return PT_BG_IMAGE;
+		return PT_IMAGE;
 	}
 
-	virtual void move( double x, double y ) 
-	{
-		//
-	}
-	virtual void remove( void )
-	{
-		if( canvas_ )
-			canvas_->clearBackgroundImage();
-	}
 	virtual void draw( void )
 	{
 		if( canvas_ )
-			canvas_->drawBackgroundImage(  boost::static_pointer_cast<CBackgroundImageItem>(shared_from_this()) );		
+			canvas_->drawImage(  boost::static_pointer_cast<CImageItem>(shared_from_this()) );		
 	}
+
+	virtual bool isScalable( void ) { return true; }
 
 	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
@@ -295,6 +295,38 @@ public:
 
 private:
 	QByteArray byteArray_;
+};
+
+
+class CBackgroundImageItem : public CImageItem
+{
+public:
+	CBackgroundImageItem( void ) : CImageItem() { }
+	virtual ~CBackgroundImageItem( void ) 
+	{ 
+		qDebug() << "CBackgroundImageItem deleted.. " << this; 
+	}
+
+	virtual PaintItemType type( void ) const
+	{
+		return PT_BG_IMAGE;
+	}
+
+	virtual void move( double x, double y ) 
+	{
+		//
+	}
+	virtual void remove( void )
+	{
+		if( canvas_ )
+			canvas_->clearBackgroundImage();
+	}
+	virtual void draw( void )
+	{
+		if( canvas_ )
+			canvas_->drawBackgroundImage(  boost::static_pointer_cast<CBackgroundImageItem>(shared_from_this()) );		
+	}
+	virtual bool isScalable( void ) { return false; }
 };
 
 
@@ -518,7 +550,7 @@ public:
 	virtual void draw( void )
 	{
 		if( canvas_ )
-			canvas_->drawImage(  boost::static_pointer_cast<CImageFileItem>(shared_from_this()) );		
+			canvas_->drawImageFile(  boost::static_pointer_cast<CImageFileItem>(shared_from_this()) );		
 	}
 	virtual bool isScalable( void ) { return true; }
 };

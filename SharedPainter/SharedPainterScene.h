@@ -129,7 +129,8 @@ public:
 	virtual void drawLine( boost::shared_ptr<CLineItem> line );
 	virtual void drawFile( boost::shared_ptr<CFileItem> file );
 	virtual void drawText( boost::shared_ptr<CTextItem> text );
-	virtual void drawImage( boost::shared_ptr<CImageFileItem> image );
+	virtual void drawImage( boost::shared_ptr<CImageItem> image );
+	virtual void drawImageFile( boost::shared_ptr<CImageFileItem> imageFile );
 	virtual void drawBackgroundGridLine( int size );
 	virtual void drawBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image );
 	virtual void clearBackgroundImage( void );

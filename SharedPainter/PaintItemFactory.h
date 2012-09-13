@@ -20,6 +20,9 @@ public:
 		case PT_IMAGE_FILE:
 			item = boost::shared_ptr<CImageFileItem>(new CImageFileItem);
 			break;
+		case PT_IMAGE:
+			item = boost::shared_ptr<CImageItem>(new CImageItem);
+			break;
 		default:
 			assert( false && "not supported item type" );
 		}

@@ -59,3 +59,70 @@ QColor Util::getComplementaryColor( const QColor &clr, const QColor &lineClr )
 	QColor res(r, g, b);
 	return res;
 }
+
+
+QPointF Util::calculateNewTextPos( int sceneWidth, int sceneHeight, int mouseX, int mouseY, int textSize, double *lastItemPosX, double *lastItemPosY )
+{
+	return calculateNewItemPos( sceneWidth, sceneHeight, mouseX, mouseY, textSize, textSize, lastItemPosX, lastItemPosY );
+}
+
+
+QPointF Util::calculateNewItemPos( int sceneWidth, int sceneHeight, int mouseX, int mouseY, int targetWidth, int targetHeight, double *lastItemPosX, double *lastItemPosY )
+{
+	static double lastMX = 0;
+	static double lastMY = 0;
+
+	int sW = sceneWidth;
+	int sH = sceneHeight;
+	int w = DEFAULT_TEXT_ITEM_POS_REGION_W; if( w > sW ) w = sW;
+	int h = DEFAULT_TEXT_ITEM_POS_REGION_H; if( h > sH ) h = sH;
+
+	double mX = mouseX;
+	double mY = mouseY;
+	double rX = qrand() % w;
+	double rY = qrand() % h;
+	if( mX <= 0 || mY <= 0 ) mX = mY = -1.f;
+
+	double x = 0;
+	double y = 0;
+
+	if( lastItemPosY == 0 )
+	{
+		// initial position #1
+		x = mX - targetWidth;
+		y = mY - targetHeight;
+	}
+	else if( mX != lastMX || mY != lastMY )
+	{
+		// initial position #2
+		x = mX - targetWidth;
+		y = mY - targetHeight;
+	}
+	else if( lastItemPosX && lastItemPosY )
+	{
+		// continuous position
+		x = *lastItemPosX;
+		y = *lastItemPosY + targetHeight;
+	}
+	else
+	{
+		// random position
+		x = rX;
+		y = rY;
+	}
+
+	if( x <= 0 || y <= 0 || (y >= sH - targetHeight) || x >= sW )
+	{
+		// exception postion
+		x = rX;
+		y = rY;
+	}
+
+	qDebug() << "calculateNewItemPos() : item pos" << x << y << mX << mY << rX << rY;
+	if( lastItemPosX ) *lastItemPosX = x;
+	if( lastItemPosY ) *lastItemPosY = y;
+	lastMX = mX;
+	lastMY = mY;
+
+	return QPointF(x, y);
+}

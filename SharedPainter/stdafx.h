@@ -12,3 +12,5 @@
 #include "SharedPaintPolicy.h"
 #include "SharedPaintManager.h"
 #include "SettingManager.h"
+
+extern int _debug_paint_item_cnt;

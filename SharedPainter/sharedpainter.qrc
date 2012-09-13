@@ -15,5 +15,6 @@
         <file>Resources/tray_connect.png</file>
         <file>Resources/tray_disconnect.png</file>
         <file>Resources/draw_disabled.png</file>
+        <file>Resources/findingserver.gif</file>
     </qresource>
 </RCC>

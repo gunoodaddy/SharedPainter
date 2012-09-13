@@ -9,7 +9,8 @@ public:
 
 	CNetBroadCastSession( boost::asio::io_service& io_service ) 
 		: io_service_(io_service), socket_(io_service), evtTarget_(NULL)
-		, broadCastPort_(0), sendMsgSecond_(DEFAULT_SEND_SEC), stopBroadCastMsgFlag_(true), broadcast_timer_(io_service)
+		, broadCastPort_(0), sendMsgSecond_(DEFAULT_SEND_SEC), sentCount_(0)
+		, stopBroadCastMsgFlag_(true), broadcast_timer_(io_service)
 	{
 		qDebug() << "CNetBroadCastSession" << this;
 	}
@@ -105,6 +106,7 @@ public:
 
 	void pauseSend( void )
 	{
+		sentCount_ = 0;
 		stopBroadCastMsgFlag_ = true;
 	}
 
@@ -127,7 +129,7 @@ public:
 		if( !error )
 		{
 			//last_sender_endpoint_ = sender_endpoint_;
-			fireBroadCastReceiveEvent( read_buffer_, bytes_recvd );
+			fireReceiveEvent( read_buffer_, bytes_recvd );
 		}
 
 		_start_receive_from();
@@ -151,6 +153,8 @@ public:
 			broadcast_timer_.expires_at( boost::posix_time::pos_infin );
 
 			sendData( broadCastPort_, broadCastMsg_ );
+			sentCount_++;
+			fireSentMessageEvent();
 		}
 
 		_start_broadcast_timer( sendMsgSecond_ );
@@ -158,12 +162,20 @@ public:
 
 
 private:
-	void fireBroadCastReceiveEvent( const char * buffer, size_t len )
+	void fireReceiveEvent( const char * buffer, size_t len )
 	{
 		if( evtTarget_ )
 		{
 			std::string tempbuffer( buffer, len );
 			evtTarget_->onINetBroadCastSessionEvent_BroadCastReceived( this, tempbuffer );
+		}
+	}
+
+	void fireSentMessageEvent( void )
+	{
+		if( evtTarget_ )
+		{
+			evtTarget_->onINetBroadCastSessionEvent_SentMessage( this, sentCount_ );
 		}
 	}
 
@@ -176,6 +188,7 @@ private:
 	int broadCastPort_;
 	std::string broadCastMsg_;
 	int sendMsgSecond_;
+	int sentCount_;
 
 	INetBroadCastSessionEvent *evtTarget_;
 	boost::asio::ip::udp::socket socket_;

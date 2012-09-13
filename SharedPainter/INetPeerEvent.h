@@ -30,5 +30,6 @@ public:
 class INetBroadCastSessionEvent
 {
 public:
+	virtual void onINetBroadCastSessionEvent_SentMessage( CNetBroadCastSession *session, int sentCount ) = 0;
 	virtual void onINetBroadCastSessionEvent_BroadCastReceived( CNetBroadCastSession *session, const std::string buffer ) = 0;
 };

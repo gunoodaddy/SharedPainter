@@ -50,6 +50,7 @@ public:
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port ) = 0;
 	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &message ) = 0;
 	virtual void onISharedPaintEvent_AddTask( CSharedPaintManager *self, int totalTaskCount, bool playBackWorking ) = 0;
+	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount ) = 0;
 };
 
 
@@ -76,6 +77,9 @@ public:
 		if( netPeerServer_ )
 			netPeerServer_->close();
 
+		if( udpSessionForConnection_ )
+			udpSessionForConnection_->close();
+
 		if( broadCastSessionForConnection_ )
 			broadCastSessionForConnection_->close();
 
@@ -89,6 +93,9 @@ public:
 		clearAllSessions();
 
 		netRunner_.close();
+
+		serverMode_ = false;
+		clientMode_ = false;
 	}
 
 	void setCanvas( IGluePaintCanvas *canvas )
@@ -110,7 +117,10 @@ public:
 	// Network
 public:
 	bool startClient( void );
+	void stopClient( void );
+
 	void startServer( const std::string &broadCastChannel, int port = 0 );
+
 	void setBroadCastChannel( const std::string & channel );
 
 	bool connectToPeer( const std::string &addr, int port )
@@ -155,6 +165,11 @@ public:
 	bool isServerMode( void )
 	{
 		return serverMode_;
+	}
+
+	bool isClientMode( void )
+	{
+		return clientMode_;
 	}
 
 	bool isConnecting( void )
@@ -697,6 +712,15 @@ private:
 		}
 	}
 
+	void fireObserver_ServerFinding( int sentCount )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ServerFinding( this, sentCount );
+		}
+	}
+
 	// delaying remove session feature
 private:
 	void _delayedRemoveSession( int sessionId )
@@ -754,6 +778,11 @@ protected:
 
 			dispatchBroadCastPacket( session, data );
 		}
+	}
+
+	virtual void onINetBroadCastSessionEvent_SentMessage( CNetBroadCastSession *session, int sentCount )
+	{
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ServerFinding, this, sentCount ) );
 	}
 
 	// INetUdpSessionEvent
@@ -928,6 +957,7 @@ private:
 	// network
 	CNetServiceRunner netRunner_;
 	bool serverMode_;
+	bool clientMode_;
 	int acceptPort_;
 	int listenUdpPort_;
 	SESSION_LIST sessionList_;

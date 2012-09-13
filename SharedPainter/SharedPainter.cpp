@@ -8,7 +8,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), playbackSliderFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
-	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT)
+	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL)
 {
 	fontBroadCastText_ = QFont( "Times" );
 	fontBroadCastText_.setBold( true );
@@ -199,6 +199,8 @@ SharedPainter::~SharedPainter()
 {
 	SharePaintManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->close();
+
+	hideFindingServerWindow();
 
 	delete keyHookTimer_;
 }
@@ -584,7 +586,11 @@ void SharedPainter::actionClientType( void )
 		return;
 
 	if( SharePaintManagerPtr()->startClient() )
+	{
 		setStatusBar_BroadCastType( tr("Client Type") );
+
+		showFindingServerWindow();
+	}
 	else
 		setStatusBar_BroadCastType( tr("None Type") );
 }

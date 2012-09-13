@@ -6,6 +6,7 @@
 #include "ui_sharedpainter.h"
 #include "SharedPainterScene.h"
 #include "SharedPaintPolicy.h"
+#include "FindingServerDialog.h"
 
 class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent
 {
@@ -112,6 +113,31 @@ public:
 		requestAddItem( textItem );
 	}
 
+	void showFindingServerWindow( void )
+	{
+		hideFindingServerWindow();
+
+		findingServerWindow_ = new FindingServerDialog(this);
+		findingServerWindow_->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
+		findingServerWindow_->setWindowTitle( "Finding server.." );
+		findingServerWindow_->exec();
+		if( findingServerWindow_->isCanceled() )
+		{
+			SharePaintManagerPtr()->stopClient();
+			setStatusBar_BroadCastType( tr("None Type") );
+		}
+		delete findingServerWindow_;
+		findingServerWindow_ = NULL;
+	}
+
+	void hideFindingServerWindow( void )
+	{
+		if( findingServerWindow_ )
+		{
+			findingServerWindow_->reject();
+		}
+	}
+
 protected:
 	void closeEvent( QCloseEvent *evt );
 	void moveEvent( QMoveEvent * evt );
@@ -192,6 +218,8 @@ protected:
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self )
 	{
 		setStatus( CONNECTED );
+
+		hideFindingServerWindow();
 	}
 
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self )
@@ -201,6 +229,13 @@ protected:
 
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self )
 	{
+		if( self->isClientMode() )
+		{
+			static CDefferedCaller caller;
+
+			caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::showFindingServerWindow, this) );
+		}
+
 		setStatus( DISCONNECTED );
 	}
 
@@ -339,6 +374,11 @@ protected:
 		addTextItem( msg, fontBroadCastText_, Util::getComplementaryColor(canvas_->backgroundColor()) );
 	}
 
+	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount )
+	{
+		// TODO
+	}
+
 
 private:
 	Ui::SharedPainterClass ui;
@@ -375,6 +415,8 @@ private:
 	QSystemTrayIcon *trayIcon_;
 	QMenu *trayIconMenu_;
 	QFont fontBroadCastText_;
+
+	FindingServerDialog *findingServerWindow_;
 };
 
 #endif // SHAREDPAINTER_H

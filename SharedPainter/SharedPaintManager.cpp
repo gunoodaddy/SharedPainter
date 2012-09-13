@@ -44,7 +44,7 @@ static std::string getMyIPAddress( void )
 	return ip;
 }
 
-CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NULL), acceptPort_(-1), listenUdpPort_(-1), serverMode_(false)
+CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NULL), acceptPort_(-1), listenUdpPort_(-1), serverMode_(false), clientMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
@@ -89,6 +89,7 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 	broadcastChannel_ = channel;
 }
 
+
 bool CSharedPaintManager::startClient( void )
 {
 	clearAllSessions();
@@ -112,7 +113,6 @@ bool CSharedPaintManager::startClient( void )
 			if( serverMode_ )
 			{
 				clearScreen();
-				serverMode_ = false;
 			}
 			break;
 		}
@@ -130,12 +130,30 @@ bool CSharedPaintManager::startClient( void )
 	broadCastSessionForConnection_->setEvent( this );
 	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
+	serverMode_ = false;
+	clientMode_ = true;
 	return true;
+}
+
+
+void CSharedPaintManager::stopClient( void )
+{
+	if( ! clientMode_ )
+		return;
+
+	clientMode_ = false;
+
+	if( udpSessionForConnection_ )
+		udpSessionForConnection_->close();
+
+	if( broadCastSessionForConnection_ )
+		broadCastSessionForConnection_->close();
 }
 
 
 void CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
 {
+	clientMode_ = false;
 	serverMode_ = true;
 
 	clearAllSessions();
@@ -171,7 +189,6 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 			if( serverMode_ )
 			{
 				clearScreen();
-				serverMode_ = false;
 			}
 			break;
 		}

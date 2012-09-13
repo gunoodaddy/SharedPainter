@@ -295,64 +295,6 @@
 				RelativePath=".\stdafx.h"
 				>
 			</File>
-			<Filter
-				Name="Form Files"
-				Filter="ui"
-				UniqueIdentifier="{99349809-55BA-4b9d-BF79-8FDBB0286EB3}"
-				>
-				<File
-					RelativePath=".\sharedpainter.ui"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							Description="Uic&apos;ing $(InputFileName)..."
-							CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-							AdditionalDependencies="$(QTDIR)\bin\uic.exe"
-							Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							Description="Uic&apos;ing $(InputFileName)..."
-							CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-							AdditionalDependencies="$(QTDIR)\bin\uic.exe"
-							Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\textitemdialog.ui"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							Description="Uic&apos;ing $(InputFileName)..."
-							CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-							AdditionalDependencies="$(QTDIR)\bin\uic.exe"
-							Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							Description="Uic&apos;ing $(InputFileName)..."
-							CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
-							AdditionalDependencies="$(QTDIR)\bin\uic.exe"
-							Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Packet Buffer"
@@ -489,6 +431,32 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\sharedpainter.ui"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+			</File>
 			<Filter
 				Name="stylesheet"
 				>
@@ -537,6 +505,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\GeneratedFiles\ui_FindingServerDialog.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GeneratedFiles\ui_sharedpainter.h"
 				>
 			</File>
@@ -549,6 +521,18 @@
 				Filter="cpp;moc"
 				SourceControlFiles="false"
 				>
+				<File
+					RelativePath=".\GeneratedFiles\Release\moc_FindingServerDialog.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
 				<File
 					RelativePath=".\GeneratedFiles\Release\moc_SettingManager.cpp"
 					>
@@ -603,6 +587,18 @@
 				Filter="cpp;moc"
 				SourceControlFiles="false"
 				>
+				<File
+					RelativePath=".\GeneratedFiles\Debug\moc_FindingServerDialog.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
 				<File
 					RelativePath=".\GeneratedFiles\Debug\moc_SettingManager.cpp"
 					>
@@ -685,6 +681,32 @@
 						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -D_WIN32_WINDOWS -D_UNICODE  &quot;-I.\GeneratedFiles&quot; &quot;-I.&quot; &quot;-I$(QT_DIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QT_DIR)\include\QtCore&quot; &quot;-I$(QT_DIR)\include\QtNetwork&quot; &quot;-I$(QT_DIR)\include\QtGui&quot; &quot;-I$(BOOST_DIR)\.&quot; &quot;-fStdAfx.h&quot; &quot;-f../../TextItemDialog.h&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_TextITemDialog.cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\textitemdialog.ui"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
 					/>
 				</FileConfiguration>
 			</File>
@@ -831,6 +853,26 @@
 			</File>
 			<File
 				RelativePath=".\Resources\draw_line.png"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Resources\findingserver.gif"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1187,7 +1229,7 @@
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(InputPath);.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png;.\Resources\draw_disabled.png"
+						AdditionalDependencies="$(InputPath);.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png;.\Resources\draw_disabled.png;.\Resources\findingserver.gif"
 						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
@@ -1198,7 +1240,7 @@
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(InputPath);.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png;.\Resources\draw_disabled.png"
+						AdditionalDependencies="$(InputPath);.\Resources\pen_width.png;.\Resources\screenshot.png;.\Resources\grid_line.png;.\Resources\bg_clear.png;.\Resources\clear_screen.png;.\Resources\move_mode.png;.\Resources\last_item.png;.\Resources\draw_line.png;.\Resources\pen_width_6.png;.\Resources\pen_width_10.png;.\Resources\pen_width_20.png;.\Resources\pen_width_2.png;.\Resources\tray_connect.png;.\Resources\tray_disconnect.png;.\Resources\draw_disabled.png;.\Resources\findingserver.gif"
 						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
@@ -1307,6 +1349,66 @@
 					</File>
 				</Filter>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="FindingServer Window"
+			>
+			<File
+				RelativePath=".\FindingServerDialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FindingServerDialog.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing FindingServerDialog.h..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-fStdAfx.h&quot; &quot;-f../../FindingServerDialog.h&quot;  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WIN32_WINDOWS &quot;-I.\GeneratedFiles&quot; &quot;-I.&quot; &quot;-I$(QT_DIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QT_DIR)\include\QtCore&quot; &quot;-I$(QT_DIR)\include\QtNetwork&quot; &quot;-I$(QT_DIR)\include\QtGui&quot; &quot;-I$(BOOST_DIR)\.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing FindingServerDialog.h..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-fStdAfx.h&quot; &quot;-f../../FindingServerDialog.h&quot;  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -D_WIN32_WINDOWS -D_UNICODE &quot;-I.\GeneratedFiles&quot; &quot;-I.&quot; &quot;-I$(QT_DIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QT_DIR)\include\QtCore&quot; &quot;-I$(QT_DIR)\include\QtNetwork&quot; &quot;-I$(QT_DIR)\include\QtGui&quot; &quot;-I$(BOOST_DIR)\.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\FindingServerDialog.ui"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

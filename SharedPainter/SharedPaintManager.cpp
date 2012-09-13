@@ -68,7 +68,7 @@ CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NUL
 	broadCastSessionForRecvMessage_->setEvent( this );
 	if( broadCastSessionForRecvMessage_->listenUdp( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG ) == false )
 	{
-		// ignore this error.. by multi programs on on a computer
+		// ignore this error.. by multi programs on a computer
 	}
 }
 

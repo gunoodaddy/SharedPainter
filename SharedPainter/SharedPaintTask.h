@@ -25,7 +25,7 @@ class CSharedPaintTask : public boost::enable_shared_from_this<CSharedPaintTask>
 {
 public:
 	CSharedPaintTask( void ) : spMngr_(NULL) { }
-	CSharedPaintTask( CSharedPaintManager *spMngr, const std::string &owner, int itemId ) : spMngr_(spMngr) 
+	CSharedPaintTask( const std::string &owner, int itemId ) : spMngr_(NULL)
 	{
 		 data_.owner = owner;
 		 data_.itemId = itemId; 
@@ -37,7 +37,7 @@ public:
 	int itemId( void ) { return data_.itemId; }
 	void setCommandManager( CSharedPaintCommandManager * cmdMngr ) { cmdMngr_ = cmdMngr; }
 	void setSharedPaintManager( CSharedPaintManager * spMngr ) { spMngr_ = spMngr; }
-
+	void setSendData( bool sendData ) { sendData_ = sendData; }
 	void sendPacket( void );
 
 	static bool deserializeBasicData( const std::string & data, struct STaskData &res, int *readPos = NULL ) 
@@ -81,13 +81,14 @@ public:
 	}
 
 	virtual TaskType type( void ) = 0;
-	virtual bool execute( bool sendData = true ) = 0;
+	virtual bool execute( void ) = 0;
 	virtual void rollback( void ) = 0;
 protected:
 	friend class CSharedPaintCommandManager;
 	CSharedPaintCommandManager *cmdMngr_;
 	CSharedPaintManager *spMngr_;
 	struct STaskData data_;
+	bool sendData_;
 };
 
 //------------------------------------------------------------------------------------------------------
@@ -96,14 +97,14 @@ class CAddItemTask : public CSharedPaintTask
 {
 public:
 	CAddItemTask( void ) : CSharedPaintTask() { }
-	CAddItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId ) : CSharedPaintTask(manager, owner, itemId) { }
+	CAddItemTask( const std::string &owner, int itemId ) : CSharedPaintTask(owner, itemId) { }
 	virtual ~CAddItemTask( void )
 	{
 		qDebug() << "~CAddItemTask";
 	}
 
 	virtual TaskType type( void ) { return Task_AddItem; }
-	virtual bool execute( bool sendData = true );
+	virtual bool execute( void );
 	virtual void rollback( void );
 };
 
@@ -112,14 +113,14 @@ class CRemoveItemTask : public CSharedPaintTask
 {
 public:
 	CRemoveItemTask( void ) : CSharedPaintTask() { }
-	CRemoveItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId ) : CSharedPaintTask(manager, owner, itemId) { }
+	CRemoveItemTask( const std::string &owner, int itemId ) : CSharedPaintTask(owner, itemId) { }
 	virtual  ~CRemoveItemTask( void )
 	{
 		qDebug() << "~CRemoveItemTask";
 	}
 
 	virtual TaskType type( void ) { return Task_RemoveItem; }
-	virtual bool execute( bool sendData = true );
+	virtual bool execute( void );
 	virtual void rollback( void );
 };
 
@@ -128,7 +129,7 @@ class CUpdateItemTask : public CSharedPaintTask
 {
 public:
 	CUpdateItemTask( void ) : CSharedPaintTask() { }
-	CUpdateItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId, const struct SPaintData &prevData, const struct SPaintData &data ) : CSharedPaintTask(manager, owner, itemId)
+	CUpdateItemTask( const std::string &owner, int itemId, const struct SPaintData &prevData, const struct SPaintData &data ) : CSharedPaintTask(owner, itemId)
 	  , prevPaintData_(prevData), paintData_(data) { }
 	virtual  ~CUpdateItemTask( void )
 	{
@@ -136,7 +137,7 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_UpdateItem; }
-	virtual bool execute( bool sendData = true );
+	virtual bool execute( void );
 	virtual void rollback( void );
 
 	virtual std::string serialize( int *writePos = NULL )
@@ -177,7 +178,7 @@ class CMoveItemTask : public CSharedPaintTask
 {
 public:
 	CMoveItemTask( void ) : CSharedPaintTask() { }
-	CMoveItemTask( CSharedPaintManager *manager, const std::string &owner, int itemId, double prevPosX, double prevPosY, double posX, double posY ) : CSharedPaintTask(manager, owner, itemId)
+	CMoveItemTask( const std::string &owner, int itemId, double prevPosX, double prevPosY, double posX, double posY ) : CSharedPaintTask(owner, itemId)
 		, prevPosX_(prevPosX), prevPosY_(prevPosY), posX_(posX), posY_(posY) { }
 	virtual  ~CMoveItemTask( void )
 	{
@@ -185,7 +186,7 @@ public:
 	}
 
 	virtual TaskType type( void ) { return Task_MoveItem; }
-	virtual bool execute( bool sendData = true );
+	virtual bool execute( void );
 	virtual void rollback( void );
 
 	virtual std::string serialize( int *writePos = NULL )

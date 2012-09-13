@@ -7,6 +7,7 @@ static CDefferedCaller gCaller;
 
 bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData )
 {
+	task->setSharedPaintManager( spManager_ );
 	task->setCommandManager( this );
 
 	// check current playback position
@@ -22,15 +23,14 @@ bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask
 
 		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_AddTask, spManager_, historyTaskList_.size(), playbackWorkingFlag ) );
 
+		task->setSendData( sendData );
+
 		// now playback working, skip to execute this task.
 		if( playbackWorkingFlag )
 			return true;
 	}
 
-	if( currentPlayPos_ > maxPlayPos_ )
-		maxPlayPos_ = currentPlayPos_;
-
-	if( !task->execute( sendData ) )
+	if( !task->execute() )
 		return false;
 
 	return true;
@@ -61,14 +61,9 @@ void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 
 	for( int i = from + 1; i <= to; i++ )
 	{
-		bool newTaskFlag = i > maxPlayPos_ ? true : false;
-
-		qDebug() << "_playforwardTo" << i << from << to << maxPlayPos_ << newTaskFlag;
-		historyTaskList_[i]->execute( newTaskFlag );
+		qDebug() << "_playforwardTo" << i << from << to;
+		historyTaskList_[i]->execute();
 	}
-
-	if( to > maxPlayPos_ )
-		maxPlayPos_ = to;
 }
 
 void CSharedPaintCommandManager::_playbackwardTo( int from, int to )

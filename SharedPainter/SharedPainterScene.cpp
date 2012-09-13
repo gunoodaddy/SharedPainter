@@ -21,7 +21,7 @@
 
 #define ITEM_SCALE_STEP	0.1f
 #define ITEM_SCALE_MIN	0.1f
-#define ITEM_SCALE_MAX	3.0f
+#define ITEM_SCALE_MAX	4.0f
 
 enum ItemBorderType {
 	Border_Ellipse,

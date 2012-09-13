@@ -7,50 +7,12 @@
 #define DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG  3338
 #define START_UDP_LISTEN_PORT	                5001
 
-static std::string generateMyId( void )
-{
-	std::string id;
-
-	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces()) 
-	{ 
-		// Return only the first non-loopback MAC Address 
-		if (!(interface.flags() & QNetworkInterface::IsLoopBack)) 
-		{
-			id = interface.hardwareAddress().toStdString(); 
-			break;
-		}
-	} 
-	qint64 msecs = QDateTime::currentMSecsSinceEpoch();
-	QString temp = QString::number( msecs );
-	id += temp.toStdString();
-	return id;
-}
-
-static std::string getMyIPAddress( void )
-{
-	std::string ip;
-
-	foreach(QHostAddress address, QNetworkInterface::allAddresses()) 
-	{ 
-		QString qip = address.toString();	
-		QString qscoped = address.scopeId();	
-		QAbstractSocket::NetworkLayerProtocol protocol = address.protocol();
-		if( protocol == QAbstractSocket::IPv4Protocol )
-		{
-			ip = qip.toStdString();
-			return ip;
-		}
-	} 
-
-	return ip;
-}
-
 CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NULL), acceptPort_(-1), listenUdpPort_(-1), serverMode_(false), clientMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
 	// default generate my id
-	myId_ = generateMyId();
+	myId_ = Util::generateMyId();
 
 	// create my user info
 	struct SPaintUserInfoData data;
@@ -71,6 +33,8 @@ CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NUL
 	{
 		// ignore this error.. by multi programs on a computer
 	}
+
+	clearAllUsers(); // clear & add my user info
 }
 
 CSharedPaintManager::~CSharedPaintManager(void)
@@ -81,7 +45,7 @@ CSharedPaintManager::~CSharedPaintManager(void)
 
 void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 {
-	std::string myIp = getMyIPAddress();
+	std::string myIp = Util::getMyIPAddress();
 	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( channel, myIp, listenUdpPort_ );
 	
 	if( broadCastSessionForConnection_ )
@@ -118,7 +82,7 @@ bool CSharedPaintManager::startClient( void )
 	}
 
 	// broadcast for finding server
-	std::string myIp = getMyIPAddress();
+	std::string myIp = Util::getMyIPAddress();
 	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( broadcastChannel_, myIp, listenUdpPort_ );
 
 	if( broadCastSessionForConnection_ )
@@ -412,7 +376,7 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 					return;
 
 				// make server info
-				std::string myIp = getMyIPAddress();
+				std::string myIp = Util::getMyIPAddress();
 				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( broadcastChannel_, myIp, acceptPort_ );
 
 				if( udpSessionForConnection_ )

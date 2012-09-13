@@ -272,7 +272,7 @@ public:
 
 		commandMngr_.addHistoryItem( item );
 
-		boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( this, item ));
+		boost::shared_ptr<CAddItemCommand> command = boost::shared_ptr<CAddItemCommand>(new CAddItemCommand( item ));
 		return commandMngr_.executeCommand( command );
 	}
 
@@ -330,19 +330,19 @@ public:
 	
 	void notifyUpdateItem( boost::shared_ptr< CPaintItem > item )
 	{
-		boost::shared_ptr<CUpdateItemCommand> command = boost::shared_ptr<CUpdateItemCommand>(new CUpdateItemCommand( this, item ));
+		boost::shared_ptr<CUpdateItemCommand> command = boost::shared_ptr<CUpdateItemCommand>(new CUpdateItemCommand( item ));
 		commandMngr_.executeCommand( command );
 	}
 
 	void notifyMoveItem( boost::shared_ptr< CPaintItem > item )
 	{
-		boost::shared_ptr<CMoveItemCommand> command = boost::shared_ptr<CMoveItemCommand>(new CMoveItemCommand( this, item ));
+		boost::shared_ptr<CMoveItemCommand> command = boost::shared_ptr<CMoveItemCommand>(new CMoveItemCommand( item ));
 		commandMngr_.executeCommand( command );
 	}
 
 	void notifyRemoveItem( boost::shared_ptr< CPaintItem > item )
 	{
-		boost::shared_ptr<CRemoveItemCommand> command = boost::shared_ptr<CRemoveItemCommand>(new CRemoveItemCommand( this, item ));
+		boost::shared_ptr<CRemoveItemCommand> command = boost::shared_ptr<CRemoveItemCommand>(new CRemoveItemCommand( item ));
 		commandMngr_.executeCommand( command );
 	}
 

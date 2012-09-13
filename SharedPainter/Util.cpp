@@ -1,6 +1,44 @@
 #include "stdafx.h"
 #include "Util.h"
 
+std::string Util::generateMyId( void )
+{
+	std::string id;
+
+	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
+	{
+		// Return only the first non-loopback MAC Address
+		if (!(interface.flags() & QNetworkInterface::IsLoopBack))
+		{
+			id = interface.hardwareAddress().toStdString();
+			break;
+		}
+	}
+	qint64 msecs = QDateTime::currentMSecsSinceEpoch();
+	QString temp = QString::number( msecs );
+	id += temp.toStdString();
+	return id;
+}
+
+std::string Util::getMyIPAddress( void )
+{
+	std::string ip;
+
+	foreach(QHostAddress address, QNetworkInterface::allAddresses())
+	{
+		QString qip = address.toString();
+		QString qscoped = address.scopeId();
+		QAbstractSocket::NetworkLayerProtocol protocol = address.protocol();
+		if( protocol == QAbstractSocket::IPv4Protocol )
+		{
+			ip = qip.toStdString();
+			return ip;
+		}
+	}
+
+	return ip;
+}
+
 void Util::HexDump(const void *ptr, int buflen)
 {
 	unsigned char *buf = (unsigned char*)ptr;

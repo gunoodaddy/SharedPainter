@@ -10,18 +10,19 @@ static CDefferedCaller gCaller;
 
 void CSharedPaintTask::sendPacket( void )
 {
-	std::string msg = TaskPacketBuilder::CExecuteTask::make( shared_from_this() );
-	spMngr_->sendDataToUsers( msg );
+	if( sendData_ )
+	{
+		std::string msg = TaskPacketBuilder::CExecuteTask::make( shared_from_this() );
+		spMngr_->sendDataToUsers( msg );
+		sendData_ = false;
+	}
 }
 
-bool CAddItemTask::execute( bool sendData )
+bool CAddItemTask::execute( void )
 {
 	DEBUG_PRINT_TASK();
 
-	if ( sendData )
-	{
-		sendPacket();
-	}
+	sendPacket();
 	
 	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
 	if( item )
@@ -44,14 +45,11 @@ void CAddItemTask::rollback( void )
 }
 
 
-bool CRemoveItemTask::execute( bool sendData )
+bool CRemoveItemTask::execute( void )
 {
 	DEBUG_PRINT_TASK();
 
-	if ( sendData )
-	{
-		sendPacket();
-	}
+	sendPacket();
 
 	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
 	if( item )
@@ -73,14 +71,11 @@ void CRemoveItemTask::rollback( void )
 }
 
 
-bool CUpdateItemTask::execute( bool sendData )
+bool CUpdateItemTask::execute( void )
 {
 	DEBUG_PRINT_TASK();
 
-	if( sendData )
-	{
-		sendPacket();
-	}
+	sendPacket();
 
 	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
 	if( item )
@@ -104,14 +99,11 @@ void CUpdateItemTask::rollback( void )
 }
 
 
-bool CMoveItemTask::execute( bool sendData )
+bool CMoveItemTask::execute( void )
 {
 	DEBUG_PRINT_TASK();
 
-	if( sendData )
-	{
-		sendPacket();
-	}
+	sendPacket();
 
 	boost::shared_ptr<CPaintItem> item = cmdMngr_->findItem( data_.owner, data_.itemId );
 	if( item )

@@ -2,6 +2,10 @@
 
 namespace Util
 {
+	std::string generateMyId( void );
+
+	std::string getMyIPAddress( void );
+
 	QColor getComplementaryColor( const QColor &clr, const QColor &lineClr = QColor() );
 
 	inline bool checkKeyPressed( int virtKey )

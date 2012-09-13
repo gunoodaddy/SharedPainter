@@ -640,16 +640,10 @@ void SharedPainter::actionClipboardPaste( void )
 		item->setPos( pos.x(), pos.y() );
 		requestAddItem( item );
      } 
-	 //else if (mimeData->hasHtml()) 
-	 //{
-  //       setText(mimeData->html());
-  //       setTextFormat(Qt::RichText);
-  //   } 
-	 //else if (mimeData->hasText())
-	 //{
-  //       setText(mimeData->text());
-  //       setTextFormat(Qt::PlainText);
-  //   } 
+	 else if (mimeData->hasText())
+	 {
+		 addTextItem( mimeData->text(), QFont("±¼¸²", 9), Util::getComplementaryColor( canvas_->backgroundColor() ) );
+	 }
 }
 
 

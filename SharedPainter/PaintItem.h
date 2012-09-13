@@ -580,6 +580,8 @@ public:
 			canvas_->drawText(  boost::static_pointer_cast<CTextItem>(shared_from_this()) );		
 	}
 
+	virtual bool isScalable( void ) { return true; }
+
 	virtual bool deserialize( const std::string & data, int *readPos = NULL )
 	{
 		try

@@ -151,10 +151,10 @@ void CSharedPaintManager::stopClient( void )
 }
 
 
-void CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
+bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
 {
+	serverMode_ = false;
 	clientMode_ = false;
-	serverMode_ = true;
 
 	clearAllSessions();
 	clearAllUsers();
@@ -181,19 +181,13 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
 	broadCastSessionForConnection_->setEvent( this );
 
-	int startUdpPort = DEFAULT_BROADCAST_PORT;
-	while( true )
+	if( broadCastSessionForConnection_->listenUdp( DEFAULT_BROADCAST_PORT ) )
 	{
-		if( broadCastSessionForConnection_->listenUdp( startUdpPort ) )
-		{
-			if( serverMode_ )
-			{
-				clearScreen();
-			}
-			break;
-		}
-		startUdpPort++;
+		serverMode_ = true;
+		return true;
 	}
+
+	return false;
 }
 
 

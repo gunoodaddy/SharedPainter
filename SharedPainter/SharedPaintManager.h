@@ -119,7 +119,7 @@ public:
 	bool startClient( void );
 	void stopClient( void );
 
-	void startServer( const std::string &broadCastChannel, int port = 0 );
+	bool startServer( const std::string &broadCastChannel, int port = 0 );
 
 	void setBroadCastChannel( const std::string & channel );
 

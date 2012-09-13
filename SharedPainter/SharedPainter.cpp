@@ -576,8 +576,10 @@ void SharedPainter::actionServerType( void )
 	if( ! getBroadcastChannelString() )
 		return;
 
-	SharePaintManagerPtr()->startServer( SettingManagerPtr()->broadCastChannel() );
-	setStatusBar_BroadCastType( tr("Server Type") );
+	if( SharePaintManagerPtr()->startServer( SettingManagerPtr()->broadCastChannel() ) )
+		setStatusBar_BroadCastType( tr("Server Type") );
+	else
+		setStatusBar_BroadCastType( tr("None Type") );
 }
 
 void SharedPainter::actionClientType( void )

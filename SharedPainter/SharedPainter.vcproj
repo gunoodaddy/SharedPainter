@@ -377,66 +377,6 @@
 				RelativePath=".\Util.h"
 				>
 			</File>
-			<Filter
-				Name="Shared Paint Manager"
-				>
-				<File
-					RelativePath=".\SharedPaintManagementData.h"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintManager.h"
-					>
-				</File>
-				<File
-					RelativePath=".\SharedPaintPolicy.h"
-					>
-				</File>
-				<Filter
-					Name="Command"
-					>
-					<File
-						RelativePath=".\SharedPaintCommand.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\SharedPaintCommand.h"
-						>
-					</File>
-					<File
-						RelativePath=".\SharedPaintCommandManager.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\SharedPaintCommandManager.h"
-						>
-					</File>
-				</Filter>
-				<Filter
-					Name="Task"
-					>
-					<File
-						RelativePath=".\SharedPaintTask.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\SharedPaintTask.h"
-						>
-					</File>
-					<Filter
-						Name="Factory"
-						>
-						<File
-							RelativePath=".\SharedPaintTaskFactory.h"
-							>
-						</File>
-					</Filter>
-				</Filter>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Network"
@@ -1299,6 +1239,66 @@
 					/>
 				</FileConfiguration>
 			</File>
+		</Filter>
+		<Filter
+			Name="Shared Paint Manager"
+			>
+			<File
+				RelativePath=".\SharedPaintManagementData.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedPaintManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedPaintManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedPaintPolicy.h"
+				>
+			</File>
+			<Filter
+				Name="Command"
+				>
+				<File
+					RelativePath=".\SharedPaintCommand.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintCommandManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintCommandManager.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Task"
+				>
+				<File
+					RelativePath=".\SharedPaintTask.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SharedPaintTask.h"
+					>
+				</File>
+				<Filter
+					Name="Factory"
+					>
+					<File
+						RelativePath=".\SharedPaintTaskFactory.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

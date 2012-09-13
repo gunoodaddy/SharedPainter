@@ -172,6 +172,7 @@ protected slots:
 	void actionAddText( void );
 	void actionClearScreen( void );
 	void actionPenWidth( void );
+	void actionPenWidth1( void );
 	void actionPenWidth3( void );
 	void actionPenWidth6( void );
 	void actionPenWidth10( void );

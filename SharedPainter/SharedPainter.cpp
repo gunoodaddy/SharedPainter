@@ -45,7 +45,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		QMenu* penMenu = edit->addMenu( "Pen Setting" );
 		penWidthAction_ = penMenu->addAction( "Pen &Width", this, SLOT(actionPenWidth()), Qt::ALT+Qt::Key_V );
 		penMenu->addAction( "Pen &Color", this, SLOT(actionPenColor()), Qt::ALT+Qt::Key_C );
-		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::CTRL+Qt::Key_A );
+		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::ALT+Qt::Key_A );
 		edit->addAction( "&Text", this, SLOT(actionAddText()), Qt::Key_Enter|Qt::Key_Return );
 		gridLineAction_ = edit->addAction( "&Draw Grid Line", this, SLOT(actionGridLine()));
 		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_B );
@@ -96,10 +96,11 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		
 		QToolButton *penWidthButton = new QToolButton();
 		QMenu *menuPenWidth = new QMenu();
-		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_20.png"), "Pen Width 20", this, SLOT(actionPenWidth20()) );
-		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_10.png"), "Pen Width 10", this, SLOT(actionPenWidth10()) );
-		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_6.png"), "Pen Width 6", this, SLOT(actionPenWidth6()) );
-		menuPenWidth->addAction( QIcon(":/SharedPainter/Resources/pen_width_2.png"), "Pen Width 3", this, SLOT(actionPenWidth3()) );
+		menuPenWidth->addAction( "Pen Width 20", this, SLOT(actionPenWidth20()) );
+		menuPenWidth->addAction( "Pen Width 10", this, SLOT(actionPenWidth10()) );
+		menuPenWidth->addAction( "Pen Width 6", this, SLOT(actionPenWidth6()) );
+		menuPenWidth->addAction( "Pen Width 3", this, SLOT(actionPenWidth3()) );
+		menuPenWidth->addAction( "Pen Width 1", this, SLOT(actionPenWidth1()) );
 		menuPenWidth->addAction( penWidthAction_ );
 		penWidthButton->setIcon( QIcon(":/SharedPainter/Resources/pen_width.png") );
 		penWidthButton->setMenu( menuPenWidth );
@@ -460,6 +461,11 @@ void SharedPainter::actionPenWidth( void )
 		return;
 
 	canvas_->setPenSetting( canvas_->penColor(), width );
+}
+
+void SharedPainter::actionPenWidth1( void )
+{
+	canvas_->setPenSetting( canvas_->penColor(), 1 );
 }
 
 void SharedPainter::actionPenWidth3( void )

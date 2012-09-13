@@ -164,6 +164,7 @@ protected slots:
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	void onPlaybackSliderValueChanged( int value  );
 
+	void actionSaveImageFile( void );
 	void actionClipboardPaste( void );
 	void actionBroadcastChannel( void );
 	void actionBroadcastTextMessage( void );

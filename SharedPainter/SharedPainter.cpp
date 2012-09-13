@@ -36,6 +36,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		QMenu* file = new QMenu( "&File", menuBar );
 		file->addAction( "&Import from file", this, SLOT(actionImportFile()), Qt::CTRL+Qt::Key_I );
 		file->addAction( "&Export to file", this, SLOT(actionExportFile()),  Qt::CTRL+Qt::Key_E );
+		file->addAction( "&Save image", this, SLOT(actionSaveImageFile()),  Qt::CTRL+Qt::Key_S );
 		file->addSeparator();
 		file->addAction( "E&xit", this, SLOT(actionExit()), Qt::CTRL+Qt::Key_Q );
 		menuBar->addMenu( file );
@@ -49,7 +50,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		edit->addAction( "&Text", this, SLOT(actionAddText()), Qt::Key_Enter|Qt::Key_Return );
 		gridLineAction_ = edit->addAction( "&Draw Grid Line", this, SLOT(actionGridLine()));
 		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_B );
-		edit->addAction( "&Screen Shot", this, SLOT(actionScreenShot()), Qt::CTRL+Qt::Key_S );
+		edit->addAction( "&Screen Shot", this, SLOT(actionScreenShot()), Qt::ALT+Qt::Key_S );
 		edit->addSeparator();
 		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
@@ -338,13 +339,24 @@ void SharedPainter::actionLastItem( void )
 	canvas_->drawLastItemBorderRect();
 }
 
+void SharedPainter::actionSaveImageFile( void )
+{
+	QString path;
+	path = QFileDialog::getSaveFileName( this, tr("Save image"), "", tr("jpeg file (*.jpg)") );
+	if( path.isEmpty() )
+		return;
+
+	QPixmap pixMap = QPixmap::grabWidget(ui.painterView);
+	pixMap.save(path);
+
+}
+
 void SharedPainter::actionExportFile( void )
 {
 	std::string allData = SharePaintManagerPtr()->serializeData();
+
 	QString path;
-
 	path = QFileDialog::getSaveFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );
-
 	if( path.isEmpty() )
 		return;
 

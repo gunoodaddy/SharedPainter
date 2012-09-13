@@ -74,23 +74,14 @@ public:
 
 	void close( void )
 	{
-		if( netPeerServer_ )
-			netPeerServer_->close();
-
-		if( udpSessionForConnection_ )
-			udpSessionForConnection_->close();
-
-		if( broadCastSessionForConnection_ )
-			broadCastSessionForConnection_->close();
+		stopServer();
+		stopClient();
 
 		if( broadCastSessionForSendMessage_ )
 			broadCastSessionForSendMessage_->close();
 
 		if( broadCastSessionForRecvMessage_ )
 			broadCastSessionForRecvMessage_->close();
-
-		clearAllUsers();
-		clearAllSessions();
 
 		netRunner_.close();
 
@@ -120,6 +111,7 @@ public:
 	void stopClient( void );
 
 	bool startServer( const std::string &broadCastChannel, int port = 0 );
+	void stopServer( void );
 
 	void setBroadCastChannel( const std::string & channel );
 

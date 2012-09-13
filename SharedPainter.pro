@@ -34,12 +34,15 @@ SOURCES +=  \
     SharedPainter/PacketBuffer.cpp \
     SharedPainter/DefferedCaller.cpp \
     SharedPainter/Util.cpp \
+    SharedPainter/FindingServerDialog.cpp \
     SharedPainter/main.cpp
 
 HEADERS  += \
+    SharedPainter/FindingServerDialog.h \
     SharedPainter/WindowPacketBuilder.h \
     SharedPainter/TextItemDialog.h \
     SharedPainter/SystemPacketBuilder.h \
+    SharedPainter/UdpPacketBuilder.h \
     SharedPainter/stdafx.h \
     SharedPainter/Singleton.h \
     SharedPainter/SharedPaintPolicy.h \
@@ -62,6 +65,7 @@ HEADERS  += \
     SharedPainter/PacketBuffer.h \
     SharedPainter/NetServiceRunner.h \
     SharedPainter/NetPeerSession.h \
+    SharedPainter/NetUdpSession.h \
     SharedPainter/NetPeerServer.h \
     SharedPainter/NetPacketData.h \
     SharedPainter/NetBroadCastSession.h \
@@ -84,6 +88,7 @@ LIBS += -luser32 -lshell32 -lgdi32
 }
 
 FORMS    += \
+    SharedPainter/FindingServerDialog.ui \
     SharedPainter/textitemdialog.ui \
     SharedPainter/sharedpainter.ui
 

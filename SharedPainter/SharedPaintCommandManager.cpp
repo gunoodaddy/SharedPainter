@@ -27,6 +27,9 @@ bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask
 			return true;
 	}
 
+	if( currentPlayPos_ > maxPlayPos_ )
+		maxPlayPos_ = currentPlayPos_;
+
 	if( !task->execute( sendData ) )
 		return false;
 
@@ -58,9 +61,14 @@ void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 
 	for( int i = from + 1; i <= to; i++ )
 	{
-		qDebug() << "_playforwardTo" << i << from << to;
-		historyTaskList_[i]->execute( false );
+		bool newTaskFlag = i > maxPlayPos_ ? true : false;
+
+		qDebug() << "_playforwardTo" << i << from << to << maxPlayPos_ << newTaskFlag;
+		historyTaskList_[i]->execute( newTaskFlag );
 	}
+
+	if( to > maxPlayPos_ )
+		maxPlayPos_ = to;
 }
 
 void CSharedPaintCommandManager::_playbackwardTo( int from, int to )

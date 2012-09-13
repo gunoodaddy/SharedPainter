@@ -12,7 +12,7 @@ public:
 	static const int DEFAULT_INIT_PLAYBACK_POS = -2;	// unreachable value
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
 
-	CSharedPaintCommandManager( CSharedPaintManager *spManager ) : spManager_(spManager), currentPlayPos_(DEFAULT_INIT_PLAYBACK_POS) { }
+	CSharedPaintCommandManager( CSharedPaintManager *spManager ) : spManager_(spManager), maxPlayPos_(0), currentPlayPos_(DEFAULT_INIT_PLAYBACK_POS) { }
 
 	void clear( void )
 	{
@@ -31,6 +31,7 @@ public:
 
 	void clearHistoryTask( void )
 	{
+		maxPlayPos_ = 0;
 		currentPlayPos_ = DEFAULT_INIT_PLAYBACK_POS;
 		boost::recursive_mutex::scoped_lock autolock(mutex_);
 		historyTaskList_.clear();
@@ -195,5 +196,6 @@ protected:
 
 	boost::recursive_mutex mutex_;
 
+	int maxPlayPos_;
 	int currentPlayPos_;
 };

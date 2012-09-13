@@ -61,8 +61,6 @@ private:
 	typedef std::map< std::string, boost::shared_ptr<CPaintUser> > USER_MAP;
 	typedef std::vector< boost::shared_ptr<CPaintSession> > SESSION_LIST;
 
-	static const int DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG	= 3338;
-
 public:
 	CSharedPaintManager(void);
 	~CSharedPaintManager(void);
@@ -249,13 +247,7 @@ public:
 		return sendDataToUsers( sessionList, msg, toSessionId );
 	}
 
-	void sendBroadCastTextMessage( const std::string &broadcastChannel, const std::string &msg )
-	{
-		std::string data;
-		data = BroadCastPacketBuilder::CTextMessage::make( broadcastChannel, myId_, msg );
-
-		broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
-	}
+	void sendBroadCastTextMessage( const std::string &broadcastChannel, const std::string &msg );
 
 	// Shared Paint Action
 public:

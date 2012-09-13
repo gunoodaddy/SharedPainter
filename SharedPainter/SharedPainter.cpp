@@ -606,10 +606,13 @@ void SharedPainter::actionClipboardPaste( void )
 	 {
 		 int w = 0;
 		 int h = 0;
-		 int lX = 0, lY = 0;
 		 boost::shared_ptr<CImageItem> item = boost::shared_ptr<CImageItem>(new CImageItem());
-		 item->setPixmap( qvariant_cast<QPixmap>(mimeData->imageData()) );
+		 QPixmap pixmap( qvariant_cast<QPixmap>(mimeData->imageData()) );
+		 item->setPixmap( pixmap );
 		 item->setMyItem();
+
+		 w = pixmap.width();
+		 h = pixmap.height();
 
 		 QPointF pos = Util::calculateNewItemPos( canvas_->sceneRect().width(), canvas_->sceneRect().height(), 
 			 ui.painterView->mapFromGlobal(QCursor::pos()).x(),

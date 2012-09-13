@@ -2,9 +2,10 @@
 #include "SharedPaintManager.h"
 #include <QHostInfo>
 
-#define START_SERVER_PORT		4001
-#define DEFAULT_BROADCAST_PORT	3336
-#define DEFAULT_UDP_LISTEN_PORT	5001
+#define START_SERVER_PORT                       4001
+#define DEFAULT_BROADCAST_PORT                  3336
+#define DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG  3338
+#define START_UDP_LISTEN_PORT	                5001
 
 static std::string generateMyId( void )
 {
@@ -89,6 +90,13 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 	broadcastChannel_ = channel;
 }
 
+void CSharedPaintManager::sendBroadCastTextMessage( const std::string &broadcastChannel, const std::string &msg )
+{
+	std::string data;
+	data = BroadCastPacketBuilder::CTextMessage::make( broadcastChannel, myId_, msg );
+
+	broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
+}
 
 bool CSharedPaintManager::startClient( void )
 {
@@ -101,11 +109,12 @@ bool CSharedPaintManager::startClient( void )
 	udpSessionForConnection_ = boost::shared_ptr< CNetUdpSession >(new CNetUdpSession( netRunner_.io_service() ));
 	udpSessionForConnection_->setEvent(this);
 
-	listenUdpPort_ = DEFAULT_UDP_LISTEN_PORT;
+	listenUdpPort_ = START_UDP_LISTEN_PORT;
 	while( true )
 	{
-		if( udpSessionForConnection_->listen( listenUdpPort_++ ) )
+		if( udpSessionForConnection_->listen( listenUdpPort_ ) )
 			break;
+		listenUdpPort_++;
 	}
 
 	// broadcast for finding server
@@ -118,6 +127,7 @@ bool CSharedPaintManager::startClient( void )
 	broadCastSessionForConnection_->setEvent( this );
 	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
+	qDebug() << "startClient" << listenUdpPort_;
 	clientMode_ = true;
 	return true;
 }
@@ -149,15 +159,15 @@ bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
 	broadCastSessionForConnection_->setEvent( this );
 
-	if( broadCastSessionForConnection_->listenUdp( DEFAULT_BROADCAST_PORT ) )
+	if( !broadCastSessionForConnection_->listenUdp( DEFAULT_BROADCAST_PORT ) )
 	{
-		serverMode_ = true;
-		return true;
+		stopServer();
+		return false;
 	}
-	
-	stopServer();
 
-	return false;
+	qDebug() << "startServer" << acceptPort_;
+	serverMode_ = true;
+	return true;
 }
 
 
@@ -180,7 +190,7 @@ void CSharedPaintManager::stopClient( void )
 
 void CSharedPaintManager::stopServer( void )
 {
-	if( ! serverMode )
+	if( ! serverMode_ )
 		return;
 
 	clearAllUsers();
@@ -192,7 +202,7 @@ void CSharedPaintManager::stopServer( void )
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
 
-	severMode_ = false;
+	serverMode_ = false;
 }
 
 
@@ -375,6 +385,7 @@ void CSharedPaintManager::dispatchUdpPacket( CNetUdpSession *session, boost::sha
 			int port;
 			if( UdpPacketBuilder::CServerInfo::parse( packetData->body, broadcastChannel, addr, port ) )
 			{
+				qDebug() << "CODE_UDP_SERVER_INFO : " << broadcastChannel.c_str() << addr.c_str() << port;
 				if( broadcastChannel_ != broadcastChannel )
 					return;
 
@@ -396,6 +407,7 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 			std::string broadcastChannel;
 			if( BroadCastPacketBuilder::CProbeServer::parse( packetData->body, broadcastChannel, addr, port ) )
 			{
+				qDebug() << "CODE_BROAD_PROBE_SERVER : " << broadcastChannel.c_str() << addr.c_str() << port;
 				if( broadcastChannel_ != broadcastChannel )
 					return;
 

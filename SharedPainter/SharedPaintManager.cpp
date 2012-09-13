@@ -92,31 +92,22 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 
 bool CSharedPaintManager::startClient( void )
 {
-	clearAllSessions();
-	clearAllUsers();
+	serverMode_ = false;
+	clientMode_ = false;
 
-	if( netPeerServer_ )
-		netPeerServer_->close();
+	stopServer();
 
 	// for receiving server info
 	if( udpSessionForConnection_ )
 		udpSessionForConnection_->close();
-
 	udpSessionForConnection_ = boost::shared_ptr< CNetUdpSession >(new CNetUdpSession( netRunner_.io_service() ));
 	udpSessionForConnection_->setEvent(this);
 
 	listenUdpPort_ = DEFAULT_UDP_LISTEN_PORT;
 	while( true )
 	{
-		if( udpSessionForConnection_->listen( listenUdpPort_ ) )
-		{
-			if( serverMode_ )
-			{
-				clearScreen();
-			}
+		if( udpSessionForConnection_->listen( listenUdpPort_++ ) )
 			break;
-		}
-		listenUdpPort_++;
 	}
 
 	// broadcast for finding server
@@ -125,7 +116,6 @@ bool CSharedPaintManager::startClient( void )
 
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
-
 	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
 	broadCastSessionForConnection_->setEvent( this );
 	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
@@ -133,21 +123,6 @@ bool CSharedPaintManager::startClient( void )
 	serverMode_ = false;
 	clientMode_ = true;
 	return true;
-}
-
-
-void CSharedPaintManager::stopClient( void )
-{
-	if( ! clientMode_ )
-		return;
-
-	clientMode_ = false;
-
-	if( udpSessionForConnection_ )
-		udpSessionForConnection_->close();
-
-	if( broadCastSessionForConnection_ )
-		broadCastSessionForConnection_->close();
 }
 
 
@@ -177,7 +152,6 @@ bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
-
 	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
 	broadCastSessionForConnection_->setEvent( this );
 
@@ -186,8 +160,42 @@ bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 		serverMode_ = true;
 		return true;
 	}
+	
+	stopServer();
 
 	return false;
+}
+
+
+void CSharedPaintManager::stopClient( void )
+{
+	if( ! clientMode_ )
+		return;
+
+	clientMode_ = false;
+
+	if( udpSessionForConnection_ )
+		udpSessionForConnection_->close();
+
+	if( broadCastSessionForConnection_ )
+		broadCastSessionForConnection_->close();
+}
+
+void CSharedPaintManager::stopServer( void )
+{
+	if( ! serverMode )
+		return;
+
+	clearAllUsers();
+	clearAllSessions();
+
+	if( netPeerServer_ )
+		netPeerServer_->close();
+
+	if( broadCastSessionForConnection_ )
+		broadCastSessionForConnection_->close();
+
+	severMode_ = false;
 }
 
 

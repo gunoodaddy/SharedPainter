@@ -376,7 +376,14 @@ protected:
 
 	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount )
 	{
-		// TODO
+		if( findingServerWindow_ )
+		{
+			int remainCount = FINDING_SERVER_TRY_COUNT - sentCount;
+			if( remainCount < 0)
+				findingServerWindow_->setCanceled();
+			else
+				findingServerWindow_->setRemainCount( remainCount );
+		}
 	}
 
 

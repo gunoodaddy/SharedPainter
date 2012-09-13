@@ -13,6 +13,20 @@ public:
 	~FindingServerDialog();
 
 	bool isCanceled( void ) { return cancel_; }
+	void setCanceled( void )
+	{
+		cancel_ = true;
+		reject();
+	}
+
+	void setRemainCount( int cnt )
+	{
+		QString msg;
+		msg = tr("Remain count : ");
+		msg += QString::number(cnt);
+		ui.labelSentCount->setText( msg );
+	}
+
 private slots:
 	void onCancel( void );
 

@@ -20,7 +20,7 @@
    <property name="geometry">
     <rect>
      <x>34</x>
-     <y>80</y>
+     <y>83</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -33,13 +33,29 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>16</y>
+     <y>7</y>
      <width>91</width>
      <height>51</height>
     </rect>
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="labelSentCount">
+   <property name="geometry">
+    <rect>
+     <x>15</x>
+     <y>62</y>
+     <width>111</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

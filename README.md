@@ -19,6 +19,7 @@
 * Export/Import file
 * Undo/Redo
 * Playback 
+* Clipboard paste
 * System tray
 
 ## Requirement

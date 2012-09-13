@@ -92,9 +92,7 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 
 bool CSharedPaintManager::startClient( void )
 {
-	serverMode_ = false;
-	clientMode_ = false;
-
+	stopClient();
 	stopServer();
 
 	// for receiving server info
@@ -120,7 +118,6 @@ bool CSharedPaintManager::startClient( void )
 	broadCastSessionForConnection_->setEvent( this );
 	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
-	serverMode_ = false;
 	clientMode_ = true;
 	return true;
 }
@@ -128,11 +125,8 @@ bool CSharedPaintManager::startClient( void )
 
 bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
 {
-	serverMode_ = false;
-	clientMode_ = false;
-
-	clearAllSessions();
-	clearAllUsers();
+	stopClient();
+	stopServer();
 
 	if( port <= 0 )
 		port = START_SERVER_PORT;
@@ -172,13 +166,16 @@ void CSharedPaintManager::stopClient( void )
 	if( ! clientMode_ )
 		return;
 
-	clientMode_ = false;
+	clearAllUsers();
+	clearAllSessions();
 
 	if( udpSessionForConnection_ )
 		udpSessionForConnection_->close();
 
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
+
+	clientMode_ = false;
 }
 
 void CSharedPaintManager::stopServer( void )

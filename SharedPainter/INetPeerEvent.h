@@ -3,6 +3,7 @@
 class CNetPeerSession;
 class CNetBroadCastSession;
 class CNetPeerServer;
+class CNetUdpSession;
 
 class INetPeerServerEvent
 {
@@ -18,6 +19,12 @@ public:
 	virtual void onINetPeerSessionEvent_Received( CNetPeerSession *session, const std::string buffer ) = 0;
 	virtual void onINetPeerSessionEvent_Sending( CNetPeerSession *session, boost::shared_ptr<CNetPacketData> packet ) = 0;
 	virtual void onINetPeerSessionEvent_Disconnected( CNetPeerSession *session ) = 0;
+};
+
+class INetUdpSessionEvent
+{
+public:
+	virtual void onINetUdpSessionEvent_Received( CNetUdpSession *session, const std::string buffer ) = 0;
 };
 
 class INetBroadCastSessionEvent

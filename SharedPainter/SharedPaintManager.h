@@ -7,6 +7,7 @@
 #include "PaintPacketBuilder.h"
 #include "WindowPacketBuilder.h"
 #include "BroadCastPacketBuilder.h"
+#include "UdpPacketBuilder.h"
 #include "SystemPacketBuilder.h"
 #include "TaskPacketBuilder.h"
 #include "SharedPaintPolicy.h"
@@ -15,6 +16,7 @@
 #include "PaintSession.h"
 #include "NetPeerServer.h"
 #include "NetBroadCastSession.h"
+#include "NetUdpSession.h"
 #include "NetServiceRunner.h"
 #include "PaintUser.h"
 
@@ -51,7 +53,7 @@ public:
 };
 
 
-class CSharedPaintManager : public INetPeerServerEvent, INetBroadCastSessionEvent, IPaintSessionEvent
+class CSharedPaintManager : public INetPeerServerEvent, INetBroadCastSessionEvent, INetUdpSessionEvent, IPaintSessionEvent
 {
 private:
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
@@ -517,7 +519,8 @@ private:
 	}
 
 private:
-	void dispatchBroadCastPacket( boost::shared_ptr<CPacketData> packetData );
+	void dispatchBroadCastPacket( CNetBroadCastSession *session, boost::shared_ptr<CPacketData> packetData );
+	void dispatchUdpPacket( CNetUdpSession *session, boost::shared_ptr<CPacketData> packetData );
 	void dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData );
 
 private:
@@ -738,22 +741,45 @@ protected:
 	// INetBroadCastSessionEvent
 	virtual void onINetBroadCastSessionEvent_BroadCastReceived( CNetBroadCastSession *session, const std::string buffer )
 	{
-		broadCastPacketSlicer_.addBuffer( buffer );
+		CPacketSlicer slicer;
 
-		if( broadCastPacketSlicer_.parse() == false )
+		slicer.addBuffer( buffer );
+
+		if( slicer.parse() == false )
 			return;
 
-		for( size_t i = 0; i < broadCastPacketSlicer_.parsedItemCount(); i++ )
+		for( size_t i = 0; i < slicer.parsedItemCount(); i++ )
 		{
-			boost::shared_ptr<CPacketData> data = broadCastPacketSlicer_.parsedItem( i );
+			boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
 
-			dispatchBroadCastPacket( data );
+			dispatchBroadCastPacket( session, data );
+		}
+	}
+
+	// INetUdpSessionEvent
+	virtual void onINetUdpSessionEvent_Received( CNetUdpSession *session, const std::string buffer )
+	{
+		CPacketSlicer slicer;
+
+		slicer.addBuffer( buffer );
+
+		if( slicer.parse() == false )
+			return;
+
+		for( size_t i = 0; i < slicer.parsedItemCount(); i++ )
+		{
+			boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
+
+			dispatchUdpPacket( session, data );
 		}
 	}
 
 	// IPaintSessionEvent
 	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session )
 	{
+		if( isServerMode()  == false )
+			broadCastSessionForConnection_->pauseSend();
+
 		commonSessionConnection( session );
 
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_Connected, this, session->sessionId() ) );
@@ -797,6 +823,9 @@ protected:
 
 	virtual void onIPaintSessionEvent_Disconnected( boost::shared_ptr<CPaintSession> session )
 	{
+		if( isServerMode()  == false )
+			broadCastSessionForConnection_->resumeSend();
+
 		if( isConnected() == false )
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_DisConnected, this ) );
 
@@ -900,10 +929,11 @@ private:
 	CNetServiceRunner netRunner_;
 	bool serverMode_;
 	int acceptPort_;
+	int listenUdpPort_;
 	SESSION_LIST sessionList_;
 	boost::recursive_mutex mutexSession_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
-	CPacketSlicer broadCastPacketSlicer_;
+	boost::shared_ptr< CNetUdpSession > udpSessionForConnection_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForConnection_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForSendMessage_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForRecvMessage_;

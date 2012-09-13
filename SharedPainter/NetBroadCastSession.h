@@ -8,7 +8,7 @@ public:
 	static const int DEFAULT_SEND_SEC = 3;
 
 	CNetBroadCastSession( boost::asio::io_service& io_service ) 
-		: socket_(io_service), evtTarget_(NULL)
+		: io_service_(io_service), socket_(io_service), evtTarget_(NULL)
 		, broadCastPort_(0), sendMsgSecond_(DEFAULT_SEND_SEC), stopBroadCastMsgFlag_(true), broadcast_timer_(io_service)
 	{
 		qDebug() << "CNetBroadCastSession" << this;
@@ -32,24 +32,24 @@ public:
 
 	void sendData( int port, const std::string &data )
 	{
+		boost::asio::ip::udp::endpoint senderEndpoint( boost::asio::ip::address_v4::broadcast(), port ); 
+		
 		if( socket_.is_open() )
 		{
-			boost::asio::ip::udp::endpoint senderEndpoint( boost::asio::ip::address_v4::broadcast(), port );             
 			socket_.send_to( boost::asio::buffer(data), senderEndpoint); 
 		}
 	}
 
 	bool openUdp( void )
 	{
-		socket_.close();
+		if( socket_.is_open() )
+			return false;
 
 		boost::system::error_code error; 
 		socket_.open( boost::asio::ip::udp::v4(), error ); 
 
 		if (!error) 
 		{ 
-			stopBroadCastMsgFlag_ = false;
-
 			socket_.set_option( boost::asio::ip::udp::socket::reuse_address(true) ); 
 			socket_.set_option( boost::asio::socket_base::broadcast(true) ); 
 			return true;
@@ -62,9 +62,10 @@ public:
 	{
 		try
 		{
+			if( !openUdp() )
+				return false;
+
 			boost::asio::ip::udp::endpoint listen_endpoint( boost::asio::ip::address_v4::any(), port); 
-			socket_.open( listen_endpoint.protocol() ); 
-			socket_.set_option( boost::asio::socket_base::broadcast(true) ); 
 			socket_.bind( listen_endpoint ); 
 		}catch(...) 
 		{
@@ -79,7 +80,6 @@ public:
 	{
 		socket_.close();
 		stopBroadCastMsgFlag_ = true;
-		socket_.close();
 		broadcast_timer_.cancel();
 	}
 
@@ -87,8 +87,10 @@ public:
 	{
 		broadCastPort_ = port;
 
-		if( openUdp() )
+		if( socket_.is_open() || openUdp() )
 		{
+			stopBroadCastMsgFlag_ = false;
+
 			setBroadCastMessage(msg);
 
 			if( second <= 0 )
@@ -99,6 +101,16 @@ public:
 		} 
 
 		return false;
+	}
+
+	void pauseSend( void )
+	{
+		stopBroadCastMsgFlag_ = true;
+	}
+
+	void resumeSend( void )
+	{
+		startSend( broadCastPort_, broadCastMsg_, sendMsgSecond_ );
 	}
 
 	void _start_receive_from( void )
@@ -114,7 +126,7 @@ public:
 	{ 
 		if( !error )
 		{
-			std::cout << "receive" << bytes_recvd << std::endl; 
+			//last_sender_endpoint_ = sender_endpoint_;
 			fireBroadCastReceiveEvent( read_buffer_, bytes_recvd );
 		}
 
@@ -157,6 +169,7 @@ private:
 
 private:
 	static const int _BUF_SIZE = 4096;
+	boost::asio::io_service& io_service_;
 
 	bool stopBroadCastMsgFlag_;
 	boost::asio::deadline_timer broadcast_timer_;

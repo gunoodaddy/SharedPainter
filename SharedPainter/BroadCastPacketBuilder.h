@@ -4,10 +4,10 @@
 
 namespace BroadCastPacketBuilder
 {
-	class CServerInfo
+	class CProbeServer
 	{
 	public:
-		static std::string make( const std::string &broadCastChannel, const std::string &addr, int port )
+		static std::string make( const std::string &broadCastChannel, const std::string &addr, int port  )
 		{
 			int pos = 0;
 			try
@@ -17,7 +17,7 @@ namespace BroadCastPacketBuilder
 				pos += CPacketBufferUtil::writeString8( body, pos, addr );
 				pos += CPacketBufferUtil::writeInt16( body, pos, port, true );
 
-				return CommonPacketBuilder::makePacket( CODE_BROAD_SERVER_INFO, body );
+				return CommonPacketBuilder::makePacket( CODE_BROAD_PROBE_SERVER, body );
 			}catch(...)
 			{
 			}

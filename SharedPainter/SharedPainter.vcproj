@@ -204,6 +204,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\UdpPacketBuilder.h"
+						>
+					</File>
+					<File
 						RelativePath=".\WindowPacketBuilder.h"
 						>
 					</File>
@@ -403,6 +407,10 @@
 			</File>
 			<File
 				RelativePath=".\NetServiceRunner.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NetUdpSession.h"
 				>
 			</File>
 		</Filter>

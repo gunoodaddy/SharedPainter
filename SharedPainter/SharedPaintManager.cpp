@@ -148,6 +148,77 @@ void CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 }
 
+
+void CSharedPaintManager::deserializeData( const char * data, size_t size )
+{
+	CPacketSlicer slicer;
+	slicer.addBuffer( data, size );
+
+	if( slicer.parse() == false )
+		return;
+
+	for( size_t i = 0; i < slicer.parsedItemCount(); i++ )
+	{
+		boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
+		dispatchPaintPacket( boost::shared_ptr<CPaintSession>() /*NULL*/, data );
+	}
+
+	std::string allData(data, size);
+	sendDataToUsers( allData );
+}
+
+
+std::string CSharedPaintManager::serializeData( void )
+{
+	std::string allData;
+
+	// Window Resize
+	std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_ );
+	allData += msg;
+
+	// Background Grid Line
+	if( gridLineSize_ > 0 )
+		allData += PaintPacketBuilder::CSetBackgroundGridLine::make( gridLineSize_ );
+
+	// Background Color
+	if( backgroundColor_ != Qt::white )
+		allData += PaintPacketBuilder::CSetBackgroundColor::make( backgroundColor_.red(), backgroundColor_.green(), backgroundColor_.blue(), backgroundColor_.alpha() );
+
+	// Background Image
+	if( backgroundImageItem_ )
+		allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
+
+	// History all paint item
+	commandMngr_.lock();
+	size_t itemSize = 0;
+	const ITEM_SET &set = commandMngr_.historyItemSet();
+	ITEM_SET::const_iterator itItem = set.begin();
+	for( ; itItem != set.end(); itItem++ )
+	{
+		std::string msg = PaintPacketBuilder::CCreateItem::make( *itItem );
+		allData += msg;
+		itemSize += msg.size();
+	}
+	commandMngr_.unlock();
+
+	// History all task
+	commandMngr_.lock();
+	size_t taskSize = 0;
+	const TASK_ARRAY &taskList = commandMngr_.historyTaskList();
+	TASK_ARRAY::const_iterator itTask = taskList.begin();
+	for( ; itTask != taskList.end(); itTask++ )
+	{
+		std::string msg = TaskPacketBuilder::CExecuteTask::make( boost::const_pointer_cast<CSharedPaintTask>(*itTask) );
+		allData += msg;
+		taskSize += msg.size();
+	}
+	commandMngr_.unlock();
+
+	qDebug() << "SharedPaintManager::serializeData() size = " << allData.size() << ", task size = " << taskSize << ", item size = " << itemSize;
+	return allData;
+}
+
+
 // this function need to check session pointer null check!
 void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData )
 {

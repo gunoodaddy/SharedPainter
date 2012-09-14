@@ -65,7 +65,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 		// Network Menu
 		QMenu* network = new QMenu( "&Network", menuBar );
-		network->addAction( "&Connect", this, SLOT(actionConnect()), Qt::CTRL+Qt::Key_N );
+		network->addAction( "&Connect server", this, SLOT(actionConnectServer()) );
+		network->addAction( "&Connect peer", this, SLOT(actionConnect()), Qt::CTRL+Qt::Key_N );
 		network->addAction( "&Broadcast Channel", this, SLOT(actionBroadcastChannel()), Qt::CTRL+Qt::Key_H );
 		QMenu* broadCastTypeMenu = network->addMenu( "BroadCast Type" );
 		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
@@ -402,6 +403,11 @@ void SharedPainter::actionBGColor( void )
 	SharePaintManagerPtr()->setBackgroundColor( clr.red(), clr.green(), clr.blue(), clr.alpha() );
 
 	changeToobarButtonColor( toolBar_bgColorButton_, clr );
+}
+
+void SharedPainter::actionConnectServer( void )
+{
+
 }
 
 void SharedPainter::actionConnect( void )

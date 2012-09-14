@@ -23,12 +23,14 @@
 #define ITEM_SCALE_MIN	0.1f
 #define ITEM_SCALE_MAX	4.0f
 
+#define ITEM_DATA_KEY_OWNER		0
+#define ITEM_DATA_KEY_ITEMID	1
+
 enum ItemBorderType {
 	Border_Ellipse,
 	Border_PainterPath,
 	Border_Rect,
 };
-
 
 template<class T>
 class CMyGraphicItem : public T
@@ -44,11 +46,21 @@ public:
 	
 		if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
 		{
+			setData( ITEM_DATA_KEY_OWNER, QString(r->owner().c_str()) );
+			setData( ITEM_DATA_KEY_ITEMID, QString::number(r->itemId()) );
+		
 			r->setPos( scenePos().x(), scenePos().y() );
 			r->setDrawingObject( this );
 		}
 	}
-
+/*
+	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) 
+	{ 
+		QStyleOptionGraphicsItem myOption(*option); 
+		myOption.state &= ~QStyle::State_Selected; 
+		T::paint(painter, &myOption, widget); 
+	} 
+*/
 	void keyPressEvent( QKeyEvent * event )
 	{
 		if( event->key() == Qt::Key_Delete )
@@ -58,6 +70,14 @@ public:
 				scene_->onItemRemove( r );
 			}
 		}
+		else if ( event->key() == Qt::Key_C && event->modifiers() == Qt::ControlModifier )
+		{
+			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+			{
+				scene_->onItemClipboardCopy( r );
+			}
+		}
+
 		T::keyPressEvent( event );
 	}
 
@@ -76,10 +96,6 @@ public:
 
 		scene_->setCursor( Qt::PointingHandCursor ); 
 	}
-
-	//void hoverMoveEvent( QGraphicsSceneHoverEvent * event )
-	//{
-	//}
 
 	void mouseDoubleClickEvent( QGraphicsSceneMouseEvent * event )
 	{
@@ -234,6 +250,19 @@ void CSharedPainterScene::internalDrawGridLine( QPainter *painter, const QRectF 
 	}
 }
 
+boost::shared_ptr<CPaintItem> CSharedPainterScene::findPaintItem( QGraphicsItem *item )
+{
+	if( ! item )
+		return boost::shared_ptr<CPaintItem>();
+
+	std::string owner = item->data( ITEM_DATA_KEY_OWNER ).toString().toStdString();
+	int itemId = item->data( ITEM_DATA_KEY_ITEMID ).toInt();
+
+	boost::shared_ptr<CPaintItem> paintItem = eventTarget_->onICanvasViewEvent_FindItem( this, owner, itemId );
+	return paintItem;
+}
+
+
 void CSharedPainterScene::resetBackground( const QRectF &rect )
 {
 	QImage newImage(rect.toRect().size(), QImage::Format_RGB32);
@@ -338,7 +367,9 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 
 void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGraphicsItem* drawingItem, int borderType )
 {
-	drawingItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable );
+	clearSelectedItemState();
+
+	drawingItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable);
 	addItem( drawingItem );
 
 	lastItemBorderType_ = borderType;
@@ -638,9 +669,51 @@ void CSharedPainterScene::onItemUpdate( boost::shared_ptr< CPaintItem > item )
 	eventTarget_->onICanvasViewEvent_UpdateItem( this, item );
 }
 
+void CSharedPainterScene::onItemClipboardCopy( boost::shared_ptr< CPaintItem > item )
+{
+	item->copyToClipboard();
+}
+
 void CSharedPainterScene::onItemRemove( boost::shared_ptr< CPaintItem > item )
 {
 	eventTarget_->onICanvasViewEvent_RemoveItem( this, item );
+}
+
+void CSharedPainterScene::keyPressEvent( QKeyEvent * evt )
+{
+	if ( evt->key() == Qt::Key_A && evt->modifiers() == Qt::ControlModifier )
+	{
+		QList<QGraphicsItem *> list = items();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			list.at(i)->setSelected( true );
+		}
+	}
+	else if ( evt->key() == Qt::Key_C && evt->modifiers() == Qt::ControlModifier )
+	{
+		QList<QGraphicsItem *> list = selectedItems();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			boost::shared_ptr<CPaintItem> paintItem = findPaintItem( list.at(i) );
+			if( paintItem )
+			{
+				paintItem->copyToClipboard( i == 0 ? true : false );
+			}
+		}
+	}
+	else if ( evt->key() == Qt::Key_Delete )
+	{
+		QList<QGraphicsItem *> list = selectedItems();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			boost::shared_ptr<CPaintItem> paintItem = findPaintItem( list.at(i) );
+			if( paintItem )
+			{
+				eventTarget_->onICanvasViewEvent_RemoveItem( this, paintItem );
+			}
+		}
+	}
+	QGraphicsScene::keyPressEvent( evt );
 }
 
 void CSharedPainterScene::dragEnterEvent( QGraphicsSceneDragDropEvent * evt )
@@ -672,7 +745,6 @@ void CSharedPainterScene::dragMoveEvent( QGraphicsSceneDragDropEvent * evt )
 {
 	evt->acceptProposedAction();
 }
-
 
 void CSharedPainterScene::dropEvent( QGraphicsSceneDragDropEvent * evt )
 {

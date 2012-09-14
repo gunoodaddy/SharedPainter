@@ -215,6 +215,10 @@ protected:
 	virtual void onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item );
 	virtual void onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item );
 	virtual void onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item );
+	virtual boost::shared_ptr<CPaintItem> onICanvasViewEvent_FindItem( CSharedPainterScene *view, const std::string &owner, int itemId )
+	{
+		return SharePaintManagerPtr()->findPaintItem( owner, itemId );
+	}
 
 	// ISharedPaintEvent
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self )

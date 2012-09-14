@@ -14,6 +14,7 @@ public:
 	virtual void onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
+	virtual boost::shared_ptr<CPaintItem> onICanvasViewEvent_FindItem( CSharedPainterScene *view, const std::string &owner, int itemId ) = 0;
 };
 
 class CSharedPainterScene : public QGraphicsScene, public IGluePaintCanvas
@@ -89,7 +90,10 @@ public:
 			return;
 
 		if( enable )
+		{
+			clearSelectedItemState();
 			setCursor( QCursor(QPixmap(":/SharedPainter/Resources/draw_line.png")) );
+		}
 		else
 			setCursor( Qt::PointingHandCursor ); 
 	}
@@ -118,6 +122,14 @@ public:
 	}
 
 	void drawLastItemBorderRect( void );
+	void clearSelectedItemState( void )
+	{
+		QList<QGraphicsItem *> list = selectedItems();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			list.at(i)->setSelected( false );
+		}
+	}
 
 public:
 	// IGluePaintCanvas
@@ -160,13 +172,14 @@ private:
 	void dragLeaveEvent( QGraphicsSceneDragDropEvent * evt );
 	void dragMoveEvent( QGraphicsSceneDragDropEvent * evt );
 	void dropEvent( QGraphicsSceneDragDropEvent * evt );
-
+	void keyPressEvent( QKeyEvent * evt );
 	// for CMyGraphicItem
 public:	
 	void onItemMoveBegin( boost::shared_ptr< CPaintItem > );
 	void onItemMoveEnd( boost::shared_ptr< CPaintItem > );
 	void onItemUpdate( boost::shared_ptr< CPaintItem > );
 	void onItemRemove( boost::shared_ptr< CPaintItem > );
+	void onItemClipboardCopy( boost::shared_ptr< CPaintItem > );
 
 private:
 	qreal currentZValue( void )
@@ -175,8 +188,9 @@ private:
 		return currentZValue_;
 	}
 
+	boost::shared_ptr<CPaintItem> findPaintItem( QGraphicsItem *item );
 	void clearLastItemBorderRect( void );
-
+	
 	void addImageFileItem( const QPointF &pos, const QString &path );
 	void addGeneralFileItem( const QPointF &pos, const QString &path );
 	void resizeImage(QImage *image, const QSize &newSize);

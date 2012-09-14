@@ -165,6 +165,19 @@ public:
 		return buf;
 	}
 
+protected:
+	static void copyTextToClipBoard( QString str, bool firstItem )
+	{
+		if( firstItem )
+			QApplication::clipboard()->setText( "" );
+
+		QString cbText = QApplication::clipboard()->text(); 
+		if( cbText.isEmpty() == false )
+			cbText += NATIVE_NEWLINE_STR;
+		cbText += str;
+		QApplication::clipboard()->setText( cbText );
+	}
+
 	// virtual methods
 public:
 	virtual bool deserialize( const std::string & data, int *readPos = NULL )
@@ -204,6 +217,11 @@ public:
 		totalBytes_ = totalBytes;
 	}
 	virtual bool isScalable( void ) { return false; }
+	virtual void copyToClipboard( bool firstItem = true ) 
+	{
+		if( firstItem )
+			QApplication::clipboard()->setText( "" );	// init clipboard
+	}
 
 protected:
 	IGluePaintCanvas *canvas_;
@@ -291,6 +309,14 @@ public:
 		std::string pixmapBuf( byteArray_.data(), byteArray_.size() );
 		pos += CPacketBufferUtil::writeString32( data, pos, pixmapBuf, true );
 		return data;
+	}
+
+	virtual void copyToClipboard( bool firstItem = true )
+	{
+		CPaintItem::copyToClipboard( firstItem );
+
+		QPixmap px = createPixmap();
+		QApplication::clipboard()->setPixmap( px );
 	}
 
 private:
@@ -528,6 +554,13 @@ public:
 		return data;
 	}
 
+	virtual void copyToClipboard( bool firstItem = true )
+	{
+		CPaintItem::copyToClipboard( firstItem );
+
+		CPaintItem::copyTextToClipBoard( path_, firstItem );
+	}
+
 protected:
 	QString path_;
 };
@@ -553,6 +586,14 @@ public:
 			canvas_->drawImageFile(  boost::static_pointer_cast<CImageFileItem>(shared_from_this()) );		
 	}
 	virtual bool isScalable( void ) { return true; }
+
+	virtual void copyToClipboard( bool firstItem = true )
+	{
+		CPaintItem::copyToClipboard( firstItem );
+
+		QPixmap pixmap( path() );
+		QApplication::clipboard()->setPixmap( pixmap );
+	}
 };
 
 
@@ -637,6 +678,13 @@ public:
 		pos += CPacketBufferUtil::writeInt8( data, pos, font_.bold() ? 1 : 0 );
 	
 		return data;
+	}
+
+	virtual void copyToClipboard( bool firstItem = true )
+	{
+		CPaintItem::copyToClipboard( firstItem );
+
+		CPaintItem::copyTextToClipBoard( text_, firstItem );
 	}
 
 private:

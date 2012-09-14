@@ -14,3 +14,9 @@
 #define DEFAULT_TRAY_MESSAGE_DURATION_MSEC	5000
 
 #define FINDING_SERVER_TRY_COUNT	20
+
+#if defined(WINDOWS)
+#define NATIVE_NEWLINE_STR	"\r\n"
+#else
+#define NATIVE_NEWLINE_STR	"\n"
+#endif

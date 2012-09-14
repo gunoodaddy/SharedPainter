@@ -490,6 +490,12 @@ private:
 		return allData;
 	}
 
+public:
+	boost::shared_ptr<CPaintItem> findPaintItem( const std::string & owner, int itemId )
+	{
+		return commandMngr_.findItem( owner, itemId );
+	}
+
 private:
 	void clearAllItems( void )	// this function must be called on main thread!
 	{

@@ -25,6 +25,11 @@ public:
 		return session;
 	}
 
+	void waitForExit( void )
+	{
+		_stop_thread();
+	}
+
 	void close( void )
 	{
 		mutex_.lock();

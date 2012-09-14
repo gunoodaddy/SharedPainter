@@ -10,14 +10,16 @@
 // packet format
 //---------------------------------------------
 //
-// | 1byte magic | 2byte code | 4byte bodylen ||| (2byte paint type ) | body string ... |
-// <----------------- HEADER ------------------> <----------------- BODY ---------------->
+// | 2byte magic | 2byte code | 4byte bodylen | from id 1byte string | to id 1byte string | (2byte paint type ) | body string ... |
+// <------------------------ HEADER ------------------------------------------------------> <----------------- BODY ---------------->
 //
 
 class CPacketData
 {
 public:
 	boost::int16_t code;
+	std::string fromId;
+	std::string toId;
 	std::string body;
 };
 
@@ -25,12 +27,12 @@ public:
 class CPacketSlicer
 {
 public:
-	static const int HeaderSize = 7;
-
 	enum ParsingState {
 		STATE_INIT,
 		STATE_HEADER_MAGIC,
 		STATE_HEADER_CODE,
+		STATE_HEADER_FROMID,
+		STATE_HEADER_TOID,
 		STATE_HEADER_BLEN,
 		STATE_BODY
 	};
@@ -41,6 +43,7 @@ public:
 
 	void init( void )
 	{
+		currHeaderLen_ = 0;
 		state_ = STATE_HEADER_MAGIC;
 		buffer_.clear();
 		parsedItems_.clear();
@@ -87,7 +90,27 @@ public:
 	}
 
 private:
-	
+
+	bool _readString8( boost::int8_t &len, std::string &str )
+	{
+		if( len <= 0 )
+		{
+			if( buffer_.remainingSize() < 1 )
+				return false;
+			currHeaderLen_ += buffer_.readInt8( len );
+		}
+		
+		if( len > 0 )
+		{
+			if( buffer_.remainingSize() < len )
+				return false;
+
+			currHeaderLen_ += buffer_.read( str, len );
+		}
+
+		return true;
+	}
+
 	bool doParse( void )
 	{
 		try{
@@ -98,13 +121,15 @@ private:
 				state_ = STATE_HEADER_MAGIC;
 			case STATE_HEADER_MAGIC:
 				{
-					if( buffer_.remainingSize() < 1 )
+					currFromIdLen_ = currToIdLen_ = 0;
+					currHeaderLen_ = 0;
+					if( buffer_.remainingSize() < 2 )
 						return parsedItems_.size() > 0 ? true : false;
 
-					boost::int8_t magic = 0x0;
-					buffer_.readInt8( magic );
+					boost::int16_t magic = 0x0;
+					currHeaderLen_ += buffer_.readInt16( magic );
 
-					if( (boost::uint8_t)magic != NET_MAGIC_CODE )
+					if( (boost::uint16_t)magic != NET_MAGIC_CODE )
 					{
 						init();
 						return false;
@@ -115,17 +140,32 @@ private:
 				if( buffer_.remainingSize() < 2 )
 					return parsedItems_.size() > 0 ? true : false;
 
-				buffer_.readInt16( currCode_ );
+				currHeaderLen_ += buffer_.readInt16( currCode_ );
 				if( currCode_ < 0 || currCode_ >= CODE_MAX )
 				{
 					init();
 					return false;
 				}
-				state_ = STATE_HEADER_BLEN;
+				state_ = STATE_HEADER_FROMID;
+			case STATE_HEADER_FROMID:
+				{
+					if( ! _readString8( currFromIdLen_, currFromId_ ) )
+						return parsedItems_.size() > 0 ? true : false;
+
+					state_ = STATE_HEADER_TOID;
+				}
+			case STATE_HEADER_TOID:
+				{
+					if( ! _readString8( currToIdLen_, currToId_ ) )
+						return parsedItems_.size() > 0 ? true : false;
+
+					state_ = STATE_HEADER_BLEN;
+				}
 			case STATE_HEADER_BLEN:
 				if( buffer_.remainingSize() < 4 )
 					return parsedItems_.size() > 0 ? true : false;
-				buffer_.readInt32( currBodyLen_ );
+
+				currHeaderLen_ += buffer_.readInt32( currBodyLen_ );
 
 				if( currBodyLen_ > 0x1312D00 )	// 20MB
 				{
@@ -141,13 +181,16 @@ private:
 				
 				boost::shared_ptr<CPacketData> data = boost::shared_ptr<CPacketData>(new CPacketData);
 				data->code = currCode_;
-				data->body.assign( (const char *)buffer_.basePtr() + HeaderSize, currBodyLen_ );
+				data->fromId = currFromId_;
+				data->toId = currToId_;
+				data->body.assign( (const char *)buffer_.basePtr() + currHeaderLen_, currBodyLen_ );
 
 				parsedItems_.push_back( data );
 
 				// read buffer init..
-				buffer_.erase( 0, HeaderSize + currBodyLen_ );
+				buffer_.erase( 0, currHeaderLen_ + currBodyLen_ );
 				buffer_.setReadPos( 0 );
+				currHeaderLen_ = 0;
 
 				state_ = STATE_HEADER_MAGIC;
 				return doParse();
@@ -165,6 +208,11 @@ private:
 	std::vector< boost::shared_ptr<CPacketData> > parsedItems_;
 
 	ParsingState state_;
+	boost::int8_t currFromIdLen_;
+	boost::int8_t currToIdLen_;
+	std::string currFromId_;
+	std::string currToId_;
+	boost::int16_t currHeaderLen_;
 	boost::int16_t currCode_;
 	boost::int32_t currBodyLen_;
 };

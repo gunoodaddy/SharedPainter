@@ -8,7 +8,7 @@ namespace TaskPacketBuilder
 	class CExecuteTask
 	{
 	public:
-		static std::string make( boost::shared_ptr<CSharedPaintTask> task )
+		static std::string make( boost::shared_ptr<CSharedPaintTask> task, const std::string *target = NULL )
 		{
 			std::string body;
 			std::string data = task->serialize();
@@ -19,7 +19,7 @@ namespace TaskPacketBuilder
 				pos += CPacketBufferUtil::writeInt16( body, pos, task->type(), true );
 				body += data;
 
-				return CommonPacketBuilder::makePacket( CODE_TASK_EXECUTE, body );
+				return CommonPacketBuilder::makePacket( CODE_TASK_EXECUTE, body, NULL, target );
 			}catch(...)
 			{
 				

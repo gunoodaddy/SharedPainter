@@ -9,7 +9,7 @@ namespace PaintPacketBuilder
 	class CSetBackgroundGridLine
 	{
 	public:
-		static std::string make( int size )
+		static std::string make( int size, const std::string *target = NULL )
 		{		
 			std::string data;
 			int pos = 0;
@@ -17,7 +17,7 @@ namespace PaintPacketBuilder
 			{
 				pos += CPacketBufferUtil::writeInt16( data, pos, size, true );
 
-				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_GRID_LINE, data );
+				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_GRID_LINE, data, NULL, target );
 			}catch(...)
 			{
 			}
@@ -46,7 +46,7 @@ namespace PaintPacketBuilder
 	class CSetBackgroundColor
 	{
 	public:
-		static std::string make( int r, int g, int b, int a )
+		static std::string make( int r, int g, int b, int a, const std::string *target = NULL )
 		{		
 			std::string data;
 			int pos = 0;
@@ -57,7 +57,7 @@ namespace PaintPacketBuilder
 				pos += CPacketBufferUtil::writeInt16( data, pos, b, true );
 				pos += CPacketBufferUtil::writeInt16( data, pos, a, true );
 
-				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_COLOR, data );
+				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_COLOR, data, NULL, target );
 			}catch(...)
 			{
 			}
@@ -91,13 +91,13 @@ namespace PaintPacketBuilder
 	class CSetBackgroundImage
 	{
 	public:
-		static std::string make( boost::shared_ptr<CBackgroundImageItem> item )
+		static std::string make( boost::shared_ptr<CBackgroundImageItem> item, const std::string *target = NULL )
 		{		
 			std::string data = item->serialize();
 
 			try
 			{
-				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_IMAGE, data );
+				return CommonPacketBuilder::makePacket( CODE_PAINT_SET_BG_IMAGE, data, NULL, target );
 			}catch(...)
 			{
 
@@ -160,7 +160,7 @@ namespace PaintPacketBuilder
 	class CCreateItem
 	{
 	public:
-		static std::string make( boost::shared_ptr<CPaintItem> item )
+		static std::string make( boost::shared_ptr<CPaintItem> item, const std::string *target = NULL )
 		{		
 			std::string body;
 			std::string data = item->serialize();
@@ -171,7 +171,7 @@ namespace PaintPacketBuilder
 				pos += CPacketBufferUtil::writeInt16( body, pos, item->type(), true );
 				body += data;
 
-				return CommonPacketBuilder::makePacket( CODE_PAINT_CREATE_ITEM, body );
+				return CommonPacketBuilder::makePacket( CODE_PAINT_CREATE_ITEM, body, NULL, target );
 			}catch(...)
 			{
 				

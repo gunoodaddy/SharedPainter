@@ -407,7 +407,13 @@ void SharedPainter::actionBGColor( void )
 
 void SharedPainter::actionConnectServer( void )
 {
+	static std::string userId = Util::generateMyId();
 
+	std::string serverAddr = "61.247.198.102";
+	int port = 10888;
+	std::string roomId = SettingManagerPtr()->broadCastChannel();
+	
+	SharePaintManagerPtr()->requestJoinServer( serverAddr, port, userId, roomId );
 }
 
 void SharedPainter::actionConnect( void )

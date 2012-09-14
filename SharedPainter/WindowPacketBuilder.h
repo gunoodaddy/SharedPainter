@@ -7,7 +7,7 @@ namespace WindowPacketBuilder
 	class CResizeMainWindow
 	{
 	public:
-		static std::string make( int width, int height )
+		static std::string make( int width, int height, const std::string *target = NULL )
 		{
 			int pos = 0;
 			try
@@ -16,7 +16,7 @@ namespace WindowPacketBuilder
 				pos += CPacketBufferUtil::writeInt16( body, pos, width, true );
 				pos += CPacketBufferUtil::writeInt16( body, pos, height, true );
 
-				return CommonPacketBuilder::makePacket( CODE_WINDOW_RESIZE_MAIN_WND, body );
+				return CommonPacketBuilder::makePacket( CODE_WINDOW_RESIZE_MAIN_WND, body, NULL, target );
 			}catch(...)
 			{
 			}

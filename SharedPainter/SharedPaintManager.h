@@ -131,6 +131,24 @@ public:
 		return true;
 	}
 
+	bool requestJoinServer( const std::string &addr, int port, const std::string &userid, const std::string &roomid )
+	{
+		stopServer();
+		stopClient();
+		clearAllItems();
+
+		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
+
+		mutexSession_.lock();
+		sessionList_.push_back( userSession );
+		mutexSession_.unlock();
+
+		// must be called here for preventing from a crash by thread race condition.
+		userSession->session()->connect( addr, port );
+		return true;
+	}
+
 	void clearAllSessions( void )
 	{
 		mutexSession_.lock();
@@ -263,7 +281,7 @@ public:
 
 	void deserializeData( const char * data, size_t size );
 	
-	std::string serializeData( void );
+	std::string serializeData( const std::string *target = NULL );
 
 	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
@@ -395,7 +413,7 @@ private:
 
 	void notifyRemoveUserInfo( boost::shared_ptr<CPaintUser> user )
 	{
-		std::string msg = SystemPacketBuilder::CLeftUser::make( user->userId() );
+		std::string msg = SystemPacketBuilder::CLeftUser::make( user->channel(), user->userId() );
 		sendDataToUsers( msg );
 	}
 
@@ -796,7 +814,7 @@ protected:
 	// IPaintSessionEvent
 	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session )
 	{
-		if( isServerMode()  == false )
+		if( isClientMode() )
 			broadCastSessionForConnection_->pauseSend();
 
 		commonSessionConnection( session );
@@ -842,7 +860,7 @@ protected:
 
 	virtual void onIPaintSessionEvent_Disconnected( boost::shared_ptr<CPaintSession> session )
 	{
-		if( isServerMode()  == false )
+		if( isClientMode() )
 			broadCastSessionForConnection_->resumeSend();
 
 		if( isConnected() == false )

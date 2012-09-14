@@ -44,15 +44,69 @@ namespace SystemPacketBuilder
 		}
 	};
 
+	class CRequestSync
+	{
+	public:
+		static bool parse( const std::string &body, std::string &channel, std::string &target )
+		{
+			int pos = 0;
+			try
+			{
+				boost::int16_t count = 0;
+				pos += CPacketBufferUtil::readString8( body, pos, channel );
+				pos += CPacketBufferUtil::readString8( body, pos, target );
+				return true;
+
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
+	class CResponseJoin
+	{
+	public:
+		static bool parse( const std::string &body, std::string &channel, USER_LIST &list )
+		{
+			int pos = 0;
+			try
+			{
+				boost::int16_t count = 0;
+				pos += CPacketBufferUtil::readString8( body, pos, channel );
+				pos += CPacketBufferUtil::readInt16( body, pos, count, false );
+
+				for( int i = 0; i < count; i++ )
+				{
+					struct SPaintUserInfoData userInfo;
+					userInfo.channel = channel;
+
+					// parsing user data
+					pos += CPacketBufferUtil::readString8( body, pos, userInfo.userId );
+					
+					boost::shared_ptr<CPaintUser> user(new CPaintUser);
+					user->setData( userInfo );
+					list.push_back( user );
+				}
+				return true;
+
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
 	class CLeftUser
 	{
 	public:
-		static std::string make( const std::string &userId )
+		static std::string make( const std::string &channel, const std::string &userId )
 		{
 			int pos = 0;
 			try
 			{
 				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, channel );
 				pos += CPacketBufferUtil::writeString8( body, pos, userId );
 
 				return CommonPacketBuilder::makePacket( CODE_SYSTEM_LEFT, body );
@@ -62,11 +116,12 @@ namespace SystemPacketBuilder
 			return "";
 		}
 
-		static bool parse( const std::string &body, std::string &userId )
+		static bool parse( const std::string &body, std::string &channel, std::string &userId )
 		{
 			int pos = 0;
 			try
 			{
+				pos += CPacketBufferUtil::readString8( body, pos, channel );
 				pos += CPacketBufferUtil::readString8( body, pos, userId );
 				return true;
 

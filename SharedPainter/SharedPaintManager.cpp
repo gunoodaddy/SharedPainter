@@ -50,7 +50,8 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 	
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->setBroadCastMessage( broadCastMsg );
-
+	
+	myUserInfo_->setChannel( channel );
 	broadcastChannel_ = channel;
 }
 
@@ -189,25 +190,25 @@ void CSharedPaintManager::deserializeData( const char * data, size_t size )
 }
 
 
-std::string CSharedPaintManager::serializeData( void )
+std::string CSharedPaintManager::serializeData( const std::string *target )
 {
 	std::string allData;
 
 	// Window Resize
-	std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_ );
+	std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_, target );
 	allData += msg;
 
 	// Background Grid Line
 	if( gridLineSize_ > 0 )
-		allData += PaintPacketBuilder::CSetBackgroundGridLine::make( gridLineSize_ );
+		allData += PaintPacketBuilder::CSetBackgroundGridLine::make( gridLineSize_, target );
 
 	// Background Color
 	if( backgroundColor_ != Qt::white )
-		allData += PaintPacketBuilder::CSetBackgroundColor::make( backgroundColor_.red(), backgroundColor_.green(), backgroundColor_.blue(), backgroundColor_.alpha() );
+		allData += PaintPacketBuilder::CSetBackgroundColor::make( backgroundColor_.red(), backgroundColor_.green(), backgroundColor_.blue(), backgroundColor_.alpha(), target );
 
 	// Background Image
 	if( backgroundImageItem_ )
-		allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_ );
+		allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_, target );
 
 	// History all paint item
 	commandMngr_.lock();
@@ -216,7 +217,7 @@ std::string CSharedPaintManager::serializeData( void )
 	ITEM_SET::const_iterator itItem = set.begin();
 	for( ; itItem != set.end(); itItem++ )
 	{
-		std::string msg = PaintPacketBuilder::CCreateItem::make( *itItem );
+		std::string msg = PaintPacketBuilder::CCreateItem::make( *itItem, target );
 		allData += msg;
 		itemSize += msg.size();
 	}
@@ -229,7 +230,7 @@ std::string CSharedPaintManager::serializeData( void )
 	TASK_ARRAY::const_iterator itTask = taskList.begin();
 	for( ; itTask != taskList.end(); itTask++ )
 	{
-		std::string msg = TaskPacketBuilder::CExecuteTask::make( boost::const_pointer_cast<CSharedPaintTask>(*itTask) );
+		std::string msg = TaskPacketBuilder::CExecuteTask::make( boost::const_pointer_cast<CSharedPaintTask>(*itTask), target );
 		allData += msg;
 		taskSize += msg.size();
 	}
@@ -254,10 +255,33 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			addUser( user );
 		}
 		break;
+	case CODE_SYSTEM_RES_JOIN:
+		{
+			std::string channel;
+			USER_LIST list;
+			if( SystemPacketBuilder::CResponseJoin::parse( packetData->body, channel, list ) )
+			{
+				for( size_t i = 0; i < list.size(); i++ )
+					addUser( list[i] );
+			}
+		}
+		break;
+	case CODE_SYSTEM_SYNC_START:
+		{
+			std::string channel, target;
+			if( SystemPacketBuilder::CRequestSync::parse( packetData->body, channel, target ) )
+			{
+				std::string allData = serializeData( &target );
+				qDebug() << "CODE_SYSTEM_SYNC_START" << allData.size() << target.c_str();
+
+				session->session()->sendData( allData );
+			}
+		}
+		break;
 	case CODE_SYSTEM_LEFT:
 		{
-			std::string userId;
-			if( SystemPacketBuilder::CLeftUser::parse( packetData->body, userId ) )
+			std::string userId, channel;
+			if( SystemPacketBuilder::CLeftUser::parse( packetData->body, channel, userId ) )
 			{
 				removeUser( userId );
 			}

@@ -14,6 +14,7 @@ namespace SystemPacketBuilder
 			try
 			{
 				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, user->channel() );
 				pos += CPacketBufferUtil::writeString8( body, pos, user->userId() );
 
 				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN, body );
@@ -29,6 +30,7 @@ namespace SystemPacketBuilder
 			try
 			{
 				struct SPaintUserInfoData userInfo;
+				pos += CPacketBufferUtil::readString8( body, pos, userInfo.channel );
 				pos += CPacketBufferUtil::readString8( body, pos, userInfo.userId );
 
 				boost::shared_ptr<CPaintUser> user = boost::shared_ptr<CPaintUser>(new CPaintUser);

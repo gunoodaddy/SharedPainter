@@ -2,6 +2,7 @@
 
 struct SPaintUserInfoData
 {
+	std::string channel;
 	std::string userId;
 };
 
@@ -15,6 +16,7 @@ public:
 	int sessionId( void ) { return sessionId_; }
 	void setData( const struct SPaintUserInfoData &info ) { data_ = info; }
 
+	const std::string &channel( void ) { return data_.channel; }
 	const std::string &userId( void ) { return data_.userId; }
 
 private:

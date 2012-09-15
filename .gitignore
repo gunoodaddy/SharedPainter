@@ -10,7 +10,15 @@ Download/
 Makefile*
 ui_*.h
 *.vpp~*
+
+#############
+## Shared Painter Server (linux)
+#############
 .depend
+*.o
+cscope.*
+tags
+sharedpainter
 
 #################
 ## Eclipse

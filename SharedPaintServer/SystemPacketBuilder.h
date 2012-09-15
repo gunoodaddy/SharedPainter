@@ -86,22 +86,5 @@ namespace SystemPacketBuilder {
 				}
 				return boost::shared_ptr<SharedPaintProtocol>();
 			}
-
-/*
-			static bool parse( const std::string &body, std::string &channel, std::string &userId )
-			{
-				int pos = 0;
-				try
-				{
-					pos += PacketBufferUtil::readString8( body, pos, channel );
-					pos += PacketBufferUtil::readString8( body, pos, userId );
-					return true;
-
-				}catch(...)
-				{
-				}
-				return false;
-			}
-			*/
 	};
 };

@@ -519,6 +519,7 @@ private:
 	{
 		assert( caller_.isMainThread() );
 
+		backgroundColor_ = Qt::white;
 		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
 		canvas_->clearScreen();
 

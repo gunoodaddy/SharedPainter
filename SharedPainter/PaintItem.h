@@ -128,17 +128,18 @@ public:
 	{
 		try
 		{
-			boost::int8_t f;
+			boost::uint8_t f;
+			boost::uint32_t t;
 			int pos = readPos ? *readPos : 0;
 
 			pos += CPacketBufferUtil::readString8( data, pos, res.owner );
-			pos += CPacketBufferUtil::readInt32( data, pos, res.itemId, true );
+			pos += CPacketBufferUtil::readInt32( data, pos, t, true );
 			pos += CPacketBufferUtil::readInt8( data, pos, f );
 			pos += CPacketBufferUtil::readDouble( data, pos, res.posX, true );
 			pos += CPacketBufferUtil::readDouble( data, pos, res.posY, true );
 			pos += CPacketBufferUtil::readDouble( data, pos, res.scale, true );
 			res.posSetFlag = (f == 1 ? true : false);
-
+			res.itemId = t;
 			if( readPos )
 				*readPos = pos;
 		} catch(...)
@@ -393,7 +394,7 @@ public:
 		try
 		{
 			double x1, y1, x2, y2;
-			boost::int16_t r, g, b, a, w, ptCnt;
+			boost::uint16_t r, g, b, a, w, ptCnt;
 			int pos = 0;
 
 			if( ! CPaintItem::deserialize( data, &pos ) )
@@ -405,7 +406,7 @@ public:
 			pos += CPacketBufferUtil::readInt16( data, pos, a, true );
 			pos += CPacketBufferUtil::readInt16( data, pos, w, true );
 			pos += CPacketBufferUtil::readInt16( data, pos, ptCnt, true );
-			for( boost::int16_t i = 0; i < ptCnt; i++ )
+			for( boost::uint16_t i = 0; i < ptCnt; i++ )
 			{
 				double x, y;
 				pos += CPacketBufferUtil::readDouble( data, pos, x, true );
@@ -627,8 +628,8 @@ public:
 	{
 		try
 		{
-			boost::int8_t bold;
-			boost::int16_t r, g, b, a, s;
+			boost::uint8_t bold;
+			boost::uint16_t r, g, b, a, s;
 			std::string text, fontFamily;
 			int pos = 0;
 

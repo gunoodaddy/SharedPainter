@@ -35,7 +35,7 @@ namespace TaskPacketBuilder
 			try
 			{
 				int pos = 0;
-				boost::int16_t temptype;
+				boost::uint16_t temptype;
 				pos += CPacketBufferUtil::readInt16( body, pos, temptype, true );
 
 				TaskType type = (TaskType)temptype;

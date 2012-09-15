@@ -29,7 +29,7 @@ namespace BroadCastPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t temp_port;
+				boost::uint16_t temp_port;
 				pos += CPacketBufferUtil::readString8( body, pos, broadCastChannel );
 				pos += CPacketBufferUtil::readString8( body, pos, addr );
 				pos += CPacketBufferUtil::readInt16( body, pos, temp_port, true );
@@ -67,7 +67,7 @@ namespace BroadCastPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t temp_port;
+				boost::uint16_t temp_port;
 				pos += CPacketBufferUtil::readString8( body, pos, broadCastChannel );
 				pos += CPacketBufferUtil::readString8( body, pos, myId );
 				pos += CPacketBufferUtil::readString8( body, pos, message );

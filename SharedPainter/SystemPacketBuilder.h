@@ -52,7 +52,6 @@ namespace SystemPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t count = 0;
 				pos += CPacketBufferUtil::readString8( body, pos, channel );
 				pos += CPacketBufferUtil::readString8( body, pos, target );
 				return true;
@@ -72,7 +71,7 @@ namespace SystemPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t count = 0;
+				boost::uint16_t count = 0;
 				pos += CPacketBufferUtil::readString8( body, pos, channel );
 				pos += CPacketBufferUtil::readInt16( body, pos, count, false );
 

@@ -17,7 +17,7 @@
 class CPacketData
 {
 public:
-	boost::int16_t code;
+	boost::uint16_t code;
 	std::string fromId;
 	std::string toId;
 	std::string body;
@@ -91,7 +91,7 @@ public:
 
 private:
 
-	bool _readString8( boost::int8_t &len, std::string &str )
+	bool _readString8( boost::uint8_t &len, std::string &str )
 	{
 		if( len <= 0 )
 		{
@@ -102,7 +102,7 @@ private:
 		
 		if( len > 0 )
 		{
-			if( buffer_.remainingSize() < len )
+			if( buffer_.remainingSize() < (size_t)len )
 				return false;
 
 			currHeaderLen_ += buffer_.read( str, len );
@@ -126,7 +126,7 @@ private:
 					if( buffer_.remainingSize() < 2 )
 						return parsedItems_.size() > 0 ? true : false;
 
-					boost::int16_t magic = 0x0;
+					boost::uint16_t magic = 0x0;
 					currHeaderLen_ += buffer_.readInt16( magic );
 
 					if( (boost::uint16_t)magic != NET_MAGIC_CODE )
@@ -208,11 +208,11 @@ private:
 	std::vector< boost::shared_ptr<CPacketData> > parsedItems_;
 
 	ParsingState state_;
-	boost::int8_t currFromIdLen_;
-	boost::int8_t currToIdLen_;
+	boost::uint8_t currFromIdLen_;
+	boost::uint8_t currToIdLen_;
 	std::string currFromId_;
 	std::string currToId_;
-	boost::int16_t currHeaderLen_;
-	boost::int16_t currCode_;
-	boost::int32_t currBodyLen_;
+	boost::uint16_t currHeaderLen_;
+	boost::uint16_t currCode_;
+	boost::uint32_t currBodyLen_;
 };

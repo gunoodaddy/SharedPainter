@@ -44,11 +44,13 @@ public:
 	{
 		try
 		{
-			boost::int8_t f;
+			boost::uint8_t f;
+			boost::uint32_t t;
 			int pos = readPos ? *readPos : 0;
 
 			pos += CPacketBufferUtil::readString8( data, pos, res.owner );
-			pos += CPacketBufferUtil::readInt32( data, pos, res.itemId, true );
+			pos += CPacketBufferUtil::readInt32( data, pos, t, true );
+			res.itemId = t;
 			if( readPos )
 				*readPos = pos;
 		} catch(...)

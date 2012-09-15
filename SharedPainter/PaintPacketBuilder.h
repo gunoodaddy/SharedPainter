@@ -30,7 +30,7 @@ namespace PaintPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t s;
+				boost::uint16_t s;
 				pos += CPacketBufferUtil::readInt16( body, pos, s, true );
 
 				size = s;
@@ -70,7 +70,7 @@ namespace PaintPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t rr, gg, bb, aa;
+				boost::uint16_t rr, gg, bb, aa;
 				pos += CPacketBufferUtil::readInt16( body, pos, rr, true );
 				pos += CPacketBufferUtil::readInt16( body, pos, gg, true );
 				pos += CPacketBufferUtil::readInt16( body, pos, bb, true );
@@ -187,7 +187,7 @@ namespace PaintPacketBuilder
 			try
 			{
 				int pos = 0;
-				boost::int16_t temptype;
+				boost::uint16_t temptype;
 				pos += CPacketBufferUtil::readInt16( body, pos, temptype, true );
 
 				PaintItemType type = (PaintItemType)temptype;

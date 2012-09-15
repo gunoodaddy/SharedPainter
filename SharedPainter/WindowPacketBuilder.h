@@ -28,7 +28,7 @@ namespace WindowPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::int16_t w, h;
+				boost::uint16_t w, h;
 				pos += CPacketBufferUtil::readInt16( body, pos, w, true );
 				pos += CPacketBufferUtil::readInt16( body, pos, h, true );
 				width = w;

@@ -7,7 +7,7 @@
 #define DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG  3338
 #define START_UDP_LISTEN_PORT	                5001
 
-CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NULL), acceptPort_(-1), listenUdpPort_(-1), serverMode_(false), clientMode_(false)
+CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), serverMode_(false), clientMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
@@ -35,6 +35,8 @@ CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NUL
 	}
 
 	clearAllUsers(); // clear & add my user info
+
+	startServer( "" );
 }
 
 CSharedPaintManager::~CSharedPaintManager(void)
@@ -113,11 +115,13 @@ bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 	{
 		if( netPeerServer_->start( port ) )
 		{
-			acceptPort_ = port;
+			listenTcpPort_ = port;
 			break;
 		}
 	}
-	assert( acceptPort_ > 0 );
+	assert( listenTcpPort_ > 0 );
+	
+	myUserInfo_->setListenTcpPort( listenTcpPort_ );
 
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
@@ -130,7 +134,7 @@ bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int 
 		return false;
 	}
 
-	qDebug() << "startServer" << acceptPort_;
+	qDebug() << "startServer" << listenTcpPort_;
 	serverMode_ = true;
 	return true;
 }
@@ -257,12 +261,28 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 		break;
 	case CODE_SYSTEM_RES_JOIN:
 		{
-			std::string channel;
+			std::string channel, superId;
 			USER_LIST list;
-			if( SystemPacketBuilder::CResponseJoin::parse( packetData->body, channel, list ) )
+			if( SystemPacketBuilder::CResponseJoin::parse( packetData->body, channel, list, superId ) )
 			{
 				for( size_t i = 0; i < list.size(); i++ )
 					addUser( list[i] );
+			}
+		}
+		break;
+	case CODE_SYSTEM_SUPERPEER_CHANGED:
+		{
+			std::string userid;
+			if( SystemPacketBuilder::ChangeSuperPeer::parse( packetData->body, userid ) )
+			{
+				if( userid != myId_ )
+				{
+					boost::shared_ptr<CPaintUser> user = findUser( userid );
+					if( user )
+					{
+						connectToSuperPeer( user->ipAddress(), user->listenTcpPort() );
+					}
+				}
 			}
 		}
 		break;
@@ -401,7 +421,7 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 
 				// make server info
 				std::string myIp = Util::getMyIPAddress();
-				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( broadcastChannel_, myIp, acceptPort_ );
+				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( broadcastChannel_, myIp, listenTcpPort_ );
 
 				if( udpSessionForConnection_ )
 					udpSessionForConnection_->close();

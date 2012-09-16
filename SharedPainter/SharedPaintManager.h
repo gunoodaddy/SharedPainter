@@ -131,6 +131,24 @@ public:
 		return true;
 	}
 
+	bool connectToSuperPeer( const std::string &addr, int port )
+	{
+		clearScreen();
+		clearAllUsers();
+
+		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
+
+		mutexSession_.lock();
+		superPeerSession_ = userSession;
+		mutexSession_.unlock();
+
+		// must be called here for preventing from a crash by thread race condition.
+		userSession->session()->connect( addr, port );
+
+		return true;
+	}
+
 	bool requestJoinServer( const std::string &addr, int port, const std::string &userid, const std::string &roomid )
 	{
 		stopServer();
@@ -162,7 +180,7 @@ public:
 
 	int acceptPort( void ) const
 	{
-		return acceptPort_;
+		return listenTcpPort_;
 	}
 
 	int lastPacketId( void )
@@ -967,9 +985,10 @@ private:
 	CNetServiceRunner netRunner_;
 	bool serverMode_;
 	bool clientMode_;
-	int acceptPort_;
+	int listenTcpPort_;
 	int listenUdpPort_;
 	SESSION_LIST sessionList_;
+	boost::shared_ptr<CPaintSession> superPeerSession_;
 	boost::recursive_mutex mutexSession_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
 	boost::shared_ptr< CNetUdpSession > udpSessionForConnection_;

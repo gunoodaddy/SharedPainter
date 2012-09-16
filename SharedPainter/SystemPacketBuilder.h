@@ -5,6 +5,23 @@
 
 namespace SystemPacketBuilder
 {
+	class ChangeSuperPeer{
+	public:
+		static bool parse( const std::string &body, std::string & userid ) {
+
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::readString8( body, pos, userid );
+
+				return true;
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
 	class CJoinerUser
 	{
 	public:
@@ -13,9 +30,7 @@ namespace SystemPacketBuilder
 			int pos = 0;
 			try
 			{
-				std::string body;
-				pos += CPacketBufferUtil::writeString8( body, pos, user->channel() );
-				pos += CPacketBufferUtil::writeString8( body, pos, user->userId() );
+				std::string body = user->serialize();
 
 				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN, body );
 			}catch(...)
@@ -29,12 +44,8 @@ namespace SystemPacketBuilder
 			int pos = 0;
 			try
 			{
-				struct SPaintUserInfoData userInfo;
-				pos += CPacketBufferUtil::readString8( body, pos, userInfo.channel );
-				pos += CPacketBufferUtil::readString8( body, pos, userInfo.userId );
-
-				boost::shared_ptr<CPaintUser> user = boost::shared_ptr<CPaintUser>(new CPaintUser);
-				user->setData( userInfo );
+				boost::shared_ptr<CPaintUser> user(new CPaintUser);
+				user->deserialize( body );			
 				return user;
 
 			}catch(...)
@@ -66,7 +77,10 @@ namespace SystemPacketBuilder
 	class CResponseJoin
 	{
 	public:
-		static bool parse( const std::string &body, std::string &channel, USER_LIST &list )
+		static bool parse( const std::string &body, 
+			std::string &channel, 
+			USER_LIST &list, 
+			std::string & superPeerId )
 		{
 			int pos = 0;
 			try
@@ -77,16 +91,12 @@ namespace SystemPacketBuilder
 
 				for( int i = 0; i < count; i++ )
 				{
-					struct SPaintUserInfoData userInfo;
-					userInfo.channel = channel;
-
-					// parsing user data
-					pos += CPacketBufferUtil::readString8( body, pos, userInfo.userId );
-					
 					boost::shared_ptr<CPaintUser> user(new CPaintUser);
-					user->setData( userInfo );
+					user->deserialize( body, &pos );			
 					list.push_back( user );
 				}
+
+				pos += CPacketBufferUtil::readString8( body, pos, superPeerId );
 				return true;
 
 			}catch(...)

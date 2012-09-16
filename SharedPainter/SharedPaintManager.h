@@ -278,7 +278,12 @@ public:
 
 	int sendDataToUsers( const std::string &msg, int toSessionId = -1 )
 	{
-		SESSION_LIST sessionList = sessionList_;
+		SESSION_LIST sessionList;
+		
+		if( superPeerSession_ )
+			sessionList.push_back( superPeerSession_ );
+		else
+			sessionList = sessionList_;;
 
 		return sendDataToUsers( sessionList, msg, toSessionId );
 	}

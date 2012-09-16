@@ -5,6 +5,33 @@
 
 namespace SystemPacketBuilder
 {
+	class CSyncComplete
+	{
+	public:
+		static std::string make( const std::string &targetId )
+		{
+			try
+			{
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_SYNC_COMPLETE, "", NULL, &targetId );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body )
+		{
+			try
+			{
+				// nothing to do
+				return true;
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
 	class ChangeSuperPeer{
 	public:
 		static bool parse( const std::string &body, std::string & userid ) {
@@ -27,7 +54,6 @@ namespace SystemPacketBuilder
 	public:
 		static std::string make( boost::shared_ptr<CPaintUser> user )
 		{
-			int pos = 0;
 			try
 			{
 				std::string body = user->serialize();
@@ -41,7 +67,6 @@ namespace SystemPacketBuilder
 
 		static boost::shared_ptr<CPaintUser> parse( const std::string &body )
 		{
-			int pos = 0;
 			try
 			{
 				boost::shared_ptr<CPaintUser> user(new CPaintUser);

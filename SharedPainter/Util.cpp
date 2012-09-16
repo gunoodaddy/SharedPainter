@@ -3,6 +3,10 @@
 
 std::string Util::generateMyId( void )
 {
+	static std::string _gId;
+	if( _gId.empty() == false )
+		return _gId;
+
 	std::string id;
 
 	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
@@ -17,6 +21,8 @@ std::string Util::generateMyId( void )
 	qint64 msecs = QDateTime::currentMSecsSinceEpoch();
 	QString temp = QString::number( msecs );
 	id += temp.toStdString();
+
+	_gId = id;
 	return id;
 }
 

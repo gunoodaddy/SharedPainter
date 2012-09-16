@@ -18,7 +18,9 @@ CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NUL
 	struct SPaintUserInfoData data;
 	data.userId = myId_;
 
+	std::string myIp = Util::getMyIPAddress();
 	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
+	myUserInfo_->setLocalIPAddress( myIp );
 	myUserInfo_->setData( data );
 
 	backgroundColor_ = Qt::white;
@@ -54,6 +56,7 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 		broadCastSessionForConnection_->setBroadCastMessage( broadCastMsg );
 	
 	myUserInfo_->setChannel( channel );
+	myUserInfo_->setLocalIPAddress( myIp );
 	broadcastChannel_ = channel;
 }
 
@@ -267,6 +270,15 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			{
 				for( size_t i = 0; i < list.size(); i++ )
 					addUser( list[i] );
+
+				if( superId != myId_ )
+				{
+					boost::shared_ptr<CPaintUser> user = findUser( superId );
+					if( user )
+					{
+						connectToSuperPeer( user );
+					}
+				}
 			}
 		}
 		break;
@@ -280,7 +292,7 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 					boost::shared_ptr<CPaintUser> user = findUser( userid );
 					if( user )
 					{
-						connectToSuperPeer( user->ipAddress(), user->listenTcpPort() );
+						connectToSuperPeer( user );
 					}
 				}
 			}

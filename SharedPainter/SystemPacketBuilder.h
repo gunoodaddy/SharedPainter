@@ -58,6 +58,17 @@ namespace SystemPacketBuilder
 	class CRequestSync
 	{
 	public:
+		static std::string make( void )
+		{
+			try
+			{
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_SYNC_START, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
 		static bool parse( const std::string &body, std::string &channel, std::string &target )
 		{
 			int pos = 0;

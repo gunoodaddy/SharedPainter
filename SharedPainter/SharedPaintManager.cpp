@@ -268,6 +268,10 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 				for( size_t i = 0; i < list.size(); i++ )
 					addUser( list[i] );
 			}
+
+			bool bFirstUserFlag = false;
+			if( joinerMap_.size() == 1 )
+				bFirstUserFlag = true;
 		}
 		break;
 	case CODE_SYSTEM_SUPERPEER_CHANGED:

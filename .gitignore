@@ -19,6 +19,7 @@ ui_*.h
 cscope.*
 tags
 sharedpainter
+core.*
 
 #################
 ## Eclipse

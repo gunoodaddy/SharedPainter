@@ -20,11 +20,14 @@ public:
 
 	void joinRoom( boost::shared_ptr<SharedPaintClient> client );
 
-	void leaveRoom( const std::string &roomid, const std::string &userid );
+	void leaveRoom( boost::shared_ptr<SharedPaintClient> client );
 
 	void uniCast( const std::string &roomid, boost::shared_ptr<SharedPaintProtocol> prot );
 
 	void roomCast( const std::string &roomid, const std::string &fromid, boost::shared_ptr<SharedPaintProtocol> prot, bool sendMySelf = false );
+
+	void setSuperPeerSession( boost::shared_ptr<SharedPaintClient> client );
+	boost::shared_ptr<SharedPaintClient> currentSuperPeerSession( const std::string &roomid );
 
 	std::string generateJoinerInfoPacket( const std::string &roomid );
 

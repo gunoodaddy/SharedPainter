@@ -9,8 +9,6 @@
 using namespace coconut;
 using namespace coconut::protocol;
 
-#include "ProtocolManager.h"
-
 class SharedPaintHeader {
 public:
 	SharedPaintHeader() { }
@@ -78,7 +76,6 @@ public:
 			, state_(Init)
 			, payload_pos_(0)
 			, invalidPacketRecved_(false) 
-			, manager_(NULL)
 	{ 
 		LOG_TRACE("SharedPaintProtocol() : %p", this);
 	}
@@ -123,14 +120,6 @@ public:
 	const void * basePtr();
 	size_t totalSize();
 
-	void setManager(ProtocolManager * manager) {
-		manager_ = manager;
-	}
-
-	ProtocolManager * manager() {
-		return manager_;
-	}
-
 	void setPayload(const void *payload, size_t size) {
 		payload_.assign((char *)payload, size);
 	}
@@ -144,7 +133,6 @@ private:
 	size_t payload_pos_;
 	size_t startRead_pos_;
 	bool invalidPacketRecved_;
-	ProtocolManager * manager_;
 	boost::int8_t currIdLen_;
 	int currHeaderLen_;
 };

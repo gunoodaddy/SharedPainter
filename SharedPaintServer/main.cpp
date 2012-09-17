@@ -11,6 +11,8 @@ int main(int argc, char* argv[]) {
 	coconut::setUseLittleEndianForNetwork( true );
 	coconut::setEnableDebugMode();
 
+	SharedPaintClient::initialize( &ioServiceContainer );
+
 	try {
 		boost::shared_ptr<SharedPaintServer> serverController(new SharedPaintServer);
 

@@ -42,22 +42,20 @@ size_t SharedPaintManager::totalUserCount( void ) {
 	return totalCnt;
 }
 
-void SharedPaintManager::leaveRoom( const std::string &roomid, const std::string &userid ) {
+void SharedPaintManager::leaveRoom( boost::shared_ptr<SharedPaintClient> client ) {
 	boost::recursive_mutex::scoped_lock autolock(mutexData_);
 	
-	ROOM_MAP::iterator itR = roomMap_.find( roomid );	
+	std::string roomid = client->user()->roomId();
+	std::string userid = client->user()->userId();
+
+	ROOM_MAP::iterator itR = roomMap_.find( roomid );
 
 	if( itR != roomMap_.end() ) {
-		itR->second->removeJoiner( userid );
+		itR->second->removeJoiner( client );
 	}
 	
-	// notification
-	boost::shared_ptr<SharedPaintProtocol> prot = SystemPacketBuilder::LeftUser::make( roomid, userid );
-
-	roomCast( roomid, userid, prot, false );
-
 	LOG_DEBUG("LEAVE ROOM : roomid = %s, userid = %s, room count = %d", 
-		roomid.c_str(), userid.c_str(), totalUserCount() );
+		client->user()->roomId().c_str(), userid.c_str(), totalUserCount() );
 }
 	
 std::string SharedPaintManager::generateJoinerInfoPacket( const std::string &roomid ) {
@@ -99,4 +97,25 @@ void SharedPaintManager::roomCast( const std::string &roomid, const std::string 
 	if( itR != roomMap_.end() ) {
 		itR->second->roomCast( fromid, prot, sendMySelf );
 	}
+}
+	
+void SharedPaintManager::setSuperPeerSession( boost::shared_ptr<SharedPaintClient> client ) {
+	boost::recursive_mutex::scoped_lock autolock(mutexData_);
+	
+	ROOM_MAP::iterator itR = roomMap_.find( client->user()->roomId() );	
+
+	if( itR != roomMap_.end() ) {
+		itR->second->setSuperPeerSession( client );
+	}
+}
+
+boost::shared_ptr<SharedPaintClient> SharedPaintManager::currentSuperPeerSession( const std::string &roomid ) {
+	boost::recursive_mutex::scoped_lock autolock(mutexData_);
+	
+	ROOM_MAP::iterator itR = roomMap_.find( roomid );
+
+	if( itR != roomMap_.end() ) {
+		return itR->second->currentSuperPeerSession();
+	}
+	return boost::shared_ptr<SharedPaintClient>();
 }

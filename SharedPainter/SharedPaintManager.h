@@ -270,7 +270,7 @@ public:
 	{
 		SESSION_LIST sessionList;
 		
-		if( superPeerSession_ )	// not me & super suer exist
+		if( superPeerSession_ && superPeerSession_->session()->isConnected() )	// not me & super suer exist
 		{
 			qDebug() << "sendDataToUsers() : Netmode = to superpeer";
 			sessionList.push_back( superPeerSession_ );
@@ -280,7 +280,7 @@ public:
 			qDebug() << "sendDataToUsers() : Netmode = I'm superpeer";
 			sessionList = sessionList_;
 		}
-		else if( relayServerSession_ )
+		else if( relayServerSession_->session()->isConnected() )
 		{
 			qDebug() << "sendDataToUsers() : Netmode = to relay server";
 			sessionList.push_back( relayServerSession_ );

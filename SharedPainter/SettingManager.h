@@ -18,10 +18,16 @@ public:
 		peerAddress_ = addr;
 	}
 
-	const std::string broadCastChannel( void) { return broadCastChannel_; }
-	void setBroadCastChannel( const std::string & channel )
+	const std::string relayServerAddress( void ) { return relayServerAddress_; }
+	void setRelayServerAddress( const std::string & addr )
 	{
-		broadCastChannel_ = channel;
+		relayServerAddress_ = addr;
+	}
+
+	const std::string paintChannel( void) { return paintChannel_; }
+	void setPaintChannel( const std::string & channel )
+	{
+		paintChannel_ = channel;
 	}
 
 	void load( void );
@@ -31,7 +37,8 @@ protected slots:
 	void onTimer( void );
 
 private:
-	std::string broadCastChannel_;
+	std::string paintChannel_;
 	std::string peerAddress_;
+	std::string relayServerAddress_;
 	QTimer *timer_;
 };

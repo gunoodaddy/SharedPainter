@@ -11,7 +11,7 @@ namespace Util
 	inline bool checkKeyPressed( int virtKey )
 	{
 		bool res = false;
-		// TODO : multiplatform issue!
+		// TODO : key press check, multiplatform issue!
 #ifdef Q_WS_WIN
 		static WORD pressKey[256] = {0, };
 

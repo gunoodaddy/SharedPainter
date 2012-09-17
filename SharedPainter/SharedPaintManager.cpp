@@ -38,7 +38,8 @@ CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NUL
 
 	clearAllUsers(); // clear & add my user info
 
-	startServer( "" );
+	// TODO : RELAY MODE!
+	startServer();
 }
 
 CSharedPaintManager::~CSharedPaintManager(void)
@@ -47,7 +48,7 @@ CSharedPaintManager::~CSharedPaintManager(void)
 }
 
 
-void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
+void CSharedPaintManager::setPaintChannel( const std::string & channel )
 {
 	std::string myIp = Util::getMyIPAddress();
 	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( channel, myIp, listenUdpPort_ );
@@ -57,13 +58,13 @@ void CSharedPaintManager::setBroadCastChannel( const std::string & channel )
 	
 	myUserInfo_->setChannel( channel );
 	myUserInfo_->setLocalIPAddress( myIp );
-	broadcastChannel_ = channel;
+	paintChannel_ = channel;
 }
 
-void CSharedPaintManager::sendBroadCastTextMessage( const std::string &broadcastChannel, const std::string &msg )
+void CSharedPaintManager::sendBroadCastTextMessage( const std::string &paintChannel, const std::string &msg )
 {
 	std::string data;
-	data = BroadCastPacketBuilder::CTextMessage::make( broadcastChannel, myId_, msg );
+	data = BroadCastPacketBuilder::CTextMessage::make( paintChannel, myId_, msg );
 
 	broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
 }
@@ -89,7 +90,7 @@ bool CSharedPaintManager::startClient( void )
 
 	// broadcast for finding server
 	std::string myIp = Util::getMyIPAddress();
-	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( broadcastChannel_, myIp, listenUdpPort_ );
+	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( paintChannel_, myIp, listenUdpPort_ );
 
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
@@ -103,7 +104,7 @@ bool CSharedPaintManager::startClient( void )
 }
 
 
-bool CSharedPaintManager::startServer( const std::string &broadCastChannel, int port )
+bool CSharedPaintManager::startServer( int port )
 {
 	stopClient();
 	stopServer();
@@ -253,13 +254,32 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 {
 	switch( packetData->code )
 	{
-	case CODE_SYSTEM_JOIN:
+	case CODE_SYSTEM_JOIN_SERVER:
 		{
-			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerUser::parse( packetData->body );
-			if( session )
-				user->setSessionId( session->sessionId() );
-
+			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerServerUser::parse( packetData->body );
+			
+			assert( isRelayServerSession( session ) );
+		
 			addUser( user );
+		}
+		break;
+	case CODE_SYSTEM_JOIN_SUPERPEER:
+		{
+			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerSuperPeerUser::parse( packetData->body );
+
+			if( user )
+			{
+				if( isAwaysP2PMode() )
+				{
+					addUser( user );
+				}
+				else
+				{
+					boost::shared_ptr<CPaintUser> joiner = findUser( user->userId() );
+					if( joiner )
+						joiner->setSessionId( session->sessionId() );
+					}
+			}
 		}
 		break;
 	case CODE_SYSTEM_RES_JOIN:
@@ -284,6 +304,12 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			bool bFirstUserFlag = false;
 			if( joinerMap_.size() == 1 )
 				bFirstUserFlag = true;
+
+			if( false == bFirstUserFlag && relayServerSession_ )
+			{
+				std::string msg = SystemPacketBuilder::CSyncRequest::make();
+				relayServerSession_->session()->sendData( msg );
+			}
 		}
 		break;
 	case CODE_SYSTEM_SUPERPEER_CHANGED:
@@ -299,18 +325,72 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 						connectToSuperPeer( user );
 					}
 				}
+				superPeerId_ = userid;
+			}
+		}
+		break;
+	case CODE_SYSTEM_TCPSYN:
+		{
+			assert( relayServerSession_ );
+			std::string channel;
+			if( SystemPacketBuilder::CTcpSyn::parse( packetData->body ) )
+			{
+				// SEND ACK PACKET TO SERVER
+				std::string msg = SystemPacketBuilder::CTcpAck::make();
+				relayServerSession_->session()->sendData( msg );
 			}
 		}
 		break;
 	case CODE_SYSTEM_SYNC_START:
 		{
-			std::string channel, target;
-			if( SystemPacketBuilder::CRequestSync::parse( packetData->body, channel, target ) )
+			std::string channel;
+			if( SystemPacketBuilder::CSyncStart::parse( packetData->body, channel ) )
 			{
-				std::string allData = serializeData( &target );
-				qDebug() << "CODE_SYSTEM_SYNC_START" << allData.size() << target.c_str();
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SyncStart, this ) );
+			}
+		}
+		break;
+	case CODE_SYSTEM_SYNC_COMPLETE:
+		{
+			std::string channel;
+			if( SystemPacketBuilder::CSyncComplete::parse( packetData->body ) )
+			{
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SyncComplete, this ) );
+			}
+		}
+		break;
+	case CODE_SYSTEM_SYNC_REQUEST:
+		{
+			std::string channel, target;
+			if( SystemPacketBuilder::CSyncRequest::parse( packetData->body, channel, target ) )
+			{
+				std::string packetPackage;
+				packetPackage += SystemPacketBuilder::CSyncStart::make( channel, myId_, target );
+				packetPackage += serializeData( &target );
+				packetPackage += SystemPacketBuilder::CSyncComplete::make( target );
 
-				session->session()->sendData( allData );
+				qDebug() << "CODE_SYSTEM_SYNC_REQUEST" << packetPackage.size() << target.c_str() << joinerMap_.size();
+
+				if( isMySelfSuperPeer() )
+				{
+					// I'm superpeer
+					assert( superPeerSession_ == NULL && sessionList_.size() > 0 );
+
+					boost::shared_ptr<CPaintUser> user = findUser( target );
+					if( ! user )
+					{
+						qDebug() << "CODE_SYSTEM_SYNC_REQUEST : NOT FOUND JOINER" << joinerMap_.size();
+						break; // exception case.. ignore it..
+					}
+
+					sendDataToUsers( packetPackage, user->sessionId() ); 
+				}
+				else
+				{
+					// I'm normal user but be forced to do sync for you by server..
+					assert( relayServerSession_ );
+					relayServerSession_->session()->sendData( packetPackage );
+				}
 			}
 		}
 		break;
@@ -405,15 +485,15 @@ void CSharedPaintManager::dispatchUdpPacket( CNetUdpSession *session, boost::sha
 	{
 	case CODE_UDP_SERVER_INFO:
 		{
-			std::string addr, broadcastChannel;
+			std::string addr, paintChannel;
 			int port;
-			if( UdpPacketBuilder::CServerInfo::parse( packetData->body, broadcastChannel, addr, port ) )
+			if( UdpPacketBuilder::CServerInfo::parse( packetData->body, paintChannel, addr, port ) )
 			{
-				qDebug() << "CODE_UDP_SERVER_INFO : " << broadcastChannel.c_str() << addr.c_str() << port;
-				if( broadcastChannel_ != broadcastChannel )
+				qDebug() << "CODE_UDP_SERVER_INFO : " << paintChannel.c_str() << addr.c_str() << port;
+				if( paintChannel_ != paintChannel )
 					return;
 
-				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_GetServerInfo, this, broadcastChannel, addr, port ) );
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_GetServerInfo, this, paintChannel, addr, port ) );
 			}
 		}
 		break;
@@ -428,16 +508,16 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 		{
 			std::string addr;
 			int port;
-			std::string broadcastChannel;
-			if( BroadCastPacketBuilder::CProbeServer::parse( packetData->body, broadcastChannel, addr, port ) )
+			std::string paintChannel;
+			if( BroadCastPacketBuilder::CProbeServer::parse( packetData->body, paintChannel, addr, port ) )
 			{
-				qDebug() << "CODE_BROAD_PROBE_SERVER : " << broadcastChannel.c_str() << addr.c_str() << port;
-				if( broadcastChannel_ != broadcastChannel )
+				qDebug() << "CODE_BROAD_PROBE_SERVER : " << paintChannel.c_str() << addr.c_str() << port;
+				if( paintChannel_ != paintChannel )
 					return;
 
 				// make server info
 				std::string myIp = Util::getMyIPAddress();
-				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( broadcastChannel_, myIp, listenTcpPort_ );
+				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( paintChannel_, myIp, listenTcpPort_ );
 
 				if( udpSessionForConnection_ )
 					udpSessionForConnection_->close();
@@ -449,16 +529,16 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 
 	case CODE_BROAD_TEXT_MESSAGE:
 		{
-			std::string message, broadcastChannel, myId;
-			if( BroadCastPacketBuilder::CTextMessage::parse( packetData->body, broadcastChannel, myId, message ) )
+			std::string message, paintChannel, myId;
+			if( BroadCastPacketBuilder::CTextMessage::parse( packetData->body, paintChannel, myId, message ) )
 			{
-				if( broadcastChannel_ != broadcastChannel )
+				if( paintChannel_ != paintChannel )
 					return;
 
 				if( myId_ == myId )	// ignore myself message..
 					return;
 	
-				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedTextMessage, this, broadcastChannel, message ) );
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedTextMessage, this, paintChannel, message ) );
 			}
 		}
 		break;

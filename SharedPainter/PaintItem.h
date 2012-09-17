@@ -118,7 +118,7 @@ public:
 	void setMyItem( void ) { mine_ = true; }
 	bool isMyItem( void ) { return mine_; }
 
-	// TODO : this work is not complete.
+	// TODO : sending packet work is not complete.
 	//void setPacketId( int packetId ) { packetId_ = packetId; }
 	//int packetId( void ) { return packetId_; }
 	size_t wroteBytes( void ) { return wroteBytes_; }

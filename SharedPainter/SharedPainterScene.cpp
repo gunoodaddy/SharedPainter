@@ -449,7 +449,7 @@ void CSharedPainterScene::drawSendingStatus( boost::shared_ptr<CPaintItem> item 
 	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
 	Q_UNUSED(i);
 	//qDebug() << "drawSendingStatus" << item->wroteBytes() << item->totalBytes();
-	// TODO
+	// TODO : SENDING PROGRESS
 	// How make progress bar and handle it??
 	// ....
 }
@@ -762,7 +762,7 @@ void CSharedPainterScene::dropEvent( QGraphicsSceneDragDropEvent * evt )
 			if( !QFileInfo(path).isFile() )
 				continue;
 
-			// TODO : is this the fastest way to check it?
+			// TODO : Image check, is this the fastest way to check it?
 			isImageFile = (QImage(path).isNull() == false);
 
 			if( isImageFile )

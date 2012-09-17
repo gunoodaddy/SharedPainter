@@ -167,7 +167,7 @@ protected slots:
 	void actionConnectServer( void );
 	void actionSaveImageFile( void );
 	void actionClipboardPaste( void );
-	void actionBroadcastChannel( void );
+	void actionPaintChannel( void );
 	void actionBroadcastTextMessage( void );
 	void actionClearBG( void );
 	void actionBGColor( void );
@@ -200,7 +200,7 @@ private:
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
 	void setCheckGridLineAction( bool checked );
 	void setCheckShowLastAddItemAction( bool checked );
-	bool getBroadcastChannelString( bool force = false );
+	bool getPaintChannelString( bool force = false );
 	void changeToobarButtonColor( QPushButton *button, const QColor &clr )
 	{
 		QString s;
@@ -255,6 +255,16 @@ protected:
 #endif
 		}
 	}
+	
+	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
+	{
+		// TODO : SYNC START
+	}
+
+	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )
+	{
+		// TODO : SYNC COMPLETE
+	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
 	{
@@ -269,7 +279,7 @@ protected:
 		wroteProgressBar_->setValue( wroteBytes );
 
 		/*
-		// TODO
+		// TODO : SENDING PACKET ITEM PROGRESS
 		ITEM_LIST list = self->findItem( packetId );
 		for( size_t i = 0; i < list.size(); i++ )
 		{
@@ -362,7 +372,7 @@ protected:
 		setStatusBar_JoinerCnt( self->userCount() );
 	}
 
-	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &addr, int port )
+	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &paintChannel, const std::string &addr, int port )
 	{
 		if( !self->isConnected() && !self->isServerMode() )
 		{
@@ -373,7 +383,7 @@ protected:
 		}
 	}
 	
-	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &broadcastChannel, const std::string &message )
+	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &message )
 	{
 		QString msg = QString::fromUtf8( message.c_str(), message.size() );
 		showTrayMessage( msg );

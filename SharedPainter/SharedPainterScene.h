@@ -48,7 +48,7 @@ public:
 		if( freezeActionFlag_ )
 			return false;
 
-		// TODO
+		// TODO : CURSOR CHANGE ON DISABLE WIDGET
 		// When this view become disabled state, the cursor has changed to default cursor automatically..
 		// I don't know how to avoid this problem.
 		// SO I call QApplication::setOverrideCursor()...

@@ -5,6 +5,148 @@
 
 namespace SystemPacketBuilder
 {
+	class ChangeSuperPeer{
+	public:
+		static bool parse( const std::string &body, std::string & userid ) {
+
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::readString8( body, pos, userid );
+
+				return true;
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
+	class CJoinerServerUser
+	{
+	public:
+		static std::string make( boost::shared_ptr<CPaintUser> user )
+		{
+			try
+			{
+				std::string body = user->serialize();
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN_SERVER, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static boost::shared_ptr<CPaintUser> parse( const std::string &body )
+		{
+			try
+			{
+				boost::shared_ptr<CPaintUser> user(new CPaintUser);
+				user->deserialize( body );			
+				return user;
+
+			}catch(...)
+			{
+			}
+			return boost::shared_ptr<CPaintUser>();
+		}
+	};
+
+	class CJoinerSuperPeerUser
+	{
+	public:
+		static std::string make( boost::shared_ptr<CPaintUser> user )
+		{
+			try
+			{
+				std::string body = user->serialize();
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN_SUPERPEER, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static boost::shared_ptr<CPaintUser> parse( const std::string &body )
+		{
+			try
+			{
+				boost::shared_ptr<CPaintUser> user(new CPaintUser);
+				user->deserialize( body );			
+				return user;
+
+			}catch(...)
+			{
+			}
+			return boost::shared_ptr<CPaintUser>();
+		}
+	};
+
+	class CSyncRequest
+	{
+	public:
+		static std::string make( void )
+		{
+			try
+			{
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_SYNC_REQUEST, "" );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::string &channel, std::string &target )
+		{
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::readString8( body, pos, channel );
+				pos += CPacketBufferUtil::readString8( body, pos, target );
+				return true;
+
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
+	class CSyncStart
+	{
+	public:
+		static std::string make( const std::string &channel, const std::string &fromId, const std::string &toId )
+		{
+			try
+			{
+				int pos = 0;
+				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, channel );
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_SYNC_START, body, &fromId, &toId );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::string &channel )
+		{
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::readString8( body, pos, channel );
+				return true;
+
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
 	class CSyncComplete
 	{
 	public:
@@ -32,16 +174,16 @@ namespace SystemPacketBuilder
 		}
 	};
 
-	class ChangeSuperPeer{
+	class CTcpSyn
+	{
 	public:
-		static bool parse( const std::string &body, std::string & userid ) {
-
-			int pos = 0;
+		static bool parse( const std::string &body )
+		{
 			try
 			{
-				pos += CPacketBufferUtil::readString8( body, pos, userid );
-
+				// nothing to do yet..
 				return true;
+
 			}catch(...)
 			{
 			}
@@ -49,64 +191,20 @@ namespace SystemPacketBuilder
 		}
 	};
 
-	class CJoinerUser
-	{
-	public:
-		static std::string make( boost::shared_ptr<CPaintUser> user )
-		{
-			try
-			{
-				std::string body = user->serialize();
-
-				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN, body );
-			}catch(...)
-			{
-			}
-			return "";
-		}
-
-		static boost::shared_ptr<CPaintUser> parse( const std::string &body )
-		{
-			try
-			{
-				boost::shared_ptr<CPaintUser> user(new CPaintUser);
-				user->deserialize( body );			
-				return user;
-
-			}catch(...)
-			{
-			}
-			return boost::shared_ptr<CPaintUser>();
-		}
-	};
-
-	class CRequestSync
+	
+	class CTcpAck
 	{
 	public:
 		static std::string make( void )
 		{
 			try
 			{
-				return CommonPacketBuilder::makePacket( CODE_SYSTEM_SYNC_START, body );
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_TCPACK, "" );
+
 			}catch(...)
 			{
 			}
 			return "";
-		}
-
-		static bool parse( const std::string &body, std::string &channel, std::string &target )
-		{
-			int pos = 0;
-			try
-			{
-				pos += CPacketBufferUtil::readString8( body, pos, channel );
-				pos += CPacketBufferUtil::readString8( body, pos, target );
-				return true;
-
-			}catch(...)
-			{
-			}
-			return false;
 		}
 	};
 

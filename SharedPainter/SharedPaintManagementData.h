@@ -17,11 +17,6 @@ public:
 		std::pair< ITEM_MAP::iterator, bool > ret = itemMap_.insert( ITEM_MAP::value_type(item->itemId(), item) );
 		if( ! ret.second )
 		{
-			// TODO : check this right~
-			//// overwrite
-			//ret.first->second->lo
-			//ret.first->second->remove();
-			//ret.first->second = item;
 			return false;
 		}
 

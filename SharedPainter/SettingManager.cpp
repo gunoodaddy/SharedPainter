@@ -28,7 +28,8 @@ void CSettingManager::load( void )
 	QSettings settings( DEFAULT_FILE_NAME, QSettings::IniFormat );
 	settings.beginGroup( "network" );
 	peerAddress_ = settings.value( "peerAddress" ).toString().toStdString();
-	broadCastChannel_ = settings.value( "broadCastChannel" ).toString().toStdString();
+	relayServerAddress_ = settings.value( "relayServerAddress" ).toString().toStdString();
+	paintChannel_ = settings.value( "paintChannel" ).toString().toStdString();
 	settings.endGroup();
 }
 
@@ -38,6 +39,7 @@ void CSettingManager::save( void )
 	QSettings settings( DEFAULT_FILE_NAME, QSettings::IniFormat );
 	settings.beginGroup( "network" );
 	settings.setValue( "peerAddress", peerAddress_.c_str() );
-	settings.setValue( "broadCastChannel", broadCastChannel_.c_str() );
+	settings.setValue( "relayServerAddress", relayServerAddress_.c_str() );
+	settings.setValue( "paintChannel", paintChannel_.c_str() );
 	settings.endGroup();
 }

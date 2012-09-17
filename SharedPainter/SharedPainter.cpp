@@ -65,9 +65,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 		// Network Menu
 		QMenu* network = new QMenu( "&Network", menuBar );
-		network->addAction( "&Connect server", this, SLOT(actionConnectServer()) );
-		network->addAction( "&Connect peer", this, SLOT(actionConnect()), Qt::CTRL+Qt::Key_N );
-		network->addAction( "&Broadcast Channel", this, SLOT(actionBroadcastChannel()), Qt::CTRL+Qt::Key_H );
+		network->addAction( "&Connect Server", this, SLOT(actionConnectServer()) );
+		network->addAction( "&Connect Superpeer", this, SLOT(actionConnect()) );
+		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
 		QMenu* broadCastTypeMenu = network->addMenu( "BroadCast Type" );
 		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
 		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
@@ -170,7 +170,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	}
 
 	// Setting applying
-	SharePaintManagerPtr()->setBroadCastChannel( SettingManagerPtr()->broadCastChannel() );
+	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 	actionPenWidth3();
 
@@ -409,11 +409,52 @@ void SharedPainter::actionConnectServer( void )
 {
 	static std::string userId = Util::generateMyId();
 
-	std::string serverAddr = "61.247.198.102";
-	int port = 10888;
-	std::string roomId = SettingManagerPtr()->broadCastChannel();
+	if( ! getPaintChannelString() )
+		return;	
+
+	QString errorMsg;
+
+	do{
+		bool ok = false;
+
+		static QString lastAddress;
+
+		QString addr = QInputDialog::getText( this, tr("Input relay server address"),
+			tr("Address:Port"), QLineEdit::Normal, SettingManagerPtr()->relayServerAddress().c_str(), &ok);
+
+		lastAddress = addr;
+
+		if ( !ok )
+			break;
+
+		if ( addr.isEmpty())
+		{
+			errorMsg = tr("Your input addres is wrong format. (IP:PORT)");
+			break;
+		}
+
+		QStringList list = addr.split(":");
+
+		if( list.size() != 2 )
+		{
+			errorMsg = tr("Your input addres is wrong format. (IP:PORT)");
+			break;
+		}
+
+		std::string ip = list.at(0).toStdString();
+		int port = list.at(1).toInt();
+		//ip = "61.247.198.102";
+		//ip = "127.0.0.1";
+
+		SharePaintManagerPtr()->requestJoinServer( ip, port, Util::generateMyId(), SettingManagerPtr()->paintChannel() );
 	
-	SharePaintManagerPtr()->requestJoinServer( serverAddr, port, userId, roomId );
+		SettingManagerPtr()->setRelayServerAddress( addr.toStdString() );
+
+		return;
+	} while( false );
+
+	if( ! errorMsg.isEmpty() )
+		QMessageBox::warning(this, "", errorMsg);
 }
 
 void SharedPainter::actionConnect( void )
@@ -590,23 +631,23 @@ void SharedPainter::actionBroadcastTextMessage( void )
 	if( ! ok )
 		return;
 
-	SharePaintManagerPtr()->sendBroadCastTextMessage( SettingManagerPtr()->broadCastChannel(), Util::toUtf8StdString( msg ) );
+	SharePaintManagerPtr()->sendBroadCastTextMessage( SettingManagerPtr()->paintChannel(), Util::toUtf8StdString( msg ) );
 }
 
-void SharedPainter::actionBroadcastChannel( void )
+void SharedPainter::actionPaintChannel( void )
 {
-	if( ! getBroadcastChannelString( true ) )
+	if( ! getPaintChannelString( true ) )
 		return;	
 
-	SharePaintManagerPtr()->setBroadCastChannel( SettingManagerPtr()->broadCastChannel() );
+	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 }
 
 void SharedPainter::actionServerType( void )
 {
-	if( ! getBroadcastChannelString() )
+	if( ! getPaintChannelString() )
 		return;
 
-	if( SharePaintManagerPtr()->startServer( SettingManagerPtr()->broadCastChannel() ) )
+	if( SharePaintManagerPtr()->startServer() )
 		setStatusBar_BroadCastType( tr("Server Type") );
 	else
 		setStatusBar_BroadCastType( tr("None Type") );
@@ -614,7 +655,7 @@ void SharedPainter::actionServerType( void )
 
 void SharedPainter::actionClientType( void )
 {
-	if( ! getBroadcastChannelString() )
+	if( ! getPaintChannelString() )
 		return;
 
 	if( SharePaintManagerPtr()->startClient() )
@@ -659,13 +700,18 @@ void SharedPainter::actionClipboardPaste( void )
 }
 
 
-bool SharedPainter::getBroadcastChannelString( bool force )
+bool SharedPainter::getPaintChannelString( bool force )
 {
-	if( !force && SettingManagerPtr()->broadCastChannel().empty() == false )	// already setting
+	if( !force && SettingManagerPtr()->paintChannel().empty() == false )	// already setting
 		return true;
 
+	if( !force )
+	{
+		QMessageBox::warning(this, "", "Your need to register channel id first.");
+	}
+
 	bool ok;
-	QString channel = QInputDialog::getText(this, tr("Broadcast Channel"), tr("Channel: any string"), QLineEdit::Normal, SettingManagerPtr()->broadCastChannel().c_str(), &ok);
+	QString channel = QInputDialog::getText(this, tr("Paint Channel"), tr("Channel: any string"), QLineEdit::Normal, SettingManagerPtr()->paintChannel().c_str(), &ok);
 	if( ! ok )
 		return false;
 
@@ -675,7 +721,7 @@ bool SharedPainter::getBroadcastChannelString( bool force )
 		return false;
 	}
 
-	SettingManagerPtr()->setBroadCastChannel( channel.toStdString() );
+	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
 	return true;
 }
 

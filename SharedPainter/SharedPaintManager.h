@@ -592,7 +592,7 @@ private:
 
 		// must be called here for preventing from a crash by thread race condition.
 
-		userSession->session()->connect( user->localIPAddress(), user->listenTcpPort() );
+		userSession->session()->connect( user->localIPAddress()/*TODO RELAYMODE*/, user->listenTcpPort() );
 
 		return true;
 	}

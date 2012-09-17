@@ -7,7 +7,7 @@
 #define DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG  3338
 #define START_UDP_LISTEN_PORT	                5001
 
-CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), serverMode_(false), clientMode_(false)
+CSharedPaintManager::CSharedPaintManager(void) : enabled_(true), commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), findingServerMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
@@ -38,7 +38,6 @@ CSharedPaintManager::CSharedPaintManager(void) : commandMngr_(this), canvas_(NUL
 
 	clearAllUsers(); // clear & add my user info
 
-	// TODO : RELAY MODE!
 	startServer();
 }
 
@@ -69,10 +68,9 @@ void CSharedPaintManager::sendBroadCastTextMessage( const std::string &paintChan
 	broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
 }
 
-bool CSharedPaintManager::startClient( void )
+bool CSharedPaintManager::startFindingServer( void )
 {
-	stopClient();
-	stopServer();
+	stopFindingServer();
 
 	// for receiving server info
 	if( udpSessionForConnection_ )
@@ -99,14 +97,14 @@ bool CSharedPaintManager::startClient( void )
 	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
 	qDebug() << "startClient" << listenUdpPort_;
-	clientMode_ = true;
+	findingServerMode_ = true;
 	return true;
 }
 
 
 bool CSharedPaintManager::startServer( int port )
 {
-	stopClient();
+	stopFindingServer();
 	stopServer();
 
 	if( port <= 0 )
@@ -139,14 +137,13 @@ bool CSharedPaintManager::startServer( int port )
 	}
 
 	qDebug() << "startServer" << listenTcpPort_;
-	serverMode_ = true;
 	return true;
 }
 
 
-void CSharedPaintManager::stopClient( void )
+void CSharedPaintManager::stopFindingServer( void )
 {
-	if( ! clientMode_ )
+	if( ! findingServerMode_ )
 		return;
 
 	clearAllUsers();
@@ -158,24 +155,16 @@ void CSharedPaintManager::stopClient( void )
 	if( broadCastSessionForConnection_ )
 		broadCastSessionForConnection_->close();
 
-	clientMode_ = false;
+	findingServerMode_ = false;
 }
 
 void CSharedPaintManager::stopServer( void )
 {
-	if( ! serverMode_ )
-		return;
-
 	clearAllUsers();
 	clearAllSessions();
 
 	if( netPeerServer_ )
 		netPeerServer_->close();
-
-	if( broadCastSessionForConnection_ )
-		broadCastSessionForConnection_->close();
-
-	serverMode_ = false;
 }
 
 
@@ -269,16 +258,14 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 
 			if( user )
 			{
-				if( isAwaysP2PMode() )
+				if( isAlwaysP2PMode() )
 				{
 					addUser( user );
 				}
-				else
-				{
-					boost::shared_ptr<CPaintUser> joiner = findUser( user->userId() );
-					if( joiner )
-						joiner->setSessionId( session->sessionId() );
-					}
+
+				boost::shared_ptr<CPaintUser> joiner = findUser( user->userId() );
+				if( joiner )
+					joiner->setSessionId( session->sessionId() );
 			}
 		}
 		break;

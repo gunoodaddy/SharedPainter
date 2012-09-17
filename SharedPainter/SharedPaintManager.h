@@ -75,7 +75,7 @@ public:
 	void close( void )
 	{
 		stopServer();
-		stopClient();
+		stopFindingServer();
 
 		if( broadCastSessionForSendMessage_ )
 			broadCastSessionForSendMessage_->close();
@@ -85,8 +85,7 @@ public:
 
 		netRunner_.close();
 
-		serverMode_ = false;
-		clientMode_ = false;
+		findingServerMode_ = false;
 	}
 
 	void setCanvas( IGluePaintCanvas *canvas )
@@ -107,11 +106,8 @@ public:
 
 	// Network
 public:
-	bool startClient( void );
-	void stopClient( void );
-
-	bool startServer( int port = 0 );
-	void stopServer( void );
+	bool startFindingServer( void );
+	void stopFindingServer( void );
 
 	void setPaintChannel( const std::string & channel );
 
@@ -135,7 +131,9 @@ public:
 
 	bool requestJoinServer( const std::string &addr, int port, const std::string &userid, const std::string &roomid )
 	{
-		stopClient();
+		stopFindingServer();
+		startServer();
+
 		clearAllUsers();
 		clearAllSessions();
 		clearAllItems();
@@ -173,14 +171,9 @@ public:
 		return lastPacketId_;
 	}
 
-	bool isServerMode( void )
+	bool isFindingServerMode( void )
 	{
-		return serverMode_;
-	}
-
-	bool isClientMode( void )
-	{
-		return clientMode_;
+		return findingServerMode_;
 	}
 
 	bool isConnecting( void )
@@ -302,6 +295,11 @@ public:
 
 	// Shared Paint Action
 public:
+	void setEnabled( bool enabled )
+	{
+		enabled_ = enabled;
+	}
+
 	void redoCommand( void )
 	{
 		commandMngr_.redoCommand();
@@ -318,6 +316,9 @@ public:
 
 	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
+		if( ! enabled_ )
+			return false;
+
 		std::string msg = PaintPacketBuilder::CCreateItem::make( item );
 		sendDataToUsers( msg );
 
@@ -327,8 +328,38 @@ public:
 		return commandMngr_.executeCommand( command );
 	}
 
+	void updatePaintItem( boost::shared_ptr< CPaintItem > item )
+	{
+		if( ! enabled_ )
+			return;
+
+		boost::shared_ptr<CUpdateItemCommand> command = boost::shared_ptr<CUpdateItemCommand>(new CUpdateItemCommand( item ));
+		commandMngr_.executeCommand( command );
+	}
+
+	void movePaintItem( boost::shared_ptr< CPaintItem > item )
+	{
+		if( ! enabled_ )
+			return;
+
+		boost::shared_ptr<CMoveItemCommand> command = boost::shared_ptr<CMoveItemCommand>(new CMoveItemCommand( item ));
+		commandMngr_.executeCommand( command );
+	}
+
+	void removePaintItem( boost::shared_ptr< CPaintItem > item )
+	{
+		if( ! enabled_ )
+			return;
+
+		boost::shared_ptr<CRemoveItemCommand> command = boost::shared_ptr<CRemoveItemCommand>(new CRemoveItemCommand( item ));
+		commandMngr_.executeCommand( command );
+	}
+
 	int sendBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image )
 	{
+		if( ! enabled_ )
+			return false;
+
 		if( !image )
 			return -1;
 
@@ -343,6 +374,9 @@ public:
 
 	void setBackgroundColor( int r, int g, int b, int a )
 	{
+		if( ! enabled_ )
+			return;
+
 		std::string msg = PaintPacketBuilder::CSetBackgroundColor::make( r, g, b, a );
 		sendDataToUsers( msg );
 
@@ -351,6 +385,9 @@ public:
 
 	void clearBackground( void )
 	{
+		if( ! enabled_ )
+			return;
+
 		// data init..
 		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
 
@@ -362,6 +399,9 @@ public:
 
 	void clearScreen( bool sendData = true )
 	{
+		if( ! enabled_ )
+			return;
+
 		if( sendData )
 		{
 			std::string msg = PaintPacketBuilder::CClearScreen::make();
@@ -373,32 +413,20 @@ public:
 
 	void setBackgroundGridLine( int size )
 	{
+		if( ! enabled_ )
+			return;
+
 		std::string msg = PaintPacketBuilder::CSetBackgroundGridLine::make( size );
 		sendDataToUsers( msg );
 
 		fireObserver_SetBackgroundGridLine( size );
 	}
 	
-	void notifyUpdateItem( boost::shared_ptr< CPaintItem > item )
-	{
-		boost::shared_ptr<CUpdateItemCommand> command = boost::shared_ptr<CUpdateItemCommand>(new CUpdateItemCommand( item ));
-		commandMngr_.executeCommand( command );
-	}
-
-	void notifyMoveItem( boost::shared_ptr< CPaintItem > item )
-	{
-		boost::shared_ptr<CMoveItemCommand> command = boost::shared_ptr<CMoveItemCommand>(new CMoveItemCommand( item ));
-		commandMngr_.executeCommand( command );
-	}
-
-	void notifyRemoveItem( boost::shared_ptr< CPaintItem > item )
-	{
-		boost::shared_ptr<CRemoveItemCommand> command = boost::shared_ptr<CRemoveItemCommand>(new CRemoveItemCommand( item ));
-		commandMngr_.executeCommand( command );
-	}
-
 	int notifyResizingMainWindow( int width, int height )
 	{
+		if( ! enabled_ )
+			return -1;
+
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( width, height );
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
@@ -419,7 +447,7 @@ public:
 private:
 	void sendAllSyncData( int toSessionId )
 	{
-		if( isServerMode() == false )
+		if( isAlwaysP2PMode() == false )
 			return;
 
 		std::string allData = serializeData();
@@ -430,7 +458,7 @@ private:
 		sendDataToUsers( allData, toSessionId );
 	}
 
-	// User Management and Sync
+	// User Mansagement and Sync
 public:
 	int userCount( void )
 	{
@@ -451,6 +479,7 @@ private:
 
 	void notifyRemoveUserInfo( boost::shared_ptr<CPaintUser> user )
 	{
+		qDebug() << "notifyRemoveUserInfo" << joinerMap_.size();
 		std::string msg = SystemPacketBuilder::CLeftUser::make( user->channel(), user->userId() );
 		sendDataToUsers( msg );
 	}
@@ -581,6 +610,9 @@ private:
 	}
 
 private:
+	bool startServer( int port = 0 );
+	void stopServer( void );
+
 	bool connectToSuperPeer( boost::shared_ptr<CPaintUser> user )
 	{
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
@@ -622,7 +654,7 @@ private:
 		return false;
 	}
 
-	inline bool isAwaysP2PMode( void )
+	inline bool isAlwaysP2PMode( void )
 	{
 		return relayServerSession_ == NULL;	// TODO : isAwaysP2PMode
 	}
@@ -645,7 +677,7 @@ private:
 			(*it)->onISharedPaintEvent_Connected( this );
 		}
 
-		if( relayServerSession_ == NULL && isServerMode() )
+		if( isAlwaysP2PMode() && isMySelfSuperPeer() )
 			sendAllSyncData( sessionId );
 	}
 	void fireObserver_DisConnected( void )
@@ -658,6 +690,8 @@ private:
 	}
 	void fireObserver_SyncStart( void )
 	{
+		enabled_ = false;
+
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
@@ -666,6 +700,8 @@ private:
 	}
 	void fireObserver_SyncComplete( void )
 	{
+		enabled_ = true;
+
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
@@ -863,6 +899,9 @@ protected:
 
 		// start read io!
 		session->start();
+
+		if( isAlwaysP2PMode() )
+			superPeerId_ = myId_;
 	}
 
 	// INetBroadCastSessionEvent
@@ -909,16 +948,16 @@ protected:
 	// IPaintSessionEvent
 	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session )
 	{
-		if( isClientMode() )
+		if( isFindingServerMode() )
 			broadCastSessionForConnection_->pauseSend();
 
-		if( isRelayServerSession( session ) || isSuperPeerSession(session) )
+		if( isRelayServerSession( session ) || isSuperPeerSession(session) || isAlwaysP2PMode() )
 		{
 			// send to my user info to relay server or super peer
 			sendMyUserInfo( session );
 		}
 
-		if ( isRelayServerSession( session ) )
+		if ( isRelayServerSession( session ) || isAlwaysP2PMode() )
 		{
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_Connected, this, session->sessionId() ) );
 		}
@@ -940,7 +979,7 @@ protected:
 
 	virtual void onIPaintSessionEvent_Disconnected( boost::shared_ptr<CPaintSession> session )
 	{
-		if( isClientMode() )
+		if( isFindingServerMode() )
 			broadCastSessionForConnection_->resumeSend();
 
 		if( isConnected() == false )
@@ -949,7 +988,7 @@ protected:
 		boost::shared_ptr<CPaintUser> user = findUser( session->sessionId() );
 		if( user )
 		{
-			if( isServerMode() )
+			if( isAlwaysP2PMode() )
 			{
 				notifyRemoveUserInfo( user );
 			}
@@ -965,27 +1004,23 @@ protected:
 
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedPacket, this ) );
 
-		if( isServerMode() )
+		// to send the others without this user
+		if( sessionList_.size() <= 1 )
+			return;
+
+		SESSION_LIST list = sessionList_;
+		SESSION_LIST::iterator it = list.begin();
+		for( ; it != list.end(); it++ )
 		{
-			// to send the others without this user
-			if( sessionList_.size() <= 1 )
-				return;
-
-			SESSION_LIST list = sessionList_;
-			SESSION_LIST::iterator it = list.begin();
-			for( ; it != list.end(); it++ )
+			if( *it == session )
 			{
-				if( *it == session )
-				{
-					list.erase( it );
-					break;
-				}
+				list.erase( it );
+				break;
 			}
-
-			std::string msg = CommonPacketBuilder::makePacket( data->code, data->body );
-
-			sendDataToUsers( list, msg );
 		}
+
+		std::string msg = CommonPacketBuilder::makePacket( data->code, data->body );
+		sendDataToUsers( list, msg );
 	}
 
 	virtual void onIPaintSessionEvent_SendingPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CNetPacketData> packet )
@@ -1049,6 +1084,7 @@ private:
 
 	std::string myId_;
 	CDefferedCaller caller_;
+	bool enabled_;
 
 	// obsevers
 	std::list<ISharedPaintEvent *> observers_;
@@ -1073,8 +1109,7 @@ private:
 	
 	// network
 	CNetServiceRunner netRunner_;
-	bool serverMode_;
-	bool clientMode_;
+	bool findingServerMode_;
 	int listenTcpPort_;
 	int listenUdpPort_;
 	std::string superPeerId_;

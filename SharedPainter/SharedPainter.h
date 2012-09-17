@@ -8,6 +8,8 @@
 #include "SharedPaintPolicy.h"
 #include "FindingServerDialog.h"
 
+#define STR_INIT_NET_MODE	tr("Waiting.. ")
+
 class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent
 {
 	Q_OBJECT
@@ -123,8 +125,8 @@ public:
 		findingServerWindow_->exec();
 		if( findingServerWindow_->isCanceled() )
 		{
-			SharePaintManagerPtr()->stopClient();
-			setStatusBar_BroadCastType( tr("None Type") );
+			SharePaintManagerPtr()->stopFindingServer();
+			setStatusBar_BroadCastType( STR_INIT_NET_MODE );
 		}
 		delete findingServerWindow_;
 		findingServerWindow_ = NULL;
@@ -188,8 +190,7 @@ protected slots:
 	void actionScreenShot( void );
 	void actionUndo( void );
 	void actionRedo( void );
-	void actionServerType( void );
-	void actionClientType( void );
+	void actionFindingServer( void );
 	void actionGridLine( void );
 	void actionImportFile( void );
 	void actionExportFile( void );
@@ -236,7 +237,7 @@ protected:
 
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self )
 	{
-		if( self->isClientMode() )
+		if( self->isFindingServerMode() )
 		{
 			static CDefferedCaller caller;
 
@@ -374,7 +375,7 @@ protected:
 
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &paintChannel, const std::string &addr, int port )
 	{
-		if( !self->isConnected() && !self->isServerMode() )
+		if( !self->isConnected() && self->isFindingServerMode() )
 		{
 			if( self->isConnecting() )
 				return;
@@ -423,6 +424,7 @@ private:
 	QAction *penModeAction_;
 	QAction *gridLineAction_;
 	QAction *showLastItemAction_;
+	QAction *startFindServerAction_;
 	QAction *toolBar_MoveMode_;
 	QAction *toolBar_PenMode_;
 	QAction *toolBar_GridLine_;

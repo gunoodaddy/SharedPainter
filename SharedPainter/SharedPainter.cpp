@@ -65,12 +65,10 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 		// Network Menu
 		QMenu* network = new QMenu( "&Network", menuBar );
-		network->addAction( "&Connect Server", this, SLOT(actionConnectServer()) );
-		network->addAction( "&Connect Superpeer", this, SLOT(actionConnect()) );
+		network->addAction( "&Connect to Relay Server", this, SLOT(actionConnectServer()) );
+		network->addAction( "&Connect to Super Peer", this, SLOT(actionConnect()) );
 		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
-		QMenu* broadCastTypeMenu = network->addMenu( "BroadCast Type" );
-		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
-		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
+		startFindServerAction_ = network->addAction( "Start &Find Server", this, SLOT(actionFindingServer()), Qt::CTRL+Qt::Key_1 );
 		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
 		menuBar->addMenu( network );
 		
@@ -148,7 +146,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
-		setStatusBar_BroadCastType( tr("None Type") );
+		setStatusBar_BroadCastType( STR_INIT_NET_MODE );
 		setStatusBar_JoinerCnt( 1 );	// my self 
 		setStatusBar_PlaybackStatus( 0, 0 );
 	}
@@ -642,30 +640,27 @@ void SharedPainter::actionPaintChannel( void )
 	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 }
 
-void SharedPainter::actionServerType( void )
+void SharedPainter::actionFindingServer( void )
 {
 	if( ! getPaintChannelString() )
 		return;
 
-	if( SharePaintManagerPtr()->startServer() )
-		setStatusBar_BroadCastType( tr("Server Type") );
-	else
-		setStatusBar_BroadCastType( tr("None Type") );
-}
-
-void SharedPainter::actionClientType( void )
-{
-	if( ! getPaintChannelString() )
-		return;
-
-	if( SharePaintManagerPtr()->startClient() )
+	if( ! SharePaintManagerPtr()->isFindingServerMode() )
 	{
-		setStatusBar_BroadCastType( tr("Client Type") );
+		if( SharePaintManagerPtr()->startFindingServer() )
+		{
+			setStatusBar_BroadCastType( tr("Finding server") );
 
-		showFindingServerWindow();
+			showFindingServerWindow();
+		}
+		else
+			setStatusBar_BroadCastType( STR_INIT_NET_MODE );
 	}
 	else
-		setStatusBar_BroadCastType( tr("None Type") );
+	{
+		SharePaintManagerPtr()->stopFindingServer();
+		setStatusBar_BroadCastType( STR_INIT_NET_MODE );
+	}
 }
 
 void SharedPainter::actionClipboardPaste( void )
@@ -814,7 +809,7 @@ void SharedPainter::onICanvasViewEvent_BeginMove( CSharedPainterScene *view, boo
 
 void SharedPainter::onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
 {
-	SharePaintManagerPtr()->notifyMoveItem( item );
+	SharePaintManagerPtr()->movePaintItem( item );
 }
 
 void SharedPainter::onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item  )
@@ -824,10 +819,10 @@ void SharedPainter::onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boos
 
 void SharedPainter::onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
 {
-	SharePaintManagerPtr()->notifyUpdateItem( item );
+	SharePaintManagerPtr()->updatePaintItem( item );
 }
 
 void SharedPainter::onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
 {
-	SharePaintManagerPtr()->notifyRemoveItem( item );
+	SharePaintManagerPtr()->removePaintItem( item );
 }

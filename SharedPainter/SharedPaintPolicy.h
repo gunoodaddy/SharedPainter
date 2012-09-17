@@ -1,6 +1,6 @@
 #pragma once 
 
-#define VERSION_TEXT	"0.85"
+#define VERSION_TEXT	"0.50"
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 

@@ -7,6 +7,8 @@ enum SharedPaintCodeType {
 	CODE_SYSTEM_TCPSYN,                                                                                                             
 	CODE_SYSTEM_TCPACK,
 	CODE_SYSTEM_SUPERPEER_CHANGED,
+	CODE_SYSTEM_SYNC_REQUEST,
+	CODE_SYSTEM_SYNC_COMPLETE,
 	CODE_SYSTEM_SYNC_START,
 	CODE_SYSTEM_SYNC_COMPLETE,
 	CODE_PAINT_SET_BG_IMAGE,

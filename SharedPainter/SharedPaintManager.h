@@ -131,11 +131,8 @@ public:
 		return true;
 	}
 
-	bool connectToSuperPeer( const std::string &addr, int port )
+	bool connectToSuperPeer( boost::shared_ptr<CPaintUser> user )
 	{
-		clearScreen();
-		clearAllUsers();
-
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
 
@@ -144,22 +141,25 @@ public:
 		mutexSession_.unlock();
 
 		// must be called here for preventing from a crash by thread race condition.
-		userSession->session()->connect( addr, port );
+
+		// RELAYMODE
+		userSession->session()->connect( user->localIPAddress(), user->listenTcpPort() );
 
 		return true;
 	}
 
 	bool requestJoinServer( const std::string &addr, int port, const std::string &userid, const std::string &roomid )
 	{
-		stopServer();
-		stopClient();
+		//RELAYMODE
+		//stopServer();
+		//stopClient();
 		clearAllItems();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
 
 		mutexSession_.lock();
-		sessionList_.push_back( userSession );
+		relayServerSession_ = userSession;
 		mutexSession_.unlock();
 
 		// must be called here for preventing from a crash by thread race condition.
@@ -281,9 +281,22 @@ public:
 		SESSION_LIST sessionList;
 		
 		if( superPeerSession_ )
+		{
+			qDebug() << "sendDataToUsers() : Netmode = to superpeer";
 			sessionList.push_back( superPeerSession_ );
+		}
+		else if( sessionList_.size() > 0 )
+		{
+			qDebug() << "sendDataToUsers() : Netmode = I'm superpeer";
+			sessionList = sessionList_;
+		}
+		else if( relayServerSession_ )
+		{
+			qDebug() << "sendDataToUsers() : Netmode = to relay server";
+			sessionList.push_back( relayServerSession_ );
+		}
 		else
-			sessionList = sessionList_;;
+			return -1;
 
 		return sendDataToUsers( sessionList, msg, toSessionId );
 	}
@@ -588,8 +601,11 @@ private:
 			(*it)->onISharedPaintEvent_Connected( this );
 		}
 
+		/*
+		 * RELAYMODE
 		if( isServerMode() )
 			sendAllSyncData( sessionId );
+			*/
 	}
 	void fireObserver_DisConnected( void )
 	{
@@ -768,6 +784,12 @@ private:
 				break;
 			}
 		}
+
+		if( superPeerSession_ && superPeerSession_->sessionId() == sessionId )
+			superPeerSession_ = boost::shared_ptr<CPaintSession>();
+
+		if( relayServerSession_ && relayServerSession_->sessionId() == sessionId )
+			relayServerSession_ = boost::shared_ptr<CPaintSession>();
 	}
 	void removeSession( int sessionId )
 	{
@@ -994,6 +1016,7 @@ private:
 	int listenUdpPort_;
 	SESSION_LIST sessionList_;
 	boost::shared_ptr<CPaintSession> superPeerSession_;
+	boost::shared_ptr<CPaintSession> relayServerSession_;
 	boost::recursive_mutex mutexSession_;
 	boost::shared_ptr<CNetPeerServer> netPeerServer_;
 	boost::shared_ptr< CNetUdpSession > udpSessionForConnection_;

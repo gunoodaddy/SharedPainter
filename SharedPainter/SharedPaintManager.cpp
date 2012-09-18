@@ -72,6 +72,10 @@ bool CSharedPaintManager::startFindingServer( void )
 {
 	stopFindingServer();
 
+	// all previous connections are need to close.
+	clearAllUsers();
+	clearAllSessions();
+
 	// for receiving server info
 	if( udpSessionForConnection_ )
 		udpSessionForConnection_->close();
@@ -146,9 +150,6 @@ void CSharedPaintManager::stopFindingServer( void )
 	if( ! findingServerMode_ )
 		return;
 
-	clearAllUsers();
-	clearAllSessions();
-
 	if( udpSessionForConnection_ )
 		udpSessionForConnection_->close();
 
@@ -160,9 +161,6 @@ void CSharedPaintManager::stopFindingServer( void )
 
 void CSharedPaintManager::stopServer( void )
 {
-	clearAllUsers();
-	clearAllSessions();
-
 	if( netPeerServer_ )
 		netPeerServer_->close();
 }

@@ -74,6 +74,9 @@ public:
 
 	void close( void )
 	{
+		clearAllUsers();
+		clearAllSessions();
+
 		stopServer();
 		stopFindingServer();
 
@@ -154,7 +157,7 @@ public:
 	{
 		mutexSession_.lock();
 
-		superPeerSession_ = boost::shared_ptr<CPaintSession>():
+		superPeerSession_ = boost::shared_ptr<CPaintSession>();
 		relayServerSession_ = boost::shared_ptr<CPaintSession>();
 
 		SESSION_LIST::iterator it = sessionList_.begin();

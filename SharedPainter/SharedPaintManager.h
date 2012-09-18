@@ -117,7 +117,7 @@ public:
 		clearAllUsers();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
-		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
+		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
 
 		mutexSession_.lock();
 		sessionList_.push_back( userSession );
@@ -139,7 +139,7 @@ public:
 		clearAllItems();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
-		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
+		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
 
 		mutexSession_.lock();
 		relayServerSession_ = userSession;
@@ -153,11 +153,16 @@ public:
 	void clearAllSessions( void )
 	{
 		mutexSession_.lock();
+
+		superPeerSession_ = boost::shared_ptr<CPaintSession>():
+		relayServerSession_ = boost::shared_ptr<CPaintSession>();
+
 		SESSION_LIST::iterator it = sessionList_.begin();
 		for( ; it != sessionList_.end(); it++ )
 		{
 			(*it)->close();
 		}
+
 		mutexSession_.unlock();
 	}
 

@@ -120,8 +120,10 @@ public:
 
 	bool connectToPeer( const std::string &addr, int port )
 	{
-		clearScreen( false );
-		clearAllUsers();
+		if( port == listenTcpPort_ )
+			return false;
+
+		close();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
 		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));

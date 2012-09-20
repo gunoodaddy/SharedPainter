@@ -66,7 +66,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		// Network Menu
 		QMenu* network = new QMenu( "&Network", menuBar );
 		network->addAction( "&Connect to Relay Server", this, SLOT(actionConnectServer()) );
-		network->addAction( "&Connect to Super Peer", this, SLOT(actionConnect()) );
+		network->addAction( "&Connect to Peer", this, SLOT(actionConnect()) );
 		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
 		startFindServerAction_ = network->addAction( "Start &Find Server", this, SLOT(actionFindingServer()), Qt::CTRL+Qt::Key_1 );
 		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
@@ -141,10 +141,12 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		joinerCountLabel_ = new QLabel();
 		playbackStatusLabel_ = new QLabel();
 		wroteProgressBar_ = new QProgressBar();
+		networkInfoLabel_ = new QLabel();
 		ui.statusBar->addPermanentWidget( broadCastTypeLabel_ );
 		ui.statusBar->addPermanentWidget( joinerCountLabel_ );
 		ui.statusBar->addPermanentWidget( playbackStatusLabel_, 1 );
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
+		ui.statusBar->addPermanentWidget( networkInfoLabel_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
 		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
@@ -196,7 +198,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 	setWindowTitle( newTitle );
 
+	// start server 
 	SharePaintManagerPtr()->startServer();
+	setStatusBar_NetworkInfo( Util::getMyIPAddress(), SharePaintManagerPtr()->acceptPort() );
 }
 
 SharedPainter::~SharedPainter()
@@ -389,7 +393,7 @@ void SharedPainter::actionGridLine( void )
 	}
 	else
 	{
-		SharePaintManagerPtr()->setBackgroundGridLine( 32 );	// draw
+		SharePaintManagerPtr()->setBackgroundGridLine( DEFAULT_GRID_LINE_SIZE_W );	// draw
 	}
 }
 
@@ -445,13 +449,10 @@ void SharedPainter::actionConnectServer( void )
 
 		std::string ip = list.at(0).toStdString();
 		int port = list.at(1).toInt();
-		//ip = "61.247.198.102";
-		//ip = "127.0.0.1";
-
-		SharePaintManagerPtr()->requestJoinServer( ip, port, Util::generateMyId(), SettingManagerPtr()->paintChannel() );
 	
 		SettingManagerPtr()->setRelayServerAddress( addr.toStdString() );
 
+		SharePaintManagerPtr()->requestJoinServer( ip, port, Util::generateMyId(), SettingManagerPtr()->paintChannel() );
 		return;
 	} while( false );
 
@@ -492,12 +493,16 @@ void SharedPainter::actionConnect( void )
 
 		std::string ip = list.at(0).toStdString();
 		int port = list.at(1).toInt();
-		//ip = "61.247.198.102";
-		//ip = "127.0.0.1";
-		SharePaintManagerPtr()->connectToPeer( ip, port );
 
+		// save 
 		SettingManagerPtr()->setPeerAddress( addr.toStdString() );
 
+		// start connecting
+		if( ! SharePaintManagerPtr()->connectToPeer( ip, port ) )
+		{
+			errorMsg = tr("Could not connect to the peer.");
+			break;
+		}
 		return;
 	} while( false );
 

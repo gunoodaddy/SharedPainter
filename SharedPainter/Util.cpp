@@ -47,6 +47,8 @@ std::string Util::getMyIPAddress( void )
 		}
 	}
 
+	if( ip.empty() )
+		return "127.0.0.1";
 	return ip;
 }
 

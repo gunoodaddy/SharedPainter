@@ -95,6 +95,7 @@ public:
 		{
 			stopBroadCastMsgFlag_ = false;
 
+			sentCount_ = 0;
 			setBroadCastMessage(msg);
 
 			if( second <= 0 )

@@ -28,7 +28,15 @@ public:
 	SharedPainter(CSharedPainterScene* canvas, QWidget *parent = 0, Qt::WFlags flags = 0);
 	~SharedPainter();
 
-	void setStatusBar_Network( const QString &str )
+	void setStatusBar_NetworkInfo( const std::string &addr, int listenPort )
+	{
+		QString str = QString(addr.c_str());
+		str += ":";
+		str += QString::number(listenPort);
+		QString realStr = str + "  ";
+		networkInfoLabel_->setText( realStr );
+	}
+	void setStatusBar_ConnectStatus( const QString &str )
 	{
 		QString realStr = str + "  ";
 		statusBarLabel_->setText( realStr );
@@ -71,7 +79,7 @@ public:
 			break;
 		}
 
-		setStatusBar_Network( msg );
+		setStatusBar_ConnectStatus( msg );
 		setTrayIcon( status );
 	}
 
@@ -130,7 +138,7 @@ public:
 			SharePaintManagerPtr()->stopFindingServer();
 			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		}
-		delete findingServerWindow_;
+		if( findingServerWindow_ )	delete findingServerWindow_;
 		findingServerWindow_ = NULL;
 	}
 
@@ -156,7 +164,8 @@ public:
 			// all session, data, status clear!!!
 			SharePaintManagerPtr()->close();
 		}
-		delete syncProgressWindow_;
+
+		if( syncProgressWindow_ )	delete syncProgressWindow_;
 		syncProgressWindow_ = NULL;
 	}
 
@@ -295,7 +304,9 @@ protected:
 
 	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )
 	{
-		hideSyncProgressWindow();
+		static CDefferedCaller caller;
+
+		caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::hideSyncProgressWindow, this) );
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
@@ -453,6 +464,7 @@ private:
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
 	QLabel *playbackStatusLabel_;
+	QLabel *networkInfoLabel_;
 	QAction *penWidthAction_;
 	QAction *penModeAction_;
 	QAction *gridLineAction_;

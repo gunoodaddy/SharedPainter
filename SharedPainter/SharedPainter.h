@@ -8,7 +8,8 @@
 #include "SharedPaintPolicy.h"
 #include "FindingServerDialog.h"
 
-#define STR_INIT_NET_MODE	tr("Waiting.. ")
+#define STR_NET_MODE_INIT			tr("Waiting.. ")
+#define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
 
 class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent
 {
@@ -126,7 +127,7 @@ public:
 		if( findingServerWindow_->isCanceled() )
 		{
 			SharePaintManagerPtr()->stopFindingServer();
-			setStatusBar_BroadCastType( STR_INIT_NET_MODE );
+			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		}
 		delete findingServerWindow_;
 		findingServerWindow_ = NULL;
@@ -137,6 +138,7 @@ public:
 		if( findingServerWindow_ )
 		{
 			findingServerWindow_->reject();
+			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		}
 	}
 

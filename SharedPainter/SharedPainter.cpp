@@ -147,7 +147,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
-		setStatusBar_BroadCastType( STR_INIT_NET_MODE );
+		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		setStatusBar_JoinerCnt( 1 );	// my self 
 		setStatusBar_PlaybackStatus( 0, 0 );
 	}
@@ -654,17 +654,17 @@ void SharedPainter::actionFindingServer( void )
 	{
 		if( SharePaintManagerPtr()->startFindingServer() )
 		{
-			setStatusBar_BroadCastType( tr("Finding server") );
+			setStatusBar_BroadCastType( STR_NET_MODE_FINDING_SERVER );
 
 			showFindingServerWindow();
 		}
 		else
-			setStatusBar_BroadCastType( STR_INIT_NET_MODE );
+			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 	}
 	else
 	{
 		SharePaintManagerPtr()->stopFindingServer();
-		setStatusBar_BroadCastType( STR_INIT_NET_MODE );
+		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 	}
 }
 

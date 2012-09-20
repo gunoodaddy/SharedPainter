@@ -7,7 +7,9 @@
 #define DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG  3338
 #define START_UDP_LISTEN_PORT	                5001
 
-CSharedPaintManager::CSharedPaintManager(void) : enabled_(true), commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), findingServerMode_(false)
+#define	TIMEOUT_SYNC_MSEC	5000
+
+CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), findingServerMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
@@ -38,22 +40,36 @@ CSharedPaintManager::CSharedPaintManager(void) : enabled_(true), commandMngr_(th
 
 	clearAllUsers(); // clear & add my user info
 
-	startServer();
+	startListenBroadCast();
 }
 
-CSharedPaintManager::~CSharedPaintManager(void)
+CSharedPaintManager::~CSharedPaintManager( void )
 {
+	stopServer();
+
+	if( broadCastSessionForSendMessage_ )
+		broadCastSessionForSendMessage_->close();
+	if( broadCastSessionForRecvMessage_ )
+		broadCastSessionForRecvMessage_->close();
+
 	close();
+
+	netRunner_.close();
 }
 
+void CSharedPaintManager::onTimeoutSyncStart( void )
+{
+	if( syncStartedFlag_ == false )
+		close();
+}
 
 void CSharedPaintManager::setPaintChannel( const std::string & channel )
 {
 	std::string myIp = Util::getMyIPAddress();
 	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( channel, myIp, listenUdpPort_ );
 	
-	if( broadCastSessionForConnection_ )
-		broadCastSessionForConnection_->setBroadCastMessage( broadCastMsg );
+	if( broadCastSessionForFinder_ )
+		broadCastSessionForFinder_->setBroadCastMessage( broadCastMsg );
 	
 	myUserInfo_->setChannel( channel );
 	myUserInfo_->setLocalIPAddress( myIp );
@@ -68,9 +84,24 @@ void CSharedPaintManager::sendBroadCastTextMessage( const std::string &paintChan
 	broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
 }
 
+bool CSharedPaintManager::startListenBroadCast( void )
+{
+	if( broadCastSessionForListener_ )
+		broadCastSessionForListener_->close();
+	broadCastSessionForListener_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForListener_->setEvent( this );
+
+	if( !broadCastSessionForListener_->listenUdp( DEFAULT_BROADCAST_PORT ) )
+	{
+		return false;
+	}
+	return true;
+}
+
 bool CSharedPaintManager::startFindingServer( void )
 {
-	stopFindingServer();
+	stopListenBroadCast();
+	_stopFindingServer();
 
 	// all previous connections are need to close.
 	clearAllUsers();
@@ -94,11 +125,11 @@ bool CSharedPaintManager::startFindingServer( void )
 	std::string myIp = Util::getMyIPAddress();
 	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( paintChannel_, myIp, listenUdpPort_ );
 
-	if( broadCastSessionForConnection_ )
-		broadCastSessionForConnection_->close();
-	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
-	broadCastSessionForConnection_->setEvent( this );
-	broadCastSessionForConnection_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
+	if( broadCastSessionForFinder_ )
+		broadCastSessionForFinder_->close();
+	broadCastSessionForFinder_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForFinder_->setEvent( this );
+	broadCastSessionForFinder_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
 	qDebug() << "startClient" << listenUdpPort_;
 	findingServerMode_ = true;
@@ -108,7 +139,9 @@ bool CSharedPaintManager::startFindingServer( void )
 
 bool CSharedPaintManager::startServer( int port )
 {
-	stopFindingServer();
+	if( netPeerServer_ )	// already started..
+		return true;
+
 	stopServer();
 
 	if( port <= 0 )
@@ -129,40 +162,43 @@ bool CSharedPaintManager::startServer( int port )
 	
 	myUserInfo_->setListenTcpPort( listenTcpPort_ );
 
-	if( broadCastSessionForConnection_ )
-		broadCastSessionForConnection_->close();
-	broadCastSessionForConnection_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
-	broadCastSessionForConnection_->setEvent( this );
-
-	if( !broadCastSessionForConnection_->listenUdp( DEFAULT_BROADCAST_PORT ) )
-	{
-		stopServer();
-		return false;
-	}
-
 	qDebug() << "startServer" << listenTcpPort_;
 	return true;
+}
+
+void CSharedPaintManager::stopListenBroadCast( void )
+{
+	if( broadCastSessionForListener_ )
+		broadCastSessionForListener_->close();
+}
+
+void CSharedPaintManager::_stopFindingServer( void )
+{
+	if( ! findingServerMode_ )
+		return;
+
+	if( broadCastSessionForFinder_ )
+		broadCastSessionForFinder_->close();
+
+	if( udpSessionForConnection_ )
+		udpSessionForConnection_->close();
+
+	findingServerMode_ = false;
 }
 
 
 void CSharedPaintManager::stopFindingServer( void )
 {
-	if( ! findingServerMode_ )
-		return;
-
-	if( udpSessionForConnection_ )
-		udpSessionForConnection_->close();
-
-	if( broadCastSessionForConnection_ )
-		broadCastSessionForConnection_->close();
-
-	findingServerMode_ = false;
+	_stopFindingServer();
+	startListenBroadCast();
 }
 
 void CSharedPaintManager::stopServer( void )
 {
 	if( netPeerServer_ )
 		netPeerServer_->close();
+
+	netPeerServer_ = boost::shared_ptr<CNetPeerServer>();
 }
 
 
@@ -235,6 +271,17 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 	return allData;
 }
 
+void CSharedPaintManager::_requestSyncData( void )
+{
+	if( syncStartedFlag_ )
+		return;
+
+	QTimer::singleShot( TIMEOUT_SYNC_MSEC, this, SLOT(onTimeoutSyncStart()) );
+
+	std::string msg = SystemPacketBuilder::CSyncRequest::make();
+	if( relayServerSession_ )
+		relayServerSession_->session()->sendData( msg );
+}
 
 // this function need to check session pointer null check!
 void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData )
@@ -269,6 +316,8 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 		break;
 	case CODE_SYSTEM_RES_JOIN:
 		{
+			bool connectSuperPeerFlag = false;
+
 			std::string channel, superId;
 			USER_LIST list;
 			if( SystemPacketBuilder::CResponseJoin::parse( packetData->body, channel, list, superId ) )
@@ -282,16 +331,21 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 					if( user )
 					{
 						connectToSuperPeer( user );
+						connectSuperPeerFlag = true;
 					}
 				}
 			}
 
-			bool bFirstUserFlag = false;
+			bool firstUserFlag = false;
 			if( joinerMap_.size() == 1 )
-				bFirstUserFlag = true;
+				firstUserFlag = true;
 
-			if( false == bFirstUserFlag && relayServerSession_ )
+			if( false == firstUserFlag 
+				&& false == connectSuperPeerFlag 
+				&& relayServerSession_ )
 			{
+				QTimer::singleShot( TIMEOUT_SYNC_MSEC, this, SLOT(onTimeoutSyncStart()) );
+
 				std::string msg = SystemPacketBuilder::CSyncRequest::make();
 				relayServerSession_->session()->sendData( msg );
 			}
@@ -331,6 +385,7 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 			std::string channel;
 			if( SystemPacketBuilder::CSyncStart::parse( packetData->body, channel ) )
 			{
+				syncStartedFlag_ = true;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SyncStart, this ) );
 			}
 		}

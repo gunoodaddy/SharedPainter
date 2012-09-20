@@ -81,7 +81,9 @@ public:
 	{
 		socket_.close();
 		stopBroadCastMsgFlag_ = true;
+		
 		broadcast_timer_.cancel();
+		qDebug() << "CNetBroadCastSession::close() called";;
 	}
 
 	bool startSend( int port, const std::string &msg, int second = 0 )
@@ -90,6 +92,7 @@ public:
 
 		if( socket_.is_open() || openUdp() )
 		{
+			qDebug() << "CNetBroadCastSession::startSend() ok";
 			stopBroadCastMsgFlag_ = false;
 
 			setBroadCastMessage(msg);
@@ -97,7 +100,7 @@ public:
 			if( second <= 0 )
 				second = DEFAULT_SEND_SEC;
 
-			_start_broadcast_timer( second );
+			_start_broadcast_timer( second, true );
 			return true;
 		} 
 
@@ -107,12 +110,14 @@ public:
 	void pauseSend( void )
 	{
 		sentCount_ = 0;
+		broadcast_timer_.cancel();
 		stopBroadCastMsgFlag_ = true;
 	}
 
 	void resumeSend( void )
 	{
-		startSend( broadCastPort_, broadCastMsg_, sendMsgSecond_ );
+		stopBroadCastMsgFlag_ = false;
+		_start_broadcast_timer( sendMsgSecond_, false );
 	}
 
 	void _start_receive_from( void )
@@ -135,29 +140,41 @@ public:
 		_start_receive_from();
 	}
 
-	void _start_broadcast_timer( int second )
+	void _start_broadcast_timer( int second, bool first )
 	{
 		sendMsgSecond_ = second;
 
-		broadcast_timer_.expires_from_now(boost::posix_time::seconds(second));
-		broadcast_timer_.async_wait( boost::bind(&CNetBroadCastSession::_handle_broadcast_timer, shared_from_this()) );
+		if( ! first )
+			broadcast_timer_.expires_at( broadcast_timer_.expires_at() + boost::posix_time::seconds(second) );
+		else
+		{
+			broadcast_timer_.cancel();
+			broadcast_timer_.expires_from_now( boost::posix_time::seconds(second) );
+		}
+		broadcast_timer_.async_wait( 
+			boost::bind(&CNetBroadCastSession::_handle_broadcast_timer,
+			shared_from_this(), boost::asio::placeholders::error) );
 	}
 
-	void _handle_broadcast_timer( void )
+	void _handle_broadcast_timer( const boost::system::error_code& e )
 	{
 		if( stopBroadCastMsgFlag_ )
 			return;
 
-		if( broadcast_timer_.expires_at() <= deadline_timer::traits_type::now() )
+		if( e )
 		{
-			broadcast_timer_.expires_at( boost::posix_time::pos_infin );
-
+			qDebug() << "_handle_broadcast_timer : timer error";
+			return;
+		}
+			
+		if( sentCount_ < 100 )	// prevent from exceptional too much send to local network
+		{
 			sendData( broadCastPort_, broadCastMsg_ );
-			sentCount_++;
+			sentCount_++;				
 			fireSentMessageEvent();
 		}
 
-		_start_broadcast_timer( sendMsgSecond_ );
+		_start_broadcast_timer( sendMsgSecond_, false );
 	}
 
 

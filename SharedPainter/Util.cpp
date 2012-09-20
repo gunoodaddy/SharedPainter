@@ -11,8 +11,8 @@ std::string Util::generateMyId( void )
 
 	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
 	{
-		// Return only the first non-loopback MAC Address
-		if (!(interface.flags() & QNetworkInterface::IsLoopBack))
+		if ( (!(interface.flags() & QNetworkInterface::IsLoopBack)) 
+			&& interface.flags() & QNetworkInterface::IsRunning )
 		{
 			id = interface.hardwareAddress().toStdString();
 			break;
@@ -30,15 +30,20 @@ std::string Util::getMyIPAddress( void )
 {
 	std::string ip;
 
-	foreach(QHostAddress address, QNetworkInterface::allAddresses())
+	// TODO : my active ip address
+	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
 	{
-		QString qip = address.toString();
-		QString qscoped = address.scopeId();
-		QAbstractSocket::NetworkLayerProtocol protocol = address.protocol();
-		if( protocol == QAbstractSocket::IPv4Protocol )
+		if ( (!(interface.flags() & QNetworkInterface::IsLoopBack)) 
+			&& interface.flags() & QNetworkInterface::IsRunning )
 		{
-			ip = qip.toStdString();
-			return ip;
+			foreach(QNetworkAddressEntry entry, interface.addressEntries())
+			{
+				if( entry.ip().protocol() != QAbstractSocket::IPv4Protocol )
+					continue;
+
+				return entry.ip().toString().toStdString();
+			}
+			break;
 		}
 	}
 

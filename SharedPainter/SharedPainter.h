@@ -260,11 +260,13 @@ protected:
 	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
 	{
 		// TODO : SYNC START
+		canvas_->freezeAction();
 	}
 
 	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )
 	{
 		// TODO : SYNC COMPLETE
+		canvas_->thawAction();
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )

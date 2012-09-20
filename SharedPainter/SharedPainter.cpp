@@ -194,6 +194,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	newTitle += AUTHOR_TEXT;
 
 	setWindowTitle( newTitle );
+
+	SharePaintManagerPtr()->startServer();
 }
 
 SharedPainter::~SharedPainter()
@@ -634,10 +636,7 @@ void SharedPainter::actionBroadcastTextMessage( void )
 
 void SharedPainter::actionPaintChannel( void )
 {
-	if( ! getPaintChannelString( true ) )
-		return;	
-
-	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
+	getPaintChannelString( true );
 }
 
 void SharedPainter::actionFindingServer( void )
@@ -717,6 +716,8 @@ bool SharedPainter::getPaintChannelString( bool force )
 	}
 
 	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
+
+	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 	return true;
 }
 

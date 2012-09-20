@@ -125,7 +125,7 @@ public:
 		findingServerWindow_->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
 		findingServerWindow_->setWindowTitle( "Finding server.." );
 		findingServerWindow_->exec();
-		if( findingServerWindow_->isCanceled() )
+		if( findingServerWindow_ && findingServerWindow_->isCanceled() )
 		{
 			SharePaintManagerPtr()->stopFindingServer();
 			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
@@ -151,7 +151,7 @@ public:
 		syncProgressWindow_->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
 		syncProgressWindow_->setWindowTitle( "Sync now.." );
 		syncProgressWindow_->exec();
-		if( syncProgressWindow_->isCanceled() )
+		if( syncProgressWindow_ && syncProgressWindow_->isCanceled() )
 		{
 			// all session, data, status clear!!!
 			SharePaintManagerPtr()->close();
@@ -288,7 +288,9 @@ protected:
 	
 	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
 	{
-		showSyncProgressWindow();
+		static CDefferedCaller caller;
+
+		caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::showSyncProgressWindow, this) );
 	}
 
 	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )

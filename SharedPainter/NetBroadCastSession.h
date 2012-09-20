@@ -79,11 +79,12 @@ public:
 
 	void close( void )
 	{
+		// close broadcast udp socket 
 		socket_.close();
-		stopBroadCastMsgFlag_ = true;
-		
+
+		// cancel timer
+		stopBroadCastMsgFlag_ = true;	
 		broadcast_timer_.cancel();
-		qDebug() << "CNetBroadCastSession::close() called";;
 	}
 
 	bool startSend( int port, const std::string &msg, int second = 0 )
@@ -92,7 +93,6 @@ public:
 
 		if( socket_.is_open() || openUdp() )
 		{
-			qDebug() << "CNetBroadCastSession::startSend() ok";
 			stopBroadCastMsgFlag_ = false;
 
 			setBroadCastMessage(msg);
@@ -133,7 +133,7 @@ public:
 	{ 
 		if( !error )
 		{
-			//last_sender_endpoint_ = sender_endpoint_;
+			//last_sender_endpoint_ = sender_endpoint_;	// NOT WORKING
 			fireReceiveEvent( read_buffer_, bytes_recvd );
 		}
 

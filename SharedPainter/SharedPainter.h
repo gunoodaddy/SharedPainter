@@ -7,6 +7,7 @@
 #include "SharedPainterScene.h"
 #include "SharedPaintPolicy.h"
 #include "FindingServerDialog.h"
+#include "SyncDataProgressDialog.h"
 
 #define STR_NET_MODE_INIT			tr("Waiting.. ")
 #define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
@@ -142,6 +143,31 @@ public:
 		}
 	}
 
+	void showSyncProgressWindow( void )
+	{
+		hideSyncProgressWindow();
+
+		syncProgressWindow_ = new SyncDataProgressDialog(this);
+		syncProgressWindow_->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
+		syncProgressWindow_->setWindowTitle( "Sync now.." );
+		syncProgressWindow_->exec();
+		if( syncProgressWindow_->isCanceled() )
+		{
+			// all session, data, status clear!!!
+			SharePaintManagerPtr()->close();
+		}
+		delete syncProgressWindow_;
+		syncProgressWindow_ = NULL;
+	}
+
+	void hideSyncProgressWindow( void )
+	{
+		if( syncProgressWindow_ )
+		{
+			syncProgressWindow_->reject();
+		}
+	}
+
 protected:
 	void closeEvent( QCloseEvent *evt );
 	void moveEvent( QMoveEvent * evt );
@@ -262,14 +288,12 @@ protected:
 	
 	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
 	{
-		// TODO : SYNC START
-		canvas_->freezeAction();
+		showSyncProgressWindow();
 	}
 
 	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )
 	{
-		// TODO : SYNC COMPLETE
-		canvas_->thawAction();
+		hideSyncProgressWindow();
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
@@ -450,6 +474,7 @@ private:
 	QFont fontBroadCastText_;
 
 	FindingServerDialog *findingServerWindow_;
+	SyncDataProgressDialog *syncProgressWindow_;
 };
 
 #endif // SHAREDPAINTER_H

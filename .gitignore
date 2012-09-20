@@ -18,7 +18,6 @@ ui_*.h
 *.o
 cscope.*
 tags
-sharedpainter
 core.*
 
 #################

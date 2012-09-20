@@ -344,10 +344,7 @@ void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> 
 				&& false == connectSuperPeerFlag 
 				&& relayServerSession_ )
 			{
-				QTimer::singleShot( TIMEOUT_SYNC_MSEC, this, SLOT(onTimeoutSyncStart()) );
-
-				std::string msg = SystemPacketBuilder::CSyncRequest::make();
-				relayServerSession_->session()->sendData( msg );
+				_requestSyncData();
 			}
 		}
 		break;

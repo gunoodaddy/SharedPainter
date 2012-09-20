@@ -138,8 +138,6 @@ public:
 
 	bool requestJoinServer( const std::string &addr, int port, const std::string &userid, const std::string &roomid )
 	{
-		syncStartedFlag_ = false;
-
 		close();
 
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
@@ -459,12 +457,13 @@ private:
 		if( isAlwaysP2PMode() == false )
 			return;
 
-		std::string allData = serializeData();
+		std::string packetPackage;
+		packetPackage += SystemPacketBuilder::CSyncStart::make( paintChannel_, myId_, "" );
+		packetPackage += serializeData();
+		packetPackage += generateJoinerInfoPacket();
+		packetPackage += SystemPacketBuilder::CSyncComplete::make( "" );
 
-		// User Info
-		allData += generateJoinerInfoPacket();
-
-		sendDataToUsers( allData, toSessionId );
+		sendDataToUsers( packetPackage, toSessionId );
 	}
 
 	// User Mansagement and Sync

@@ -166,6 +166,7 @@ protected slots:
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	void onPlaybackSliderValueChanged( int value  );
 
+	void actionCloseConnection( void );
 	void actionConnectServer( void );
 	void actionSaveImageFile( void );
 	void actionClipboardPaste( void );
@@ -337,6 +338,8 @@ protected:
 		// clear playback info
 		toolBar_SliderPlayback_->setRange( 0, 0 );
 		setStatusBar_PlaybackStatus( 0, 0 );
+		
+		// thaw canvas
 		canvas_->thawAction();
 	}
 

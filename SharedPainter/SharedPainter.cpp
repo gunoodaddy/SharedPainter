@@ -70,6 +70,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
 		startFindServerAction_ = network->addAction( "Start &Find Server", this, SLOT(actionFindingServer()), Qt::CTRL+Qt::Key_1 );
 		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
+		network->addAction( "Close all connections", this, SLOT(actionCloseConnection()) );
 		menuBar->addMenu( network );
 		
 		gridLineAction_->setCheckable( true );
@@ -622,6 +623,11 @@ void SharedPainter::actionUndo( void )
 void SharedPainter::actionRedo( void )
 {
 	SharePaintManagerPtr()->redoCommand();
+}
+
+void SharedPainter::actionCloseConnection( void )
+{
+	SharePaintManagerPtr()->close();
 }
 
 void SharedPainter::actionBroadcastTextMessage( void )

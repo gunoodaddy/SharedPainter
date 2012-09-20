@@ -80,10 +80,13 @@ public:
 
 	void close( void )
 	{
-		clearScreen( false );
+		// all clear session, item, status
+
+		clearScreen( false );	// DO NOT NOTIFY TO OTHERS.. JUST TRIGGER CLEAR SCREEN EVENT
 		clearAllItems();
 		clearAllUsers();
 		clearAllSessions();
+		setEnabled( true );
 
 		_stopFindingServer();
 

@@ -701,7 +701,9 @@ void SharedPainter::actionClipboardPaste( void )
      } 
 	 else if (mimeData->hasText())
 	 {
-		 addTextItem( mimeData->text(), QFont("±¼¸²", 9), Util::getComplementaryColor( canvas_->backgroundColor() ) );
+		 QFont f(tr("Gulim"));
+		 f.setPixelSize(10);
+		 addTextItem( mimeData->text(), f, Util::getComplementaryColor( canvas_->backgroundColor() ) );
 	 }
 }
 

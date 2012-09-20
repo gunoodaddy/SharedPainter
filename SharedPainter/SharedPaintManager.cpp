@@ -54,6 +54,8 @@ CSharedPaintManager::~CSharedPaintManager( void )
 
 	close();
 
+	stopListenBroadCast();
+
 	netRunner_.close();
 }
 
@@ -93,8 +95,10 @@ bool CSharedPaintManager::startListenBroadCast( void )
 
 	if( !broadCastSessionForListener_->listenUdp( DEFAULT_BROADCAST_PORT ) )
 	{
+		qDebug() << "startListenBroadCast : fail" << DEFAULT_BROADCAST_PORT;
 		return false;
 	}
+	qDebug() << "startListenBroadCast : ok" << DEFAULT_BROADCAST_PORT;
 	return true;
 }
 
@@ -131,7 +135,7 @@ bool CSharedPaintManager::startFindingServer( void )
 	broadCastSessionForFinder_->setEvent( this );
 	broadCastSessionForFinder_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
-	qDebug() << "startClient" << listenUdpPort_;
+	qDebug() << "startFindingServer" << listenUdpPort_;
 	findingServerMode_ = true;
 	return true;
 }
@@ -168,12 +172,16 @@ bool CSharedPaintManager::startServer( int port )
 
 void CSharedPaintManager::stopListenBroadCast( void )
 {
+	qDebug() << "stopListenBroadCast";
+
 	if( broadCastSessionForListener_ )
 		broadCastSessionForListener_->close();
 }
 
 void CSharedPaintManager::_stopFindingServer( void )
 {
+	qDebug() << "_stopFindingServer" << findingServerMode_;
+
 	if( ! findingServerMode_ )
 		return;
 

@@ -88,7 +88,7 @@ public:
 		clearAllSessions();
 		setEnabled( true );
 
-		_stopFindingServer();
+		stopFindingServer();
 
 		syncStartedFlag_ = false;
 		findingServerMode_ = false;

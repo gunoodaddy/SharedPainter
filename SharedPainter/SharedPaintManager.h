@@ -690,9 +690,6 @@ private:
 		{
 			(*it)->onISharedPaintEvent_Connected( this );
 		}
-
-		if( isAlwaysP2PMode() && isMySelfSuperPeer() )
-			sendAllSyncData( sessionId );
 	}
 	void fireObserver_DisConnected( void )
 	{
@@ -911,11 +908,11 @@ protected:
 		sessionList_.push_back( userSession );
 		mutexSession_.unlock();
 
-		// start read io!
-		session->start();
-
 		if( isAlwaysP2PMode() )
 			superPeerId_ = myId_;
+
+		// start read io!
+		session->start();
 	}
 
 	// INetBroadCastSessionEvent
@@ -979,6 +976,9 @@ protected:
 		{
 			// I'm superpeer, <session> is that connected to me.
 		}
+
+		if( isAlwaysP2PMode() && isMySelfSuperPeer() )
+			sendAllSyncData( session->sessionId() );
 
 		if ( isRelayServerSession( session ) || isAlwaysP2PMode() )
 		{

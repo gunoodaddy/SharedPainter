@@ -4,7 +4,7 @@
 
 struct SPaintUserInfoData
 {
-	SPaintUserInfoData() : listenTcpPort(0), superPeerCandidate(true/*TODO RELAYMODE*/) { }
+	SPaintUserInfoData() : listenTcpPort(0), superPeerCandidate(false) { }
 
 	std::string channel;
 	std::string userId;

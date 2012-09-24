@@ -1,6 +1,6 @@
 #pragma once 
 
-#define VERSION_TEXT	"0.85"
+#define VERSION_TEXT	"0.50"
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 
@@ -12,7 +12,7 @@
 #define DEFAULT_PIXMAP_ITEM_SIZE_W	250
 
 #define DEFAULT_TRAY_MESSAGE_DURATION_MSEC	5000
-
+#define DEFAULT_GRID_LINE_SIZE_W	32
 #define FINDING_SERVER_TRY_COUNT	20
 
 #if defined(WINDOWS)

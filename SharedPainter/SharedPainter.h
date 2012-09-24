@@ -7,6 +7,10 @@
 #include "SharedPainterScene.h"
 #include "SharedPaintPolicy.h"
 #include "FindingServerDialog.h"
+#include "SyncDataProgressDialog.h"
+
+#define STR_NET_MODE_INIT			tr("Waiting.. ")
+#define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
 
 class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent
 {
@@ -24,7 +28,15 @@ public:
 	SharedPainter(CSharedPainterScene* canvas, QWidget *parent = 0, Qt::WFlags flags = 0);
 	~SharedPainter();
 
-	void setStatusBar_Network( const QString &str )
+	void setStatusBar_NetworkInfo( const std::string &addr, int listenPort )
+	{
+		QString str = QString(addr.c_str());
+		str += ":";
+		str += QString::number(listenPort);
+		QString realStr = str + "  ";
+		networkInfoLabel_->setText( realStr );
+	}
+	void setStatusBar_ConnectStatus( const QString &str )
 	{
 		QString realStr = str + "  ";
 		statusBarLabel_->setText( realStr );
@@ -67,7 +79,7 @@ public:
 			break;
 		}
 
-		setStatusBar_Network( msg );
+		setStatusBar_ConnectStatus( msg );
 		setTrayIcon( status );
 	}
 
@@ -121,12 +133,12 @@ public:
 		findingServerWindow_->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
 		findingServerWindow_->setWindowTitle( "Finding server.." );
 		findingServerWindow_->exec();
-		if( findingServerWindow_->isCanceled() )
+		if( findingServerWindow_ && findingServerWindow_->isCanceled() )
 		{
-			SharePaintManagerPtr()->stopClient();
-			setStatusBar_BroadCastType( tr("None Type") );
+			SharePaintManagerPtr()->stopFindingServer();
+			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		}
-		delete findingServerWindow_;
+		if( findingServerWindow_ )	delete findingServerWindow_;
 		findingServerWindow_ = NULL;
 	}
 
@@ -135,6 +147,33 @@ public:
 		if( findingServerWindow_ )
 		{
 			findingServerWindow_->reject();
+			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
+		}
+	}
+
+	void showSyncProgressWindow( void )
+	{
+		hideSyncProgressWindow();
+
+		syncProgressWindow_ = new SyncDataProgressDialog(this);
+		syncProgressWindow_->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint); 
+		syncProgressWindow_->setWindowTitle( "Sync now.." );
+		syncProgressWindow_->exec();
+		if( syncProgressWindow_ && syncProgressWindow_->isCanceled() )
+		{
+			// all session, data, status clear!!!
+			SharePaintManagerPtr()->close();
+		}
+
+		if( syncProgressWindow_ )	delete syncProgressWindow_;
+		syncProgressWindow_ = NULL;
+	}
+
+	void hideSyncProgressWindow( void )
+	{
+		if( syncProgressWindow_ )
+		{
+			syncProgressWindow_->reject();
 		}
 	}
 
@@ -164,6 +203,7 @@ protected slots:
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	void onPlaybackSliderValueChanged( int value  );
 
+	void actionCloseConnection( void );
 	void actionConnectServer( void );
 	void actionSaveImageFile( void );
 	void actionClipboardPaste( void );
@@ -188,8 +228,7 @@ protected slots:
 	void actionScreenShot( void );
 	void actionUndo( void );
 	void actionRedo( void );
-	void actionServerType( void );
-	void actionClientType( void );
+	void actionFindingServer( void );
 	void actionGridLine( void );
 	void actionImportFile( void );
 	void actionExportFile( void );
@@ -236,7 +275,7 @@ protected:
 
 	virtual void onISharedPaintEvent_Disconnected( CSharedPaintManager *self )
 	{
-		if( self->isClientMode() )
+		if( self->isFindingServerMode() )
 		{
 			static CDefferedCaller caller;
 
@@ -258,12 +297,16 @@ protected:
 	
 	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
 	{
-		// TODO : SYNC START
+		static CDefferedCaller caller;
+
+		caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::showSyncProgressWindow, this) );
 	}
 
 	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )
 	{
-		// TODO : SYNC COMPLETE
+		static CDefferedCaller caller;
+
+		caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::hideSyncProgressWindow, this) );
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
@@ -334,6 +377,8 @@ protected:
 		// clear playback info
 		toolBar_SliderPlayback_->setRange( 0, 0 );
 		setStatusBar_PlaybackStatus( 0, 0 );
+		
+		// thaw canvas
 		canvas_->thawAction();
 	}
 
@@ -374,7 +419,7 @@ protected:
 
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &paintChannel, const std::string &addr, int port )
 	{
-		if( !self->isConnected() && !self->isServerMode() )
+		if( !self->isConnected() && self->isFindingServerMode() )
 		{
 			if( self->isConnecting() )
 				return;
@@ -419,10 +464,12 @@ private:
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
 	QLabel *playbackStatusLabel_;
+	QLabel *networkInfoLabel_;
 	QAction *penWidthAction_;
 	QAction *penModeAction_;
 	QAction *gridLineAction_;
 	QAction *showLastItemAction_;
+	QAction *startFindServerAction_;
 	QAction *toolBar_MoveMode_;
 	QAction *toolBar_PenMode_;
 	QAction *toolBar_GridLine_;
@@ -441,6 +488,7 @@ private:
 	QFont fontBroadCastText_;
 
 	FindingServerDialog *findingServerWindow_;
+	SyncDataProgressDialog *syncProgressWindow_;
 };
 
 #endif // SHAREDPAINTER_H

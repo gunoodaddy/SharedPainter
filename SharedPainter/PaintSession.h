@@ -9,11 +9,11 @@ class CPaintSession;
 class IPaintSessionEvent
 {
 public:
-	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session ) = 0;
-	virtual void onIPaintSessionEvent_ConnectFailed( boost::shared_ptr<CPaintSession> session ) = 0;
-	virtual void onIPaintSessionEvent_ReceivedPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CPacketData> data ) = 0;
-	virtual void onIPaintSessionEvent_SendingPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CNetPacketData> data ) = 0;
-	virtual void onIPaintSessionEvent_Disconnected( boost::shared_ptr<CPaintSession> session ) = 0;
+	virtual void onIPaintSessionEvent_Connected( CPaintSession * session ) = 0;
+	virtual void onIPaintSessionEvent_ConnectFailed( CPaintSession * session ) = 0;
+	virtual void onIPaintSessionEvent_ReceivedPacket( CPaintSession * session, const boost::shared_ptr<CPacketData> data ) = 0;
+	virtual void onIPaintSessionEvent_SendingPacket( CPaintSession * session, const boost::shared_ptr<CNetPacketData> data ) = 0;
+	virtual void onIPaintSessionEvent_Disconnected( CPaintSession* session ) = 0;
 };
 
 class CPaintSession : public boost::enable_shared_from_this<CPaintSession>, INetPeerSessionEvent
@@ -27,9 +27,10 @@ public:
 	
 	~CPaintSession(void) 
 	{
+		qDebug() << "~CPaintSession(void) start" << this;
 		session_->close();
 		session_->setEvent( NULL );
-		qDebug() << "~CPaintSession(void) " << this;
+		qDebug() << "~CPaintSession(void) end" << this;
 	}
 
 	int sessionId( void )
@@ -50,12 +51,12 @@ public:
 	virtual void onINetPeerSessionEvent_Connected( CNetPeerSession *session )
 	{
 		if( evtTarget_ )
-			evtTarget_->onIPaintSessionEvent_Connected( shared_from_this() );
+			evtTarget_->onIPaintSessionEvent_Connected( this );
 	}
 	virtual void onINetPeerSessionEvent_ConnectFailed( CNetPeerSession *session )
 	{
 		if( evtTarget_ )
-			evtTarget_->onIPaintSessionEvent_ConnectFailed( shared_from_this() );
+			evtTarget_->onIPaintSessionEvent_ConnectFailed( this );
 	}
 	virtual void onINetPeerSessionEvent_Received( CNetPeerSession *session, const std::string buffer )
 	{
@@ -69,18 +70,18 @@ public:
 			boost::shared_ptr<CPacketData> data = packetSlicer_.parsedItem( i );
 
 			if( evtTarget_ )
-				evtTarget_->onIPaintSessionEvent_ReceivedPacket( shared_from_this(), data );
+				evtTarget_->onIPaintSessionEvent_ReceivedPacket( this, data );
 		}
 	}
 	virtual void onINetPeerSessionEvent_Disconnected( CNetPeerSession *session )
 	{
 		if( evtTarget_ )
-			evtTarget_->onIPaintSessionEvent_Disconnected( shared_from_this() );
+			evtTarget_->onIPaintSessionEvent_Disconnected( this );
 	}
 	virtual void onINetPeerSessionEvent_Sending( CNetPeerSession *session, boost::shared_ptr<CNetPacketData> packet )
 	{
 		if( evtTarget_ )
-			evtTarget_->onIPaintSessionEvent_SendingPacket( shared_from_this(), packet );
+			evtTarget_->onIPaintSessionEvent_SendingPacket( this, packet );
 	}
 
 private:

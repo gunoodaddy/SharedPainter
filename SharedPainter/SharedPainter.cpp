@@ -8,7 +8,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), playbackSliderFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
-	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL)
+	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
 {
 	fontBroadCastText_ = QFont( "Times" );
 	fontBroadCastText_.setBold( true );
@@ -65,13 +65,12 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 		// Network Menu
 		QMenu* network = new QMenu( "&Network", menuBar );
-		network->addAction( "&Connect Server", this, SLOT(actionConnectServer()) );
-		network->addAction( "&Connect Superpeer", this, SLOT(actionConnect()) );
+		network->addAction( "&Connect to Relay Server", this, SLOT(actionConnectServer()) );
+		network->addAction( "&Connect to Peer", this, SLOT(actionConnect()) );
 		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
-		QMenu* broadCastTypeMenu = network->addMenu( "BroadCast Type" );
-		broadCastTypeMenu->addAction( "&Server", this, SLOT(actionServerType()), Qt::CTRL+Qt::Key_1 );
-		broadCastTypeMenu->addAction( "&Client", this, SLOT(actionClientType()), Qt::CTRL+Qt::Key_2 );
+		startFindServerAction_ = network->addAction( "Start &Find Server", this, SLOT(actionFindingServer()), Qt::CTRL+Qt::Key_1 );
 		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
+		network->addAction( "Close all connections", this, SLOT(actionCloseConnection()) );
 		menuBar->addMenu( network );
 		
 		gridLineAction_->setCheckable( true );
@@ -142,13 +141,15 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		joinerCountLabel_ = new QLabel();
 		playbackStatusLabel_ = new QLabel();
 		wroteProgressBar_ = new QProgressBar();
+		networkInfoLabel_ = new QLabel();
 		ui.statusBar->addPermanentWidget( broadCastTypeLabel_ );
 		ui.statusBar->addPermanentWidget( joinerCountLabel_ );
 		ui.statusBar->addPermanentWidget( playbackStatusLabel_, 1 );
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
+		ui.statusBar->addPermanentWidget( networkInfoLabel_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
-		setStatusBar_BroadCastType( tr("None Type") );
+		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		setStatusBar_JoinerCnt( 1 );	// my self 
 		setStatusBar_PlaybackStatus( 0, 0 );
 	}
@@ -196,6 +197,10 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	newTitle += AUTHOR_TEXT;
 
 	setWindowTitle( newTitle );
+
+	// start server 
+	SharePaintManagerPtr()->startServer();
+	setStatusBar_NetworkInfo( Util::getMyIPAddress(), SharePaintManagerPtr()->acceptPort() );
 }
 
 SharedPainter::~SharedPainter()
@@ -204,6 +209,7 @@ SharedPainter::~SharedPainter()
 	SharePaintManagerPtr()->close();
 
 	hideFindingServerWindow();
+	hideSyncProgressWindow();
 
 	delete keyHookTimer_;
 }
@@ -387,7 +393,7 @@ void SharedPainter::actionGridLine( void )
 	}
 	else
 	{
-		SharePaintManagerPtr()->setBackgroundGridLine( 32 );	// draw
+		SharePaintManagerPtr()->setBackgroundGridLine( DEFAULT_GRID_LINE_SIZE_W );	// draw
 	}
 }
 
@@ -443,13 +449,10 @@ void SharedPainter::actionConnectServer( void )
 
 		std::string ip = list.at(0).toStdString();
 		int port = list.at(1).toInt();
-		//ip = "61.247.198.102";
-		//ip = "127.0.0.1";
-
-		SharePaintManagerPtr()->requestJoinServer( ip, port, Util::generateMyId(), SettingManagerPtr()->paintChannel() );
 	
 		SettingManagerPtr()->setRelayServerAddress( addr.toStdString() );
 
+		SharePaintManagerPtr()->requestJoinServer( ip, port, Util::generateMyId(), SettingManagerPtr()->paintChannel() );
 		return;
 	} while( false );
 
@@ -490,12 +493,16 @@ void SharedPainter::actionConnect( void )
 
 		std::string ip = list.at(0).toStdString();
 		int port = list.at(1).toInt();
-		//ip = "61.247.198.102";
-		//ip = "127.0.0.1";
-		SharePaintManagerPtr()->connectToPeer( ip, port );
 
+		// save 
 		SettingManagerPtr()->setPeerAddress( addr.toStdString() );
 
+		// start connecting
+		if( ! SharePaintManagerPtr()->connectToPeer( ip, port ) )
+		{
+			errorMsg = tr("Could not connect to the peer.");
+			break;
+		}
 		return;
 	} while( false );
 
@@ -624,6 +631,11 @@ void SharedPainter::actionRedo( void )
 	SharePaintManagerPtr()->redoCommand();
 }
 
+void SharedPainter::actionCloseConnection( void )
+{
+	SharePaintManagerPtr()->close();
+}
+
 void SharedPainter::actionBroadcastTextMessage( void )
 {
 	bool ok;
@@ -636,36 +648,30 @@ void SharedPainter::actionBroadcastTextMessage( void )
 
 void SharedPainter::actionPaintChannel( void )
 {
-	if( ! getPaintChannelString( true ) )
-		return;	
-
-	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
+	getPaintChannelString( true );
 }
 
-void SharedPainter::actionServerType( void )
+void SharedPainter::actionFindingServer( void )
 {
 	if( ! getPaintChannelString() )
 		return;
 
-	if( SharePaintManagerPtr()->startServer() )
-		setStatusBar_BroadCastType( tr("Server Type") );
-	else
-		setStatusBar_BroadCastType( tr("None Type") );
-}
-
-void SharedPainter::actionClientType( void )
-{
-	if( ! getPaintChannelString() )
-		return;
-
-	if( SharePaintManagerPtr()->startClient() )
+	if( ! SharePaintManagerPtr()->isFindingServerMode() )
 	{
-		setStatusBar_BroadCastType( tr("Client Type") );
+		if( SharePaintManagerPtr()->startFindingServer() )
+		{
+			setStatusBar_BroadCastType( STR_NET_MODE_FINDING_SERVER );
 
-		showFindingServerWindow();
+			showFindingServerWindow();
+		}
+		else
+			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 	}
 	else
-		setStatusBar_BroadCastType( tr("None Type") );
+	{
+		SharePaintManagerPtr()->stopFindingServer();
+		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
+	}
 }
 
 void SharedPainter::actionClipboardPaste( void )
@@ -695,7 +701,9 @@ void SharedPainter::actionClipboardPaste( void )
      } 
 	 else if (mimeData->hasText())
 	 {
-		 addTextItem( mimeData->text(), QFont("±¼¸²", 9), Util::getComplementaryColor( canvas_->backgroundColor() ) );
+		 QFont f(tr("Gulim"));
+		 f.setPixelSize(10);
+		 addTextItem( mimeData->text(), f, Util::getComplementaryColor( canvas_->backgroundColor() ) );
 	 }
 }
 
@@ -722,6 +730,8 @@ bool SharedPainter::getPaintChannelString( bool force )
 	}
 
 	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
+
+	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 	return true;
 }
 
@@ -814,7 +824,7 @@ void SharedPainter::onICanvasViewEvent_BeginMove( CSharedPainterScene *view, boo
 
 void SharedPainter::onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
 {
-	SharePaintManagerPtr()->notifyMoveItem( item );
+	SharePaintManagerPtr()->movePaintItem( item );
 }
 
 void SharedPainter::onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item  )
@@ -824,10 +834,10 @@ void SharedPainter::onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boos
 
 void SharedPainter::onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
 {
-	SharePaintManagerPtr()->notifyUpdateItem( item );
+	SharePaintManagerPtr()->updatePaintItem( item );
 }
 
 void SharedPainter::onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
 {
-	SharePaintManagerPtr()->notifyRemoveItem( item );
+	SharePaintManagerPtr()->removePaintItem( item );
 }

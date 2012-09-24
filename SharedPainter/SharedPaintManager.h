@@ -81,6 +81,7 @@ public:
 	void close( void )
 	{
 		// all clear session, item, status
+		qDebug() << "CSharedPaintManager::close()";
 
 		clearScreen( false );	// DO NOT NOTIFY TO OTHERS.. JUST TRIGGER CLEAR SCREEN EVENT
 		clearAllItems();
@@ -594,6 +595,8 @@ public:
 private:
 	void clearAllItems( void )	// this function must be called on main thread!
 	{
+		qDebug() << "CSharedPaintManager::clearAllItems()";
+
 		assert( caller_.isMainThread() );
 
 		backgroundColor_ = Qt::white;

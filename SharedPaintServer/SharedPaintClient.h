@@ -36,7 +36,6 @@ private:
 	void _handle_CODE_SYSTEM_LEAVE(boost::shared_ptr<SharedPaintProtocol> prot);
 	void _handle_CODE_SYSTEM_TCPACK(boost::shared_ptr<SharedPaintProtocol> prot);
 	void _handle_CODE_SYSTEM_SYNC_REQUEST(boost::shared_ptr<SharedPaintProtocol> prot);
-	void _handle_CODE_SYSTEM_SYNC_COMPLETE(boost::shared_ptr<SharedPaintProtocol> prot);
 
 private:
 	static boost::shared_ptr<SharedPaintController::SharedPaintProtocolFactory> gProtocolFactory_;

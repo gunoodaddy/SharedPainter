@@ -76,11 +76,6 @@ void SharedPaintClient::_handle_CODE_SYSTEM_SYNC_REQUEST(boost::shared_ptr<Share
 	SharedPaintManagerPtr()->syncStart( user_->roomId(), user_->userId() );
 }
 
-void SharedPaintClient::_handle_CODE_SYSTEM_SYNC_COMPLETE(boost::shared_ptr<SharedPaintProtocol> prot) {
-
-	user_->setSyncComplete();
-}
-
 void SharedPaintClient::_handle_CODE_SYSTEM_TCPACK(boost::shared_ptr<SharedPaintProtocol> prot) {
 	// setting super peer
 	LOG_INFO("------------------- SUPER PEER OK! -------------------- : %s:%d", tcpSocket()->peerAddress()->ip(), user()->listenTcpPort() );
@@ -122,9 +117,6 @@ void SharedPaintClient::onSharedPaintReceived(boost::shared_ptr<SharedPaintProto
 			break;
 		case CODE_SYSTEM_SYNC_REQUEST:
 			_handle_CODE_SYSTEM_SYNC_REQUEST( prot );
-			break;
-		case CODE_SYSTEM_SYNC_COMPLETE:
-			_handle_CODE_SYSTEM_SYNC_COMPLETE( prot );
 			break;
 		default:
 			{

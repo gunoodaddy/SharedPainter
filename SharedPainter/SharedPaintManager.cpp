@@ -221,7 +221,7 @@ void CSharedPaintManager::deserializeData( const char * data, size_t size )
 	for( size_t i = 0; i < slicer.parsedItemCount(); i++ )
 	{
 		boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
-		dispatchPaintPacket( boost::shared_ptr<CPaintSession>() /*NULL*/, data );
+		dispatchPaintPacket( NULL, data );
 	}
 
 	std::string allData(data, size);
@@ -292,7 +292,7 @@ void CSharedPaintManager::_requestSyncData( void )
 }
 
 // this function need to check session pointer null check!
-void CSharedPaintManager::dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData )
+void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::shared_ptr<CPacketData> packetData )
 {
 	switch( packetData->code )
 	{

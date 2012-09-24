@@ -477,7 +477,7 @@ public:
 	}
 
 private:
-	void sendMyUserInfo( boost::shared_ptr<CPaintSession> session )
+	void sendMyUserInfo( CPaintSession* session )
 	{
 		std::string msg;
 		if( isRelayServerSession( session ) )
@@ -646,16 +646,16 @@ private:
 
 	void dispatchBroadCastPacket( CNetBroadCastSession *session, boost::shared_ptr<CPacketData> packetData );
 	void dispatchUdpPacket( CNetUdpSession *session, boost::shared_ptr<CPacketData> packetData );
-	void dispatchPaintPacket( boost::shared_ptr<CPaintSession> session, boost::shared_ptr<CPacketData> packetData );
+	void dispatchPaintPacket( CPaintSession *session, boost::shared_ptr<CPacketData> packetData );
 
-	inline bool isRelayServerSession( boost::shared_ptr<CPaintSession> session )
+	inline bool isRelayServerSession( CPaintSession* session )
 	{
 		if ( relayServerSession_ && session->sessionId() == relayServerSession_->sessionId() )
 			return true;
 		return false;
 	}
 
-	inline bool isSuperPeerSession( boost::shared_ptr<CPaintSession> session )
+	inline bool isSuperPeerSession( CPaintSession* session )
 	{
 		if ( superPeerSession_ && session->sessionId() == superPeerSession_->sessionId() )
 			return true;
@@ -960,7 +960,7 @@ protected:
 	}
 
 	// IPaintSessionEvent
-	virtual void onIPaintSessionEvent_Connected( boost::shared_ptr<CPaintSession> session )
+	virtual void onIPaintSessionEvent_Connected( CPaintSession* session )
 	{
 		if( isFindingServerMode() )
 			broadCastSessionForFinder_->pauseSend();
@@ -970,7 +970,7 @@ protected:
 			_requestSyncData();
 		}
 
-		if( isRelayServerSession( session ) || isSuperPeerSession(session) || isAlwaysP2PMode() )
+		if( isRelayServerSession( session ) || isSuperPeerSession( session ) || isAlwaysP2PMode() )
 		{
 			// send to my user info to relay server or super peer
 			sendMyUserInfo( session );
@@ -993,7 +993,7 @@ protected:
 		}
 	}
 
-	virtual void onIPaintSessionEvent_ConnectFailed( boost::shared_ptr<CPaintSession> session )
+	virtual void onIPaintSessionEvent_ConnectFailed( CPaintSession* session )
 	{
 		if ( isRelayServerSession( session ) )
 		{
@@ -1003,7 +1003,7 @@ protected:
 		removeSession( session->sessionId() );
 	}
 
-	virtual void onIPaintSessionEvent_Disconnected( boost::shared_ptr<CPaintSession> session )
+	virtual void onIPaintSessionEvent_Disconnected( CPaintSession * session )
 	{
 		if( isFindingServerMode() )
 			broadCastSessionForFinder_->resumeSend();
@@ -1024,7 +1024,7 @@ protected:
 		removeSession( session->sessionId() );
 	}
 
-	virtual void onIPaintSessionEvent_ReceivedPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CPacketData> data )
+	virtual void onIPaintSessionEvent_ReceivedPacket( CPaintSession * session, const boost::shared_ptr<CPacketData> data )
 	{
 		dispatchPaintPacket( session, data );
 
@@ -1038,7 +1038,7 @@ protected:
 		SESSION_LIST::iterator it = list.begin();
 		for( ; it != list.end(); it++ )
 		{
-			if( *it == session )
+			if( (*it)->sessionId() == session->sessionId() )
 			{
 				list.erase( it );
 				break;
@@ -1049,7 +1049,7 @@ protected:
 		sendDataToUsers( list, msg );
 	}
 
-	virtual void onIPaintSessionEvent_SendingPacket( boost::shared_ptr<CPaintSession> session, const boost::shared_ptr<CNetPacketData> packet )
+	virtual void onIPaintSessionEvent_SendingPacket( CPaintSession * session, const boost::shared_ptr<CNetPacketData> packet )
 	{
 		//qDebug() << "Packet sending " << packet->packetId() << packet->buffer().remainingSize() << packet->buffer().totalSize();
 		if( packet->packetId() < 0 )
@@ -1075,7 +1075,7 @@ protected:
 			std::vector<struct send_byte_info_t>::iterator itD = it->second.begin();
 			for( ; itD != it->second.end(); itD++ )
 			{
-				if( (*itD).session == session.get() )
+				if( (*itD).session == session )
 				{
 					(*itD).wroteBytes = packet->buffer().totalSize() -  packet->buffer().remainingSize();
 					break;

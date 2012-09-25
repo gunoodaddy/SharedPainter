@@ -232,6 +232,7 @@ protected slots:
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	void onPlaybackSliderValueChanged( int value  );
 
+	void actionAbout( void );
 	void actionCloseConnection( void );
 	void actionConnectServer( void );
 	void actionSaveImageFile( void );

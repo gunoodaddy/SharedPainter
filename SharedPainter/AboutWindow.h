@@ -27,25 +27,22 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once 
+#ifndef ABOUTWINDOW_H
+#define ABOUTWINDOW_H
 
-#define VERSION_TEXT	"0.52"
-#define AUTHOR_TEXT		"gunoodaddy"
-#define PROGRAME_TEXT	"Shared Painter"
+#include <QDialog>
+#include "ui_AboutWindow.h"
 
-#define NET_MAGIC_CODE	0xBEBE
+class AboutWindow : public QDialog
+{
+	Q_OBJECT
 
-#define DEFAULT_TEXT_ITEM_POS_REGION_W	9999
-#define DEFAULT_TEXT_ITEM_POS_REGION_H	300
+public:
+	AboutWindow(QWidget *parent = 0);
+	~AboutWindow();
 
-#define DEFAULT_PIXMAP_ITEM_SIZE_W	250
+private:
+	Ui::AboutWindow ui;
+};
 
-#define DEFAULT_TRAY_MESSAGE_DURATION_MSEC	5000
-#define DEFAULT_GRID_LINE_SIZE_W	32
-#define FINDING_SERVER_TRY_COUNT	20
-
-#if defined(WINDOWS)
-#define NATIVE_NEWLINE_STR	"\r\n"
-#else
-#define NATIVE_NEWLINE_STR	"\n"
-#endif
+#endif // ABOUTWINDOW_H

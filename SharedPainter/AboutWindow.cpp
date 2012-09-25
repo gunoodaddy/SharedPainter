@@ -27,25 +27,20 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once 
+#include "StdAfx.h"
+#include "AboutWindow.h"
 
-#define VERSION_TEXT	"0.52"
-#define AUTHOR_TEXT		"gunoodaddy"
-#define PROGRAME_TEXT	"Shared Painter"
+AboutWindow::AboutWindow(QWidget *parent)
+	: QDialog(parent)
+{
+	ui.setupUi(this);
 
-#define NET_MAGIC_CODE	0xBEBE
+	QString version = "Ver ";
+	version += VERSION_TEXT;
+	ui.labelVersion->setText(version);
+}
 
-#define DEFAULT_TEXT_ITEM_POS_REGION_W	9999
-#define DEFAULT_TEXT_ITEM_POS_REGION_H	300
+AboutWindow::~AboutWindow()
+{
 
-#define DEFAULT_PIXMAP_ITEM_SIZE_W	250
-
-#define DEFAULT_TRAY_MESSAGE_DURATION_MSEC	5000
-#define DEFAULT_GRID_LINE_SIZE_W	32
-#define FINDING_SERVER_TRY_COUNT	20
-
-#if defined(WINDOWS)
-#define NATIVE_NEWLINE_STR	"\r\n"
-#else
-#define NATIVE_NEWLINE_STR	"\n"
-#endif
+}

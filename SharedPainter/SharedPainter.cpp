@@ -30,6 +30,7 @@
 #include "StdAfx.h"
 #include "sharedpainter.h"
 #include "TextItemDialog.h"
+#include "AboutWindow.h"
 #include "UIStyleSheet.h"
 
 static const int DEFAULT_HIDE_POS_X = 9999;
@@ -66,6 +67,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		file->addAction( "&Import from file", this, SLOT(actionImportFile()), Qt::CTRL+Qt::Key_I );
 		file->addAction( "&Export to file", this, SLOT(actionExportFile()),  Qt::CTRL+Qt::Key_E );
 		file->addAction( "&Save image", this, SLOT(actionSaveImageFile()),  Qt::CTRL+Qt::Key_S );
+		file->addSeparator();
+		file->addAction( "&About", this, SLOT(actionAbout()) );
 		file->addSeparator();
 		file->addAction( "E&xit", this, SLOT(actionExit()), Qt::CTRL+Qt::Key_Q );
 		menuBar->addMenu( file );
@@ -322,6 +325,12 @@ void SharedPainter::onTrayActivated( QSystemTrayIcon::ActivationReason reason )
 	default:
 		;
 	}
+}
+
+void SharedPainter::actionAbout( void )
+{
+	AboutWindow wnd(this);
+	wnd.exec();
 }
 
 void SharedPainter::actionExit( void )

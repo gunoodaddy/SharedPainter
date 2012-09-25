@@ -458,10 +458,12 @@ protected:
 		}
 	}
 	
-	virtual void onISharedPaintEvent_ReceivedTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &message )
+	virtual void onISharedPaintEvent_ReceivedBroadcastTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &fromId, const std::string &message )
 	{
 		QString msg = QString::fromUtf8( message.c_str(), message.size() );
-		showTrayMessage( msg );
+
+		if( fromId != self->myId() )
+			showTrayMessage( msg );
 
 		addTextItem( msg, fontBroadCastText_, Util::getComplementaryColor(canvas_->backgroundColor()) );
 	}

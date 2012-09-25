@@ -113,6 +113,8 @@ void CSharedPaintManager::sendBroadCastTextMessage( const std::string &paintChan
 	data = BroadCastPacketBuilder::CTextMessage::make( paintChannel, myId_, msg );
 
 	broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
+
+	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedBroadcastTextMessage, this, paintChannel, myId_, msg ) );
 }
 
 bool CSharedPaintManager::startListenBroadCast( void )
@@ -585,7 +587,7 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 			std::string paintChannel;
 			if( BroadCastPacketBuilder::CProbeServer::parse( packetData->body, paintChannel, addr, port ) )
 			{
-				qDebug() << "CODE_BROAD_PROBE_SERVER : " << paintChannel.c_str() << addr.c_str() << port;
+				qDebug() << "CODE_BROAD_PROBE_SERVER : " << paintChannel_.c_str() << paintChannel.c_str() << addr.c_str() << port;
 				if( paintChannel_ != paintChannel )
 					return;
 
@@ -603,16 +605,16 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 
 	case CODE_BROAD_TEXT_MESSAGE:
 		{
-			std::string message, paintChannel, myId;
-			if( BroadCastPacketBuilder::CTextMessage::parse( packetData->body, paintChannel, myId, message ) )
+			std::string message, paintChannel, fromId;
+			if( BroadCastPacketBuilder::CTextMessage::parse( packetData->body, paintChannel, fromId, message ) )
 			{
 				if( paintChannel_ != paintChannel )
 					return;
 
-				if( myId_ == myId )	// ignore myself message..
+				if( myId_ == fromId )	// ignore myself message..
 					return;
 	
-				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedTextMessage, this, paintChannel, message ) );
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedBroadcastTextMessage, this, paintChannel, fromId, message ) );
 			}
 		}
 		break;

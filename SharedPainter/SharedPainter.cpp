@@ -190,7 +190,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	// create system tray
 	{
 		trayIconMenu_ = new QMenu(this);
-		trayIconMenu_->addAction("&O&pen", this, SLOT(show()));
+		trayIconMenu_->addAction("&Open", this, SLOT(show()));
+		trayIconMenu_->addAction("&About", this, SLOT(actionAbout()));
 		trayIconMenu_->addSeparator();
 		trayIconMenu_->addAction("E&xit", this, SLOT(actionExit()));
 

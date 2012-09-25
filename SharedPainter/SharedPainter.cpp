@@ -52,6 +52,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
 	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	ui.painterView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+	
+	ui.editChat->setReadOnly( true );
+	ui.editMsg->installEventFilter( this );
 
 	setCursor( Qt::ArrowCursor ); 
 
@@ -258,9 +261,15 @@ bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 	{
 		QKeyEvent *keyEvt = (QKeyEvent*)event;
 
-		if( keyEvt->key() == 0x1000004 )
+		if( keyEvt->key() == 0x1000004 || keyEvt->key() == Qt::Key_Enter )
 		{
-			actionAddText();
+			if( object == ui.editMsg )
+			{
+				sendChatMessage();
+				return true;
+			}
+			else if( ui.painterView->isActiveWindow() )
+				actionAddText();
 		}
 		else if( keyEvt->key() == Qt::Key_Left || keyEvt->key() == Qt::Key_Right )
 		{
@@ -341,6 +350,16 @@ void SharedPainter::actionExit( void )
 {
 	trayIcon_->hide();
 	close();
+}
+
+void SharedPainter::sendChatMessage( void )
+{
+	QString plainText = ui.editMsg->toPlainText().trimmed();
+	std::string msg = Util::toUtf8StdString( plainText );
+
+	SharePaintManagerPtr()->sendChatMessage( msg );
+
+	ui.editMsg->setText( "" );
 }
 
 void SharedPainter::setCheckGridLineAction( bool checked )

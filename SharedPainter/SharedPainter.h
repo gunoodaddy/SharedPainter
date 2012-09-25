@@ -212,7 +212,7 @@ protected:
 	void showEvent ( QShowEvent * evt );
 	void resizeEvent( QResizeEvent *evt );
 	void keyPressEvent( QKeyEvent *evt );
-	bool eventFilter(QObject *object, QEvent *event);
+	bool eventFilter(QObject *object, QEvent *evt);
 	void changeEvent ( QEvent * event )
 	{
 		if( event->type() == QEvent::ActivationChange )
@@ -268,6 +268,7 @@ protected slots:
 	void actionLastItem( void );
 
 private:
+	void sendChatMessage( void );
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
 	void setCheckGridLineAction( bool checked );
 	void setCheckShowLastAddItemAction( bool checked );
@@ -513,6 +514,7 @@ protected:
 	virtual void onISharedPaintEvent_ReceivedChatMessage( CSharedPaintManager *self, const std::string & userId, const std::string &nickName, const std::string &chatMsg )
 	{
 		// TODO : CHAT MESSAGE
+		ui.editChat->append( Util::toStringFromUtf8( chatMsg ) );
 	}
 
 

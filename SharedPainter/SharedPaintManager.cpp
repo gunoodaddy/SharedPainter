@@ -135,6 +135,9 @@ void CSharedPaintManager::sendChatMessage( const std::string &msg )
 	std::string data;
 	data = SystemPacketBuilder::CChatMessage::make( myUserInfo_->userId(), myUserInfo_->nickName(), msg );
 	sendDataToUsers( data );
+
+	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedChatMessage, this, myUserInfo_->userId(), myUserInfo_->nickName(), msg ) );
+	
 }
 
 void CSharedPaintManager::sendBroadCastTextMessage( const std::string &paintChannel, const std::string &msg )

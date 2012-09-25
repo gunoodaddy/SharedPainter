@@ -173,10 +173,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\PacketSlicer.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\PacketSlicer.h"
 					>
 				</File>
@@ -216,10 +212,6 @@
 			<Filter
 				Name="Session"
 				>
-				<File
-					RelativePath=".\PaintSession.cpp"
-					>
-				</File>
 				<File
 					RelativePath=".\PaintSession.h"
 					>

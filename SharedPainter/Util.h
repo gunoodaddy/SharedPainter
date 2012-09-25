@@ -37,6 +37,47 @@ namespace Util
 
 	QColor getComplementaryColor( const QColor &clr, const QColor &lineClr = QColor() );
 
+	inline bool stringTokenizer(const std::string &strSrc, const std::string& strDelimiter, std::vector<std::string> &strList)
+	{
+		size_t offsetPrev = 0;
+		size_t offsetNext = 0;
+		while( true )   
+		{   
+			offsetNext = strSrc.find(strDelimiter, offsetPrev);
+			if(std::string::npos == offsetNext )
+			{
+				if(offsetPrev != 0)
+				{
+					std::string sub = strSrc.substr(offsetPrev);
+					strList.push_back(sub);
+				}
+				break;
+			}
+
+			std::string sub = strSrc.substr(offsetPrev, offsetNext - offsetPrev);
+			strList.push_back(sub);
+
+			offsetPrev = offsetNext + strDelimiter.length();
+		}
+
+		return strList.size() ? true : false;
+	}
+
+	inline bool parseVersionString( const std::string &version, int &major, int &minor, int &revision )
+	{
+		std::vector<std::string> strList;
+		if( ! stringTokenizer( version, ".", strList ) )
+			return false;
+
+		if( strList.size() < 3 )
+			return false;
+
+		major = atoi(strList[0].c_str());
+		minor = atoi(strList[1].c_str());
+		revision = atoi(strList[2].c_str());
+		return true;
+	}
+
 	inline bool checkKeyPressed( int virtKey )
 	{
 		bool res = false;

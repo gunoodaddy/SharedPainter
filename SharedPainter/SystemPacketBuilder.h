@@ -34,7 +34,39 @@
 
 namespace SystemPacketBuilder
 {
-	class ChangeSuperPeer{
+	class CVersionInfo {
+	public:
+		static std::string make( const std::string &version )
+		{
+			try
+			{
+				int pos = 0;
+				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, version );
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_VERSION_INFO, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::string &version )
+		{
+			try
+			{
+				int pos = 0;
+				pos += CPacketBufferUtil::readString8( body, pos, version );
+				return true;
+
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
+	class CChangeSuperPeer{
 	public:
 		static bool parse( const std::string &body, std::string & userid ) {
 

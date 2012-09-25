@@ -33,6 +33,48 @@
 
 namespace WindowPacketBuilder
 {
+	class CResizeWindowSplitter
+	{
+	public:
+		static std::string make( const std::vector<int> &sizes, const std::string *target = NULL )
+		{
+			int pos = 0;
+			try
+			{
+				std::string body;
+				pos += CPacketBufferUtil::writeInt16( body, pos, sizes.size(), true );
+				for( size_t i = 0; i < sizes.size(); i++ ) 
+				{
+					pos += CPacketBufferUtil::writeInt16( body, pos, sizes[i], true );
+				}
+
+				return CommonPacketBuilder::makePacket( CODE_WINDOW_RESIZE_WND_SPLITTER, body, NULL, target );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::vector<int> &sizes )
+		{
+			int pos = 0;
+			try
+			{
+				boost::uint16_t cnt, size;
+				pos += CPacketBufferUtil::readInt16( body, pos, cnt, true );
+				for( size_t i = 0; i < cnt; i++ ) 
+				{
+					pos += CPacketBufferUtil::readInt16( body, pos, size, true );
+					sizes.push_back(size);
+				}
+			}catch(...)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
 	class CResizeMainWindow
 	{
 	public:

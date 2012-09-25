@@ -37,7 +37,9 @@ static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1), resizeFreezingFlag_(false), playbackSliderFreezingFlag_(false), screenShotMode_(false), wroteProgressBar_(NULL)
+	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
+	, resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
+	, screenShotMode_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
 {
 	fontBroadCastText_ = QFont( "Times" );
@@ -45,7 +47,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	fontBroadCastText_.setPixelSize( 20 );
 
 	ui.setupUi(this);
-
+	connect( ui.splitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
 	ui.painterView->setScene( canvas );
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
 	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
@@ -784,6 +786,16 @@ void SharedPainter::showEvent( QShowEvent * evt )
 	int w = ui.painterView->width();
 	int h = ui.painterView->height();
 	canvas_->setSceneRect(0, 0, w, h);
+
+	static bool firstShow = true;
+	if( firstShow )
+	{
+		QList<int> sz;
+		sz.push_back( DEFAULT_INITIAL_CHATWINDOW_SIZE );
+		sz.push_back( width() - DEFAULT_INITIAL_CHATWINDOW_SIZE );
+		ui.splitter->setSizes(sz);
+		firstShow = false;
+	}
 }
 
 
@@ -844,6 +856,16 @@ void SharedPainter::resizeEvent( QResizeEvent *evt )
 		SharePaintManagerPtr()->notifyResizingMainWindow( width(), height() );
 
 	QMainWindow::resizeEvent(evt);
+}
+
+void SharedPainter::splitterMoved( int pos, int index )
+{
+	std::vector<int> vec;
+	for (int i = 0; i < ui.splitter->sizes().size(); ++i)
+		vec.push_back( ui.splitter->sizes().at(i) );
+
+	if( !resizeSplitterFreezingFlag_ )
+		SharePaintManagerPtr()->notifyResizingWindowSplitter( vec );
 }
 
 

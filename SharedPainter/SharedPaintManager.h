@@ -72,6 +72,7 @@ public:
 	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item, double x, double y ) = 0;
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
+	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size ) = 0;
@@ -349,7 +350,7 @@ public:
 		commandMngr_.undoCommand();
 	}
 
-	void deserializeData( const char * data, size_t size );
+	bool deserializeData( const char * data, size_t size );	// TODO throw exception logic
 	
 	std::string serializeData( const std::string *target = NULL );
 
@@ -469,6 +470,17 @@ public:
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( width, height );
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
+		return sendDataToUsers( msg );
+	}
+
+	int notifyResizingWindowSplitter( const std::vector<int> &sizes )
+	{
+		if( ! enabled_ )
+			return -1;
+
+		std::string msg = WindowPacketBuilder::CResizeWindowSplitter::make( sizes );
+
+		lastWindowSplitterSizes_ = sizes;
 		return sendDataToUsers( msg );
 	}
 
@@ -792,6 +804,16 @@ private:
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_ResizeMainWindow( this, width, height );
+		}
+	}
+	void fireObserver_ResizeWindowSplitter( std::vector<int> &sizes )
+	{
+		lastWindowSplitterSizes_ = sizes;
+
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ResizeWindowSplitter( this, sizes );
 		}
 	}
 	void fireObserver_SendingPacket( int packetId, size_t wroteBytes, size_t totalBytes )
@@ -1155,6 +1177,7 @@ private:
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 	int lastWindowWidth_;
 	int lastWindowHeight_;
+	std::vector<int> lastWindowSplitterSizes_;
 	QColor backgroundColor_;
 	int gridLineSize_;
 

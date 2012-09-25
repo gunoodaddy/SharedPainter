@@ -38,6 +38,25 @@
 
 #define	TIMEOUT_SYNC_MSEC	5000
 
+static bool isCompatibleVersion( const std::string &version )
+{
+	int major1, minor1, revision1;	// mine
+	int major2, minor2, revision2;	// yours
+
+	assert( Util::parseVersionString( VERSION_TEXT, major1, minor1, revision1 ) );
+	
+	if( ! Util::parseVersionString( version, major2, minor2, revision2 ) )
+		return false;
+
+	if( major1 != major2 )
+		return false;
+	if( minor1 != minor2 )
+		return false;
+
+	return true;
+}
+
+
 CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), findingServerMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
@@ -240,16 +259,35 @@ void CSharedPaintManager::stopServer( void )
 	netPeerServer_ = boost::shared_ptr<CNetPeerServer>();
 }
 
-
-void CSharedPaintManager::deserializeData( const char * data, size_t size )
+bool CSharedPaintManager::deserializeData( const char * data, size_t size )
 {
 	CPacketSlicer slicer;
 	slicer.addBuffer( data, size );
 
 	if( slicer.parse() == false )
-		return;
+	{
+		return false;
+	}
 
-	for( size_t i = 0; i < slicer.parsedItemCount(); i++ )
+	boost::shared_ptr<CPacketData> packetData = slicer.parsedItem( 0 );
+	if( packetData->code != CODE_SYSTEM_VERSION_INFO )
+	{
+		return false;
+	}
+
+	std::string version;
+	if( ! SystemPacketBuilder::CVersionInfo::parse( packetData->body, version ) )
+	{
+		return false;
+	}
+
+	if( ! isCompatibleVersion( version ) )
+	{
+		return false;
+	}
+
+	// must start from 1 index..
+	for( size_t i = 1; i < slicer.parsedItemCount(); i++ )
 	{
 		boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
 		dispatchPaintPacket( NULL, data );
@@ -257,6 +295,8 @@ void CSharedPaintManager::deserializeData( const char * data, size_t size )
 
 	std::string allData(data, size);
 	sendDataToUsers( allData );
+
+	return true;
 }
 
 
@@ -264,9 +304,13 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 {
 	std::string allData;
 
-	// Window Resize
-	std::string msg = WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_, target );
-	allData += msg;
+	allData += SystemPacketBuilder::CVersionInfo::make( VERSION_TEXT );
+
+	// Window Size
+	allData += WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_, target );
+
+	// Window Splitter Sizes
+	allData += WindowPacketBuilder::CResizeWindowSplitter::make( lastWindowSplitterSizes_, target );
 
 	// Background Grid Line
 	if( gridLineSize_ > 0 )
@@ -327,6 +371,29 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 {
 	switch( packetData->code )
 	{
+	case CODE_SYSTEM_VERSION_INFO:
+		{
+			bool error = false;
+			std::string version;
+			if( SystemPacketBuilder::CVersionInfo::parse( packetData->body, version ) )
+			{
+				if( ! isCompatibleVersion( version ) )
+				{
+					error = true;
+				}
+			}
+			else
+			{
+				error = true;
+			}
+
+			if( error )
+			{
+				qDebug() << "Version invalied.. not compatible with target user..";
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::close, this ) );
+			}
+		}
+		break;
 	case CODE_SYSTEM_JOIN_SERVER:
 		{
 			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerServerUser::parse( packetData->body );
@@ -390,7 +457,7 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 	case CODE_SYSTEM_SUPERPEER_CHANGED:
 		{
 			std::string userid;
-			if( SystemPacketBuilder::ChangeSuperPeer::parse( packetData->body, userid ) )
+			if( SystemPacketBuilder::CChangeSuperPeer::parse( packetData->body, userid ) )
 			{
 				if( userid != myId_ )
 				{
@@ -548,6 +615,17 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 				if( width <= 0 || height <= 0 )
 					return;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeMainWindow, this, width, height ) );
+			}
+		}
+		break;
+	case CODE_WINDOW_RESIZE_WND_SPLITTER:
+		{
+			std::vector<int> sizes;
+			if( WindowPacketBuilder::CResizeWindowSplitter::parse( packetData->body, sizes ) )
+			{
+				if( sizes.size() <= 0 )
+					return;
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeWindowSplitter, this, sizes ) );
 			}
 		}
 		break;

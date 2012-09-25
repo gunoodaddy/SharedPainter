@@ -227,6 +227,7 @@ protected:
 	}
 	
 protected slots:
+	void splitterMoved( int pos, int index );
 	void onTimer( void );
 	void onTrayMessageClicked( void );
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
@@ -442,6 +443,16 @@ protected:
 		resizeFreezingFlag_ = false;
 	}
 	
+	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes )
+	{
+		resizeSplitterFreezingFlag_ = true;
+		QList<int> list;
+		for( size_t i = 0; i < sizes.size(); i++ )
+			list.push_back( sizes[i] );
+		ui.splitter->setSizes( list );
+		resizeSplitterFreezingFlag_ = false;
+	}
+
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
 	{
 		setStatusBar_JoinerCnt( self->userCount() );
@@ -489,6 +500,7 @@ private:
 	int currPaintItemId_;
 	int currPacketId_;
 	bool resizeFreezingFlag_;
+	bool resizeSplitterFreezingFlag_;
 	bool playbackSliderFreezingFlag_;
 	bool screenShotMode_;
 	QPoint orgPos_;

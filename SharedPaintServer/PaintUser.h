@@ -9,7 +9,7 @@ struct SPaintUserInfoData
 	std::string userId;
 	std::string viewIp;
 	std::string localIp;
-	boost::int16_t listenTcpPort;
+	boost::uint16_t listenTcpPort;
 	bool superPeerCandidate;
 	bool syncComplete;
 };
@@ -34,7 +34,7 @@ public:
 
 	const std::string &roomId( void ) { return data_.roomId; }
 	const std::string &userId( void ) { return data_.userId; }
-	boost::int16_t listenTcpPort( void ) { return data_.listenTcpPort; }
+	boost::uint16_t listenTcpPort( void ) { return data_.listenTcpPort; }
 
 	std::string serialize( void ) {
 		std::string body;
@@ -51,7 +51,7 @@ public:
 	bool deserialize( const std::string & data, int *readPos = NULL ) {
 		try
 		{
-			boost::int8_t f;
+			boost::uint8_t f;
 			int pos = readPos ? *readPos : 0;
 
 			pos += PacketBufferUtil::readString8( data, pos, data_.roomId );

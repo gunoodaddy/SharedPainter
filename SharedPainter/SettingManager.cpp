@@ -55,10 +55,15 @@ void CSettingManager::onTimer( void )
 void CSettingManager::load( void )
 {
 	QSettings settings( DEFAULT_FILE_NAME, QSettings::IniFormat );
+
+	settings.beginGroup( "personal" );
+	nickName_ = Util::toUtf8StdString( settings.value( "nickName" ).toString() );
+	settings.endGroup();
+
 	settings.beginGroup( "network" );
-	peerAddress_ = settings.value( "peerAddress" ).toString().toStdString();
+	peerAddress_		= settings.value( "peerAddress" ).toString().toStdString();
 	relayServerAddress_ = settings.value( "relayServerAddress" ).toString().toStdString();
-	paintChannel_ = settings.value( "paintChannel" ).toString().toStdString();
+	paintChannel_		= settings.value( "paintChannel" ).toString().toStdString();
 	settings.endGroup();
 }
 
@@ -66,6 +71,11 @@ void CSettingManager::load( void )
 void CSettingManager::save( void )
 {
 	QSettings settings( DEFAULT_FILE_NAME, QSettings::IniFormat );
+
+	settings.beginGroup( "personal" );
+	settings.setValue( "nickName", Util::toStringFromUtf8(nickName_) );
+	settings.endGroup();
+
 	settings.beginGroup( "network" );
 	settings.setValue( "peerAddress", peerAddress_.c_str() );
 	settings.setValue( "relayServerAddress", relayServerAddress_.c_str() );

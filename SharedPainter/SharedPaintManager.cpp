@@ -61,12 +61,9 @@ CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFl
 , lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
-	// default generate my id
-	myId_ = Util::generateMyId();
-
 	// create my user info
 	struct SPaintUserInfoData data;
-	data.userId = myId_;
+	data.userId =  Util::generateMyId();
 
 	std::string myIp = Util::getMyIPAddress();
 	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
@@ -113,6 +110,14 @@ void CSharedPaintManager::onTimeoutSyncStart( void )
 		close();
 }
 
+void CSharedPaintManager::changeNickName( const std::string & nickName )
+{
+	myUserInfo_->setNickName( nickName );
+
+	std::string msg = SystemPacketBuilder::CChangeNickName::make( myUserInfo_->userId(), myUserInfo_->nickName() );
+	sendDataToUsers( msg );
+}
+
 void CSharedPaintManager::setPaintChannel( const std::string & channel )
 {
 	std::string myIp = Util::getMyIPAddress();
@@ -123,17 +128,23 @@ void CSharedPaintManager::setPaintChannel( const std::string & channel )
 	
 	myUserInfo_->setChannel( channel );
 	myUserInfo_->setLocalIPAddress( myIp );
-	paintChannel_ = channel;
+}
+
+void CSharedPaintManager::sendChatMessage( const std::string &msg )
+{
+	std::string data;
+	data = SystemPacketBuilder::CChatMessage::make( myUserInfo_->userId(), myUserInfo_->nickName(), msg );
+	sendDataToUsers( data );
 }
 
 void CSharedPaintManager::sendBroadCastTextMessage( const std::string &paintChannel, const std::string &msg )
 {
 	std::string data;
-	data = BroadCastPacketBuilder::CTextMessage::make( paintChannel, myId_, msg );
+	data = BroadCastPacketBuilder::CTextMessage::make( paintChannel, myUserInfo_->userId(), msg );
 
 	broadCastSessionForSendMessage_->sendData( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG, data );
 
-	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedBroadcastTextMessage, this, paintChannel, myId_, msg ) );
+	caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedBroadcastTextMessage, this, paintChannel, myUserInfo_->userId(), msg ) );
 }
 
 bool CSharedPaintManager::startListenBroadCast( void )
@@ -177,7 +188,7 @@ bool CSharedPaintManager::startFindingServer( void )
 
 	// broadcast for finding server
 	std::string myIp = Util::getMyIPAddress();
-	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( paintChannel_, myIp, listenUdpPort_ );
+	std::string broadCastMsg = BroadCastPacketBuilder::CProbeServer::make( myUserInfo_->channel(), myIp, listenUdpPort_ );
 
 	if( broadCastSessionForFinder_ )
 		broadCastSessionForFinder_->close();
@@ -394,18 +405,33 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			}
 		}
 		break;
-	case CODE_SYSTEM_JOIN_SERVER:
+	case CODE_SYSTEM_CHANGE_NICKNAME:
 		{
-			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerServerUser::parse( packetData->body );
+			std::string userid, nickname;
+			if( SystemPacketBuilder::CChangeNickName::parse( packetData->body,  userid, nickname ) )
+			{
+				boost::shared_ptr<CPaintUser> joiner = findUser( userid );
+				if( joiner )
+				{
+					std::string prevNickName = joiner->nickName();
+					joiner->setNickName( nickname );
+					caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangedNickName, this, userid, prevNickName, nickname ) );
+				}
+			}
+		}
+		break;
+	case CODE_SYSTEM_JOIN_TO_SERVER:
+		{
+			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinToServer::parse( packetData->body );
 			
 			assert( isRelayServerSession( session ) );
 		
 			addUser( user );
 		}
 		break;
-	case CODE_SYSTEM_JOIN_SUPERPEER:
+	case CODE_SYSTEM_JOIN_TO_SUPERPEER:
 		{
-			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerSuperPeerUser::parse( packetData->body );
+			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinerToSuperPeer::parse( packetData->body );
 
 			if( user )
 			{
@@ -431,7 +457,7 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 				for( size_t i = 0; i < list.size(); i++ )
 					addUser( list[i] );
 
-				if( superId != myId_ )
+				if( superId != myUserInfo_->userId() )
 				{
 					boost::shared_ptr<CPaintUser> user = findUser( superId );
 					if( user )
@@ -454,12 +480,12 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			}
 		}
 		break;
-	case CODE_SYSTEM_SUPERPEER_CHANGED:
+	case CODE_SYSTEM_CHANGE_SUPERPEER:
 		{
 			std::string userid;
 			if( SystemPacketBuilder::CChangeSuperPeer::parse( packetData->body, userid ) )
 			{
-				if( userid != myId_ )
+				if( userid != myUserInfo_->userId() )
 				{
 					boost::shared_ptr<CPaintUser> user = findUser( userid );
 					if( user )
@@ -508,7 +534,7 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			if( SystemPacketBuilder::CSyncRequest::parse( packetData->body, channel, target ) )
 			{
 				std::string packetPackage;
-				packetPackage += SystemPacketBuilder::CSyncStart::make( channel, myId_, target );
+				packetPackage += SystemPacketBuilder::CSyncStart::make( channel, myUserInfo_->userId(), target );
 				packetPackage += serializeData( &target );
 				packetPackage += SystemPacketBuilder::CSyncComplete::make( target );
 
@@ -543,6 +569,15 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			if( SystemPacketBuilder::CLeftUser::parse( packetData->body, channel, userId ) )
 			{
 				removeUser( userId );
+			}
+		}
+		break;
+	case CODE_SYSTEM_CHAT_MESSAGE:
+		{
+			std::string userId, nickName, msg;
+			if( SystemPacketBuilder::CChatMessage::parse( packetData->body, userId, nickName, msg ) )
+			{
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedChatMessage, this, userId, nickName, msg ) );
 			}
 		}
 		break;
@@ -644,7 +679,7 @@ void CSharedPaintManager::dispatchUdpPacket( CNetUdpSession *session, boost::sha
 			if( UdpPacketBuilder::CServerInfo::parse( packetData->body, paintChannel, addr, port ) )
 			{
 				qDebug() << "CODE_UDP_SERVER_INFO : " << paintChannel.c_str() << addr.c_str() << port;
-				if( paintChannel_ != paintChannel )
+				if( myUserInfo_->channel() != paintChannel )
 					return;
 
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_GetServerInfo, this, paintChannel, addr, port ) );
@@ -665,13 +700,13 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 			std::string paintChannel;
 			if( BroadCastPacketBuilder::CProbeServer::parse( packetData->body, paintChannel, addr, port ) )
 			{
-				qDebug() << "CODE_BROAD_PROBE_SERVER : " << paintChannel_.c_str() << paintChannel.c_str() << addr.c_str() << port;
-				if( paintChannel_ != paintChannel )
+				qDebug() << "CODE_BROAD_PROBE_SERVER : " << myUserInfo_->channel().c_str() << paintChannel.c_str() << addr.c_str() << port;
+				if( myUserInfo_->channel() != paintChannel )
 					return;
 
 				// make server info
 				std::string myIp = Util::getMyIPAddress();
-				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( paintChannel_, myIp, listenTcpPort_ );
+				std::string broadCastMsg = UdpPacketBuilder::CServerInfo::make( myUserInfo_->channel(), myIp, listenTcpPort_ );
 
 				if( udpSessionForConnection_ )
 					udpSessionForConnection_->close();
@@ -686,10 +721,10 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 			std::string message, paintChannel, fromId;
 			if( BroadCastPacketBuilder::CTextMessage::parse( packetData->body, paintChannel, fromId, message ) )
 			{
-				if( paintChannel_ != paintChannel )
+				if( myUserInfo_->channel() != paintChannel )
 					return;
 
-				if( myId_ == fromId )	// ignore myself message..
+				if( myUserInfo_->userId() == fromId )	// ignore myself message..
 					return;
 	
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedBroadcastTextMessage, this, paintChannel, fromId, message ) );

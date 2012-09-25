@@ -121,6 +121,12 @@ namespace Util
 		return res;
 	}
 
+	inline QString toStringFromUtf8( const std::string &str )
+	{
+		QString res = QString::fromUtf8(str.c_str());
+		return res;
+	}
+
 	inline std::string toUtf8StdString( const QString &str )
 	{
 		std::string res;

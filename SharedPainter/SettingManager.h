@@ -59,6 +59,12 @@ public:
 		paintChannel_ = channel;
 	}
 
+	const std::string nickName( void) { return nickName_; }
+	void setNickName( const std::string & nickName )
+	{
+		nickName_ = nickName;
+	}
+
 	void load( void );
 	void save( void );
 
@@ -69,5 +75,6 @@ private:
 	std::string paintChannel_;
 	std::string peerAddress_;
 	std::string relayServerAddress_;
+	std::string nickName_;
 	QTimer *timer_;
 };

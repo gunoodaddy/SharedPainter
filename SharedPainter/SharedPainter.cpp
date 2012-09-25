@@ -101,6 +101,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		QMenu* network = new QMenu( "&Network", menuBar );
 		network->addAction( "&Connect to Relay Server", this, SLOT(actionConnectServer()) );
 		network->addAction( "&Connect to Peer", this, SLOT(actionConnect()) );
+		network->addAction( "&Nick Name", this, SLOT(actionNickName()) );
 		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
 		startFindServerAction_ = network->addAction( "Start &Find Server", this, SLOT(actionFindingServer()), Qt::CTRL+Qt::Key_1 );
 		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
@@ -456,6 +457,9 @@ void SharedPainter::actionConnectServer( void )
 {
 	static std::string userId = Util::generateMyId();
 
+	if( ! getNickNameString() )
+		return;
+
 	if( ! getPaintChannelString() )
 		return;	
 
@@ -687,6 +691,11 @@ void SharedPainter::actionBroadcastTextMessage( void )
 	SharePaintManagerPtr()->sendBroadCastTextMessage( SettingManagerPtr()->paintChannel(), Util::toUtf8StdString( msg ) );
 }
 
+void SharedPainter::actionNickName( void )
+{
+	getNickNameString( true );
+}
+
 void SharedPainter::actionPaintChannel( void )
 {
 	getPaintChannelString( true );
@@ -694,6 +703,9 @@ void SharedPainter::actionPaintChannel( void )
 
 void SharedPainter::actionFindingServer( void )
 {
+	if( ! getNickNameString() )
+		return;
+
 	if( ! getPaintChannelString() )
 		return;
 
@@ -749,6 +761,35 @@ void SharedPainter::actionClipboardPaste( void )
 }
 
 
+bool SharedPainter::getNickNameString( bool force )
+{
+	if( !force && SettingManagerPtr()->nickName().empty() == false )	// already setting
+		return true;
+
+	if( !force )
+	{
+		QMessageBox::warning(this, "", "Your need to set your nickname.");
+	}
+
+	bool ok;
+	QString nick = QInputDialog::getText(this, tr("Nick Name"), tr("Name: any string")
+		, QLineEdit::Normal, Util::toStringFromUtf8(SettingManagerPtr()->nickName()), &ok);
+
+	if( ! ok )
+		return false;
+
+	if( nick.isEmpty() )
+	{
+		QMessageBox::warning(this, "", "Invalid channel string.");
+		return false;
+	}
+
+	SettingManagerPtr()->setNickName( Util::toUtf8StdString(nick) );
+
+	SharePaintManagerPtr()->changeNickName( SettingManagerPtr()->nickName() );
+	return true;
+}
+
 bool SharedPainter::getPaintChannelString( bool force )
 {
 	if( !force && SettingManagerPtr()->paintChannel().empty() == false )	// already setting
@@ -756,7 +797,7 @@ bool SharedPainter::getPaintChannelString( bool force )
 
 	if( !force )
 	{
-		QMessageBox::warning(this, "", "Your need to register channel id first.");
+		QMessageBox::warning(this, "", "Your need to set a channel first.");
 	}
 
 	bool ok;

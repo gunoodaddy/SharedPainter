@@ -37,6 +37,7 @@ struct SPaintUserInfoData
 
 	std::string channel;
 	std::string userId;
+	std::string nickName;
 	boost::uint16_t listenTcpPort;
 	std::string viewIp;
 	std::string localIp;
@@ -56,6 +57,7 @@ public:
 	void setSessionId( int sessionId ) { sessionId_ = sessionId; }
 	int sessionId( void ) { return sessionId_; }
 	void setData( const struct SPaintUserInfoData &info ) { data_ = info; }
+	void setNickName( const std::string & nick ) { data_.nickName = nick; }
 	void setChannel( const std::string & channel ) { data_.channel = channel; }
 	void setListenTcpPort( boost::uint16_t port ) { data_.listenTcpPort = port; }
     void setSuperPeerCandidate( bool enable = true ) { data_.superPeerCandidate = enable; }
@@ -67,6 +69,7 @@ public:
 	const std::string &viewIPAddress( void ) { return data_.viewIp; }
 	const std::string &channel( void ) { return data_.channel; }
 	const std::string &userId( void ) { return data_.userId; }
+	const std::string &nickName( void ) { return data_.nickName; }
 	boost::uint16_t listenTcpPort( void ) { return data_.listenTcpPort; }
 
 	std::string serialize( void ) {
@@ -74,6 +77,7 @@ public:
 		int pos = 0;
 		pos += CPacketBufferUtil::writeString8( body, pos, data_.channel );
 		pos += CPacketBufferUtil::writeString8( body, pos, data_.userId );
+		pos += CPacketBufferUtil::writeString8( body, pos, data_.nickName );
 		pos += CPacketBufferUtil::writeString8( body, pos, data_.viewIp );
 		pos += CPacketBufferUtil::writeString8( body, pos, data_.localIp );
 		pos += CPacketBufferUtil::writeInt16( body, pos, data_.listenTcpPort, true );
@@ -89,6 +93,7 @@ public:
 
 			pos += CPacketBufferUtil::readString8( data, pos, data_.channel );
 			pos += CPacketBufferUtil::readString8( data, pos, data_.userId );
+			pos += CPacketBufferUtil::readString8( data, pos, data_.nickName );
 			pos += CPacketBufferUtil::readString8( data, pos, data_.viewIp );
 			pos += CPacketBufferUtil::readString8( data, pos, data_.localIp );
 			pos += CPacketBufferUtil::readInt16( data, pos, data_.listenTcpPort, true );

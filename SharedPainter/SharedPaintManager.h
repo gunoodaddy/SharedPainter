@@ -78,11 +78,15 @@ public:
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size ) = 0;
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_ClearBackground( CSharedPaintManager *self ) = 0;
+	virtual void onISharedPaintEvent_EnterPaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
+	virtual void onISharedPaintEvent_LeavePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &paintChannel, const std::string &addr, int port ) = 0;
 	virtual void onISharedPaintEvent_ReceivedBroadcastTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &fromId, const std::string &message ) = 0;
 	virtual void onISharedPaintEvent_AddTask( CSharedPaintManager *self, int totalTaskCount, bool playBackWorking ) = 0;
 	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount ) = 0;
+	virtual void onISharedPaintEvent_ChangedNickName( CSharedPaintManager *self, const std::string & userId, const std::string &prevNickName, const std::string &currNickName ) = 0;
+	virtual void onISharedPaintEvent_ReceivedChatMessage( CSharedPaintManager *self, const std::string & userId, const std::string &nickName, const std::string &chatMsg ) = 0;
 };
 
 
@@ -105,7 +109,7 @@ protected slots:
 public:
 	const std::string& myId( void ) 
 	{
-		return myId_;
+		return myUserInfo_->userId();
 	}
 
 	void close( void )
@@ -148,6 +152,7 @@ public:
 	void stopFindingServer( void );
 
 	void setPaintChannel( const std::string & channel );
+	void changeNickName( const std::string & nickName );
 
 	bool connectToPeer( const std::string &addr, int port )
 	{
@@ -331,6 +336,8 @@ public:
 		return sendDataToUsers( sessionList, msg, toSessionId );
 	}
 
+	void sendChatMessage( const std::string &msg );	// channel chatting API
+
 	void sendBroadCastTextMessage( const std::string &paintChannel, const std::string &msg );
 
 	// Shared Paint Action
@@ -502,7 +509,7 @@ private:
 			return;
 
 		std::string packetPackage;
-		packetPackage += SystemPacketBuilder::CSyncStart::make( paintChannel_, myId_, "" );
+		packetPackage += SystemPacketBuilder::CSyncStart::make( myUserInfo_->channel(), myUserInfo_->userId(), "" );
 		packetPackage += serializeData();
 		packetPackage += generateJoinerInfoPacket();
 		packetPackage += SystemPacketBuilder::CSyncComplete::make( "" );
@@ -522,9 +529,9 @@ private:
 	{
 		std::string msg;
 		if( isRelayServerSession( session ) )
-			msg = SystemPacketBuilder::CJoinerServerUser::make( myUserInfo_ );
+			msg = SystemPacketBuilder::CJoinToServer::make( myUserInfo_ );
 		else
-			msg = SystemPacketBuilder::CJoinerSuperPeerUser::make( myUserInfo_ );
+			msg = SystemPacketBuilder::CJoinerToSuperPeer::make( myUserInfo_ );
 
 		session->session()->sendData( msg );
 	}
@@ -536,15 +543,24 @@ private:
 		sendDataToUsers( msg );
 	}
 
-	void addUser( boost::shared_ptr<CPaintUser> user )
+	bool addUser( boost::shared_ptr<CPaintUser> user )
 	{
+		bool firstFlag = true;
 		mutexUser_.lock();
 		std::pair<USER_MAP::iterator, bool> res = joinerMap_.insert( USER_MAP::value_type( user->userId(), user ) );
 		if( !res.second )
+		{
 			res.first->second = user;	// overwrite;
+			firstFlag = false;
+		}
 		mutexUser_.unlock();
 
-		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, user ) );
+		if( firstFlag )
+			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_EnterPaintUser, this, user ) );
+		else
+			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, user ) );
+
+		return firstFlag;
 	}
 
 	boost::shared_ptr<CPaintUser> findUser( int sessionId )
@@ -588,7 +604,7 @@ private:
 		}
 
 		if( removing )
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, removing ) );
+			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_LeavePaintUser, this, removing ) );
 	}
 
 	void removeUser( boost::shared_ptr<CPaintUser> user )
@@ -619,7 +635,7 @@ private:
 		USER_MAP::iterator it = joinerMap_.begin();
 		for( ; it != joinerMap_.end(); it++ )
 		{
-			std::string msg = SystemPacketBuilder::CJoinerSuperPeerUser::make( it->second );
+			std::string msg = SystemPacketBuilder::CJoinerToSuperPeer::make( it->second );
 			allData += msg;
 		}
 		mutexUser_.unlock();
@@ -705,7 +721,7 @@ private:
 
 	inline bool isMySelfSuperPeer( void ) 
 	{
-		if( ! superPeerSession_ && superPeerId_ == myId_ )
+		if( ! superPeerSession_ && superPeerId_ == myUserInfo_->userId() )
 			return true;
 		return false;
 	}
@@ -890,6 +906,22 @@ private:
 			(*it)->onISharedPaintEvent_GetServerInfo( this, paintChannel, addr, port );
 		}
 	}
+	void fireObserver_EnterPaintUser( boost::shared_ptr<CPaintUser> user )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_EnterPaintUser( this, user );
+		}
+	}
+	void fireObserver_LeavePaintUser( boost::shared_ptr<CPaintUser> user )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_LeavePaintUser( this, user );
+		}
+	}
 	void fireObserver_UpdatePaintUser( boost::shared_ptr<CPaintUser> user )
 	{
 		std::list<ISharedPaintEvent *> observers = observers_;
@@ -924,6 +956,26 @@ private:
 			(*it)->onISharedPaintEvent_ServerFinding( this, sentCount );
 		}
 	}
+
+	void fireObserver_ChangedNickName( const std::string & userId, const std::string &prevNickName, const std::string &currNickName ) 
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ChangedNickName( this, userId, prevNickName, currNickName );
+		}
+	}
+
+	void fireObserver_ReceivedChatMessage( const std::string & userId, const std::string &nickName, const std::string &chatMsg ) 
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ReceivedChatMessage( this, userId, nickName, chatMsg );
+		}
+	}
+
+	
 
 	// delaying remove session feature
 private:
@@ -963,7 +1015,7 @@ protected:
 		mutexSession_.unlock();
 
 		if( isAlwaysP2PMode() )
-			superPeerId_ = myId_;
+			superPeerId_ = myUserInfo_->userId();
 
 		// start read io!
 		session->start();
@@ -1159,7 +1211,6 @@ private:
 	friend class CUpdateItemTask;
 	friend class CMoveItemTask;
 
-	std::string myId_;
 	CDefferedCaller caller_;
 	bool enabled_;
 	bool syncStartedFlag_;
@@ -1202,7 +1253,6 @@ private:
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForFinder_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForSendMessage_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForRecvMessage_;
-	std::string paintChannel_;
 
 	// seding byte management
 	boost::recursive_mutex mutexSendInfo_;

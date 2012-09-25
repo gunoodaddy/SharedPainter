@@ -34,6 +34,44 @@
 
 namespace SystemPacketBuilder
 {
+
+	class CChatMessage
+	{
+	public:
+		static std::string make( const std::string &id, const std::string &nick, const std::string &msg )
+		{
+			int pos = 0;
+			try
+			{
+				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, id );
+				pos += CPacketBufferUtil::writeString8( body, pos, nick );
+				pos += CPacketBufferUtil::writeString8( body, pos, msg );
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_CHAT_MESSAGE, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::string &id, std::string &nick, std::string &msg )
+		{
+			int pos = 0;
+			try
+			{
+				boost::uint16_t temp_port;
+				pos += CPacketBufferUtil::readString8( body, pos, id );
+				pos += CPacketBufferUtil::readString8( body, pos, nick );
+				pos += CPacketBufferUtil::readString8( body, pos, msg );
+			}catch(...)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
 	class CVersionInfo {
 	public:
 		static std::string make( const std::string &version )
@@ -66,6 +104,40 @@ namespace SystemPacketBuilder
 		}
 	};
 
+	class CChangeNickName{
+	public:
+		static std::string make( const std::string &userid, const std::string & nickName )
+		{
+			try
+			{
+				int pos = 0;
+				std::string body;
+				pos += CPacketBufferUtil::writeString8( body, pos, userid );
+				pos += CPacketBufferUtil::writeString8( body, pos, nickName );
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_CHANGE_NICKNAME, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, std::string & userid, std::string & nickName ) {
+
+			int pos = 0;
+			try
+			{
+				pos += CPacketBufferUtil::readString8( body, pos, userid );
+				pos += CPacketBufferUtil::readString8( body, pos, nickName );
+
+				return true;
+			}catch(...)
+			{
+			}
+			return false;
+		}
+	};
+
 	class CChangeSuperPeer{
 	public:
 		static bool parse( const std::string &body, std::string & userid ) {
@@ -83,7 +155,7 @@ namespace SystemPacketBuilder
 		}
 	};
 
-	class CJoinerServerUser
+	class CJoinToServer
 	{
 	public:
 		static std::string make( boost::shared_ptr<CPaintUser> user )
@@ -92,7 +164,7 @@ namespace SystemPacketBuilder
 			{
 				std::string body = user->serialize();
 
-				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN_SERVER, body );
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN_TO_SERVER, body );
 			}catch(...)
 			{
 			}
@@ -114,7 +186,7 @@ namespace SystemPacketBuilder
 		}
 	};
 
-	class CJoinerSuperPeerUser
+	class CJoinerToSuperPeer
 	{
 	public:
 		static std::string make( boost::shared_ptr<CPaintUser> user )
@@ -123,7 +195,7 @@ namespace SystemPacketBuilder
 			{
 				std::string body = user->serialize();
 
-				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN_SUPERPEER, body );
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_JOIN_TO_SUPERPEER, body );
 			}catch(...)
 			{
 			}

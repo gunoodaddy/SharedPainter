@@ -238,6 +238,7 @@ protected slots:
 	void actionConnectServer( void );
 	void actionSaveImageFile( void );
 	void actionClipboardPaste( void );
+	void actionNickName( void );
 	void actionPaintChannel( void );
 	void actionBroadcastTextMessage( void );
 	void actionClearBG( void );
@@ -271,6 +272,7 @@ private:
 	void setCheckGridLineAction( bool checked );
 	void setCheckShowLastAddItemAction( bool checked );
 	bool getPaintChannelString( bool force = false );
+	bool getNickNameString( bool force = false );
 	void changeToobarButtonColor( QPushButton *button, const QColor &clr )
 	{
 		QString s;
@@ -453,6 +455,18 @@ protected:
 		resizeSplitterFreezingFlag_ = false;
 	}
 
+	virtual void onISharedPaintEvent_EnterPaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
+	{
+		// TODO : CHAT WINDOW ENTER USER UPDATE
+		setStatusBar_JoinerCnt( self->userCount() );
+	}
+
+	virtual void onISharedPaintEvent_LeavePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
+	{
+		// TODO : CHAT WINDOW LEAVING USER UPDATE
+		setStatusBar_JoinerCnt( self->userCount() );
+	}
+
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
 	{
 		setStatusBar_JoinerCnt( self->userCount() );
@@ -489,6 +503,16 @@ protected:
 			else
 				findingServerWindow_->setRemainCount( remainCount );
 		}
+	}
+
+	virtual void onISharedPaintEvent_ChangedNickName( CSharedPaintManager *self, const std::string & userId, const std::string &prevNickName, const std::string &currNickName )
+	{
+		// TODO : NICKNAME CHANGED
+	}
+
+	virtual void onISharedPaintEvent_ReceivedChatMessage( CSharedPaintManager *self, const std::string & userId, const std::string &nickName, const std::string &chatMsg )
+	{
+		// TODO : CHAT MESSAGE
 	}
 
 

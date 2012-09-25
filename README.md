@@ -3,7 +3,6 @@
 <img src="https://raw.github.com/gunoodaddy/SharedPainter/master/SharedPainterIntro.png"/>
 
 ## Features
-
 * Automatically server finding by udp broadcast (if same network)
 * Available to using relay server
 * TCP directly connection to host (host with NAT not available yet..)
@@ -22,6 +21,15 @@
 * Playback 
 * Clipboard paste
 * System tray
+
+## Known Issues
+* Cannot received packet from udp socket sometimes, however the udp socket binded successfully.
+
+
+## TODO
+* Multi-objects selecting by mouse dragging.
+* Chatting window
+* Figure drawing
 
 ## Requirement
 * Now, you can build with Qt Creator (tested in Windows only..)

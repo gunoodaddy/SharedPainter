@@ -110,7 +110,6 @@ void SharedPaintRoom::syncStart( const std::string &tartgetId ) {
 void SharedPaintRoom::uniCast( boost::shared_ptr<SharedPaintProtocol> prot ) {
 
 	CLIENT_MAP::iterator itC = clientMap_.find( prot->header().toId() );
-	LOG_DEBUG("======================> UNICAST START <================ : %d -> %s, %d", prot->code(),  prot->header().toId().c_str(), clientMap_.size());
 	if( itC != clientMap_.end() ) {
 		LOG_DEBUG("======================> UNICAST <================ : %d -> %s", prot->code(),  prot->header().toId().c_str());
 		itC->second->tcpSocket()->write( prot->basePtr(), prot->totalSize() );

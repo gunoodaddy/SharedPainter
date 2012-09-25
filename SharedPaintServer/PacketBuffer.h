@@ -87,29 +87,29 @@ public:
 		return 8;
 	}
 
-	static size_t writeInt32( std::string &buf, size_t pos, boost::int32_t value, bool LE ) {
-		boost::int32_t net;
+	static size_t writeInt32( std::string &buf, size_t pos, boost::uint32_t value, bool LE ) {
+		boost::uint32_t net;
 		if(LE) {
-			net = (boost::int32_t)value;
+			net = (boost::uint32_t)value;
 		} else {
-			net = (boost::int32_t)htonl(value);
+			net = (boost::uint32_t)htonl(value);
 		}
 		buf.insert( pos, (const char*)&net, 4 );
 		return 4;
 	}
 
-	static size_t writeInt16( std::string &buf, size_t pos, boost::int16_t value, bool LE ) {
-		boost::int16_t net;
+	static size_t writeInt16( std::string &buf, size_t pos, boost::uint16_t value, bool LE ) {
+		boost::uint16_t net;
 		if(LE) {
-			net = (boost::int16_t)value;
+			net = (boost::uint16_t)value;
 		} else {
-			net = (boost::int16_t)htons(value);
+			net = (boost::uint16_t)htons(value);
 		}
 		buf.insert( pos, (const char*)&net, 2 );
 		return 2;
 	}
 
-	static size_t writeInt8( std::string &buf, size_t pos, boost::int8_t value ) {
+	static size_t writeInt8( std::string &buf, size_t pos, boost::uint8_t value ) {
 		buf.insert( pos, (const char*)&value, 1 );
 		return 1;
 	}
@@ -189,18 +189,18 @@ public:
 		return 8;                             
 	}
 
-	static boost::int32_t readInt32( const std::string &buf, size_t pos, boost::int32_t &value, bool LE ) {
+	static boost::uint32_t readInt32( const std::string &buf, size_t pos, boost::uint32_t &value, bool LE ) {
 		union bytes {
-			boost::int8_t b[4];
-			boost::int32_t all;
+			boost::uint8_t b[4];
+			boost::uint32_t all;
 		} theBytes;
 
 		if( read( buf, pos, (void *)theBytes.b, 4 ) == 4 )
 		{
 			if( LE )
-				value = (boost::int32_t)theBytes.all;
+				value = (boost::uint32_t)theBytes.all;
 			else
-				value = (boost::int32_t)ntohl(theBytes.all);
+				value = (boost::uint32_t)ntohl(theBytes.all);
 		}
 		else
 			throw PacketBufferException("readInt32 failed..");
@@ -208,18 +208,18 @@ public:
 		return 4;
 	}
 
-	static boost::int16_t readInt16( const std::string &buf, size_t pos, boost::int16_t &value, bool LE ) {
+	static boost::uint16_t readInt16( const std::string &buf, size_t pos, boost::uint16_t &value, bool LE ) {
 		union bytes {
-			boost::int8_t b[2];
-			boost::int16_t all;
+			boost::uint8_t b[2];
+			boost::uint16_t all;
 		} theBytes;
 
 		if( read( buf, pos, (void *)theBytes.b, 2 ) == 2 )
 		{
 			if( LE )
-				value = (boost::int16_t)theBytes.all;
+				value = (boost::uint16_t)theBytes.all;
 			else
-				value = (boost::int16_t)ntohs(theBytes.all);
+				value = (boost::uint16_t)ntohs(theBytes.all);
 		}
 		else
 			throw PacketBufferException("readInt16 failed..");
@@ -227,8 +227,8 @@ public:
 		return 2;
 	}
 
-	static boost::int8_t readInt8( const std::string &buf, size_t pos, boost::int8_t &value ) {
-		boost::int8_t b[1];
+	static boost::uint8_t readInt8( const std::string &buf, size_t pos, boost::uint8_t &value ) {
+		boost::uint8_t b[1];
 		if( read( buf, pos, (void *)b, 1) == 1 )
 			value = b[0];
 		else
@@ -237,17 +237,17 @@ public:
 		return 1;
 	}
 
-	static boost::int32_t readString32( const std::string &buf, size_t pos, std::string &value, bool LE ) {
-		boost::int32_t len = 0;
+	static boost::uint32_t readString32( const std::string &buf, size_t pos, std::string &value, bool LE ) {
+		boost::uint32_t len = 0;
 		pos += readInt32( buf, pos, len, LE );
 		int nread = read( buf, pos, value, len );
-		if(nread != len)
+		if(nread != (int)len)
 			throw PacketBufferException("readString32 failed..");
 		return 4 + len;
 	}
 
-	static boost::int32_t readString16( const std::string &buf, size_t pos, std::string &value, bool LE ) {
-		boost::int16_t len = 0;
+	static boost::uint32_t readString16( const std::string &buf, size_t pos, std::string &value, bool LE ) {
+		boost::uint16_t len = 0;
 		pos += readInt16( buf, pos, len, LE );
 		int nread = read( buf, pos, value, len );
 		if(nread != len)
@@ -255,8 +255,8 @@ public:
 		return 2 + len;
 	}
 
-	static boost::int32_t readString8( const std::string &buf, size_t pos, std::string &value ) {
-		boost::int8_t len = 0;
+	static boost::uint32_t readString8( const std::string &buf, size_t pos, std::string &value ) {
+		boost::uint8_t len = 0;
 		pos += readInt8( buf, pos, len );
 		int nread = read( buf, pos, value, len );
 		if(nread != len)

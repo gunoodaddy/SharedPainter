@@ -20,11 +20,11 @@ public:
 
 	struct HeaderData {
 		HeaderData() : magic(NET_MAGIC_CODE_BIG), code(0), blen(0) { }
-		boost::int16_t magic;
-		boost::int16_t code;
+		boost::uint16_t magic;
+		boost::uint16_t code;
 		std::string fromId;
 		std::string toId;
-		boost::int32_t blen;
+		boost::uint32_t blen;
 	};
 
 	boost::uint16_t code() const {
@@ -133,7 +133,7 @@ private:
 	size_t payload_pos_;
 	size_t startRead_pos_;
 	bool invalidPacketRecved_;
-	boost::int8_t currIdLen_;
+	boost::uint8_t currIdLen_;
 	int currHeaderLen_;
 };
 

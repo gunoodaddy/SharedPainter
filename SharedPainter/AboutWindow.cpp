@@ -35,6 +35,8 @@ AboutWindow::AboutWindow(QWidget *parent)
 {
 	ui.setupUi(this);
 
+	ui.labelIcon->setPixmap( QPixmap(":/SharedPainter/Resources/tray_connect.png") );
+
 	QString version = "Ver ";
 	version += VERSION_TEXT;
 	ui.labelVersion->setText(version);

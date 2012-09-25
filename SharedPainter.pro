@@ -29,18 +29,20 @@ SOURCES +=  \
     SharedPainter/SharedPaintCommand.cpp \
     SharedPainter/SharedPaintTask.cpp \
     SharedPainter/SettingManager.cpp \
-    SharedPainter/PaintSession.cpp \
-    SharedPainter/PacketSlicer.cpp \
     SharedPainter/PacketBuffer.cpp \
     SharedPainter/DefferedCaller.cpp \
     SharedPainter/Util.cpp \
     SharedPainter/FindingServerDialog.cpp \
+	SharedPainter/SyncDataProgressDialog.cpp \
+	SharedPainter/AboutWindow.cpp \
     SharedPainter/main.cpp
 
 HEADERS  += \
     SharedPainter/FindingServerDialog.h \
     SharedPainter/WindowPacketBuilder.h \
     SharedPainter/TextItemDialog.h \
+	SharedPainter/SyncDataProgressDialog.h \
+	SharedPainter/AboutWindow.h \
     SharedPainter/SystemPacketBuilder.h \
     SharedPainter/UdpPacketBuilder.h \
     SharedPainter/stdafx.h \
@@ -89,6 +91,8 @@ LIBS += -luser32 -lshell32 -lgdi32
 
 FORMS    += \
     SharedPainter/FindingServerDialog.ui \
+	SharedPainter/SyncDataProgressDialog.ui \
+	SharedPainter/AboutWindow.ui \
     SharedPainter/textitemdialog.ui \
     SharedPainter/sharedpainter.ui
 

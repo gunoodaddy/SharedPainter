@@ -237,14 +237,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	installEventFilter(this);
 
 	// Title
-	QString orgTitle = windowTitle();
-	QString newTitle = orgTitle;
-	newTitle += " Ver ";
-	newTitle += VERSION_TEXT;
-	newTitle += ", ";
-	newTitle += AUTHOR_TEXT;
-
-	setWindowTitle( newTitle );
+	updateWindowTitle();
 
 	// start server 
 	SharePaintManagerPtr()->startServer();
@@ -349,16 +342,18 @@ void SharedPainter::onTrayActivated( QSystemTrayIcon::ActivationReason reason )
 	}
 }
 
-void SharedPainter::actionAbout( void )
+void SharedPainter::updateWindowTitle( void )
 {
-	AboutWindow wnd(this);
-	wnd.exec();
-}
+	// Title
+	QString newTitle = PROGRAME_TEXT;
+	newTitle += " Ver ";
+	newTitle += VERSION_TEXT;
+	newTitle += ", ";
+	newTitle += AUTHOR_TEXT;
+	newTitle += " - Channel : ";
+	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->paintChannel());
 
-void SharedPainter::actionExit( void )
-{
-	trayIcon_->hide();
-	close();
+	setWindowTitle( newTitle );
 }
 
 void SharedPainter::sendChatMessage( void )
@@ -380,6 +375,18 @@ void SharedPainter::setCheckGridLineAction( bool checked )
 	gridLineAction_->setChecked( checked );
 }
 
+
+void SharedPainter::actionAbout( void )
+{
+	AboutWindow wnd(this);
+	wnd.exec();
+}
+
+void SharedPainter::actionExit( void )
+{
+	trayIcon_->hide();
+	close();
+}
 
 void SharedPainter::addSystemMessage( const QString &msg )
 {
@@ -915,6 +922,8 @@ bool SharedPainter::getPaintChannelString( bool force )
 	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
 
 	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
+
+	updateWindowTitle();
 	return true;
 }
 

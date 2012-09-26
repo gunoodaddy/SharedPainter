@@ -272,6 +272,7 @@ protected slots:
 	void actionLastItem( void );
 
 private:
+	void updateWindowTitle( void );
 	void addSystemMessage( const QString &chatMsg );
 	void addYourChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
 	void addMyChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );

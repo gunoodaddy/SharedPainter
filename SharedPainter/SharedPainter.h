@@ -230,6 +230,7 @@ protected:
 	}
 	
 protected slots:
+	void checkSetting( void );
 	void splitterMoved( int pos, int index );
 	void onTimer( void );
 	void onTrayMessageClicked( void );

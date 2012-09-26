@@ -869,12 +869,16 @@ bool SharedPainter::getNickNameString( bool force )
 		, QLineEdit::Normal, Util::toStringFromUtf8(SettingManagerPtr()->nickName()), &ok);
 
 	if( ! ok )
-		return false;
+	{
+		if( SettingManagerPtr()->nickName().empty() )
+			return getNickNameString( force );
+		return true;
+	}
 
 	if( nick.isEmpty() )
 	{
 		QMessageBox::warning(this, "", "Invalid channel string.");
-		return false;
+		return getNickNameString(force);
 	}
 
 	SettingManagerPtr()->setNickName( Util::toUtf8StdString(nick) );
@@ -896,12 +900,16 @@ bool SharedPainter::getPaintChannelString( bool force )
 	bool ok;
 	QString channel = QInputDialog::getText(this, tr("Paint Channel"), tr("Channel: any string"), QLineEdit::Normal, SettingManagerPtr()->paintChannel().c_str(), &ok);
 	if( ! ok )
-		return false;
+	{
+		if( SettingManagerPtr()->paintChannel().empty() )
+			return getPaintChannelString( force );
+		return true;
+	}
 
 	if( channel.isEmpty() )
 	{
 		QMessageBox::warning(this, "", "Invalid channel string.");
-		return false;
+		return getPaintChannelString( force );
 	}
 
 	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
@@ -915,6 +923,13 @@ void SharedPainter::keyPressEvent ( QKeyEvent * event )
 	QWidget::keyPressEvent(event); 
 } 
 
+void SharedPainter::checkSetting( void )
+{
+	// must be set..
+	getNickNameString();
+	getPaintChannelString();
+}
+
 void SharedPainter::showEvent( QShowEvent * evt )
 {
 	int w = ui.painterView->width();
@@ -924,6 +939,8 @@ void SharedPainter::showEvent( QShowEvent * evt )
 	static bool firstShow = true;
 	if( firstShow )
 	{
+		QTimer::singleShot( 100, this, SLOT(checkSetting()) );
+
 		QList<int> sz;
 		sz.push_back( DEFAULT_INITIAL_CHATWINDOW_SIZE );
 		sz.push_back( width() - DEFAULT_INITIAL_CHATWINDOW_SIZE );

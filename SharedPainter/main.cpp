@@ -5,6 +5,21 @@
 
 int main(int argc, char *argv[])
 {
+#if defined(Q_WS_WIN)
+
+	HANDLE semaphore;
+	semaphore = CreateSemaphore(NULL, 1, 1, L"gunoodaddy-0813-sharedpainter");
+	BOOL alreadyExist = (GetLastError() == ERROR_ALREADY_EXISTS);
+	if(alreadyExist)
+	{
+		if( ! QFileInfo("MULTI_INSTANCE.opt").isFile() )
+		{
+			::MessageBoxA( NULL, "This program is running already.", PROGRAME_TEXT, MB_OK );
+			return -1;
+		}
+	}
+#endif
+
 	CSingleton<CDefferedCaller>::Instance();
 	CSingleton<CSharedPaintManager>::Instance();
 
@@ -19,6 +34,11 @@ int main(int argc, char *argv[])
 	w.show();
 
 	int res = a.exec();
+
+#if defined(Q_WS_WIN)
+	ReleaseSemaphore(semaphore, 1, NULL);
+	CloseHandle(semaphore);
+#endif
 	return res;
 
 }

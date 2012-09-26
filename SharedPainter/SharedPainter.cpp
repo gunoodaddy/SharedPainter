@@ -44,38 +44,6 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 	ui.editChat->append( "" );	\
 }
 
-static const char *chatCSS = 
-".nicknameOther{"
-"   font-weight:bold;"
-"	color: #78BBEF;"
-"	font-size: 8pt;"
-"}"
-".nicknameMine{"
-"   font-weight:bold;"
-"	color: #69C238;"
-"	font-size: 8pt;"
-"}"
-".nicknameBroadcast{"
-"   font-weight:bold;"
-"	color: #FF8000;"
-"	font-size: 8pt;"
-"}"
-".messageOther{"
-"	color: black;"
-"	font-size: 12pt;"
-"}"
-".messageMine{"
-"	color: black;"
-"	font-size: 12pt;"
-"}"
-".messageBroadcast{"
-"	color: #FF8000;"
-"	font-size: 12pt;"
-"}"
-".messageSystem{"
-"	color: #808080;"
-"	font-size: 10pt;"
-"}";
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
@@ -92,7 +60,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	ui.painterView->setScene( canvas );
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
 	
-	ui.editChat->document()->setDefaultStyleSheet(chatCSS);
+	ui.editChat->document()->setDefaultStyleSheet(gStyleSheet_Chat);
 	ui.editChat->setReadOnly( true );
 	ui.editMsg->installEventFilter( this );
 

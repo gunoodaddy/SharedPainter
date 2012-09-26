@@ -43,6 +43,10 @@
 // <------------------------ HEADER ------------------------------------------------------> <----------------- BODY ---------------->
 //
 
+#ifndef MAX_PACKET_BODY_SIZE
+#define MAX_PACKET_BODY_SIZE	20000000
+#endif
+
 class CPacketData
 {
 public:
@@ -197,7 +201,7 @@ private:
 
 				currHeaderLen_ += buffer_.readInt32( currBodyLen_ );
 
-				if( currBodyLen_ > 0x1312D00 )	// 20MB
+				if( currBodyLen_ > MAX_PACKET_BODY_SIZE )	// 20MB
 				{
 					init();
 					return false;

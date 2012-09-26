@@ -55,6 +55,11 @@ static const char *chatCSS =
 "	color: #69C238;"
 "	font-size: 8pt;"
 "}"
+".nicknameBroadcast{"
+"   font-weight:bold;"
+"	color: #FF8000;"
+"	font-size: 8pt;"
+"}"
 ".messageOther{"
 "	color: black;"
 "	font-size: 12pt;"
@@ -63,8 +68,12 @@ static const char *chatCSS =
 "	color: black;"
 "	font-size: 12pt;"
 "}"
+".messageBroadcast{"
+"	color: #FF8000;"
+"	font-size: 12pt;"
+"}"
 ".messageSystem{"
-"	color: #E0A22A;"
+"	color: #808080;"
 "	font-size: 10pt;"
 "}";
 
@@ -413,14 +422,8 @@ void SharedPainter::addSystemMessage( const QString &msg )
 	lastChatUserId_ = "";
 }
 
-void SharedPainter::addChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg )
+void SharedPainter::addMyChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg )
 {
-	bool myMsgFlag = false;
-	if( Util::toUtf8StdString(userId) == SharePaintManagerPtr()->myId() )
-		myMsgFlag = true;
-
-	QString clazz;
-
 	bool continuousChatFlag = false;
 	if( lastChatUserId_ == userId )
 		continuousChatFlag = true;
@@ -428,21 +431,43 @@ void SharedPainter::addChatMessage( const QString & userId, const QString &nickN
 	if( ! continuousChatFlag )
 	{
 		ADD_CHAT_VERTICAL_SPACE();
-
-		if( myMsgFlag )
-			clazz = "nicknameMine";
-		else
-			clazz = "nicknameOther";
-		ui.editChat->append( "<html><div class=" + clazz + ">" + nickName + "</div></html>" );
+		ui.editChat->append( "<html><div class=nicknameMine>" + nickName + "</div></html>" );
 	}
-
-	if( myMsgFlag )
-		clazz = "messageMine";
-	else
-		clazz = "messageOther";
-	ui.editChat->append( "<html><div class=" + clazz + ">" + chatMsg + "</div></html>" );
+	ui.editChat->append( "<html><div class=messageMine>" + chatMsg + "</div></html>" );
 
 	lastChatUserId_ = userId;
+}
+
+void SharedPainter::addYourChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg )
+{
+	bool continuousChatFlag = false;
+	if( lastChatUserId_ == userId )
+		continuousChatFlag = true;
+
+	if( ! continuousChatFlag )
+	{
+		ADD_CHAT_VERTICAL_SPACE();
+		ui.editChat->append( "<html><div class=nicknameOther>" + nickName + "</div></html>" );
+	}
+	ui.editChat->append( "<html><div class=messageOther>" + chatMsg + "</div></html>" );
+
+	lastChatUserId_ = userId;
+}
+
+
+void SharedPainter::addBroadcastChatMessage( const QString & channel, const QString & userId, const QString &nickName, const QString &chatMsg )
+{
+	bool continuousChatFlag = false;
+	if( lastChatUserId_ == userId )
+		continuousChatFlag = true;
+
+	ADD_CHAT_VERTICAL_SPACE();
+	QString who;
+	who = nickName + tr(" in \"") + channel + tr("\" channel");
+	ui.editChat->append( "<html><div class=nicknameBroadcast>" + who + "</div></html>" );
+	ui.editChat->append( "<html><div class=messageBroadcast>" + chatMsg + "</div></html>" );
+
+	lastChatUserId_ = "";
 }
 
 

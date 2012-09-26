@@ -74,7 +74,7 @@ namespace BroadCastPacketBuilder
 	class CTextMessage
 	{
 	public:
-		static std::string make( const std::string &paintChannel, const std::string &myId, const std::string &message )
+		static std::string make( const std::string &paintChannel, const std::string &myId, const std::string &myNick, const std::string &message )
 		{
 			int pos = 0;
 			try
@@ -82,6 +82,7 @@ namespace BroadCastPacketBuilder
 				std::string body;
 				pos += CPacketBufferUtil::writeString8( body, pos, paintChannel );
 				pos += CPacketBufferUtil::writeString8( body, pos, myId );
+				pos += CPacketBufferUtil::writeString8( body, pos, myNick );
 				pos += CPacketBufferUtil::writeString8( body, pos, message );
 
 				return CommonPacketBuilder::makePacket( CODE_BROAD_TEXT_MESSAGE, body );
@@ -91,7 +92,7 @@ namespace BroadCastPacketBuilder
 			return "";
 		}
 
-		static bool parse( const std::string &body, std::string &paintChannel, std::string &myId, std::string &message )
+		static bool parse( const std::string &body, std::string &paintChannel, std::string &myId, std::string &myNick, std::string &message )
 		{
 			int pos = 0;
 			try
@@ -99,6 +100,7 @@ namespace BroadCastPacketBuilder
 				boost::uint16_t temp_port;
 				pos += CPacketBufferUtil::readString8( body, pos, paintChannel );
 				pos += CPacketBufferUtil::readString8( body, pos, myId );
+				pos += CPacketBufferUtil::readString8( body, pos, myNick );
 				pos += CPacketBufferUtil::readString8( body, pos, message );
 			}catch(...)
 			{

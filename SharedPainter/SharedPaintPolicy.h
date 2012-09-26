@@ -29,12 +29,13 @@
 
 #pragma once 
 
-#define VERSION_TEXT	"0.6.1"
+#define VERSION_TEXT	"0.6.2"
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 
 #define NET_MAGIC_CODE	0xBEBE
 
+#define MAX_PACKET_BODY_SIZE				200000000	// 2OOMB
 #define DEFAULT_TEXT_ITEM_POS_REGION_W		9999
 #define DEFAULT_TEXT_ITEM_POS_REGION_H		300
 

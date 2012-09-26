@@ -3,15 +3,15 @@
 <img src="https://raw.github.com/gunoodaddy/SharedPainter/master/SharedPainterIntro.png"/>
 
 ## Features
-* Automatically server finding by udp broadcast (if same network)
+* Automatically server finding by udp broadcast (only available for the same network)
 * Available to using relay server
 * TCP directly connection to host (host with NAT not available yet..)
 * Multiuser sharing
 * Free Pen Object
 * Text Object
 * Background Image (Screen shot)
-* File Object (limit 20MB per a file)
-* Image File Object (limit 20MB per a file)
+* File Object (limit 200MB per a file)
+* Image File Object (limit 200MB per a file)
 * Image File Object Scale
 * Window Resize
 * All Objects Position
@@ -21,6 +21,8 @@
 * Playback 
 * Clipboard paste
 * System tray
+* Channel Chatting
+* Broadcast Chatting (only available for the same network)
 
 ## Known Issues
 * Cannot received packet from udp socket sometimes, however the udp socket binded successfully.

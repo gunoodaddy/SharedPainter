@@ -82,7 +82,7 @@ public:
 	virtual void onISharedPaintEvent_LeavePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user ) = 0;
 	virtual void onISharedPaintEvent_GetServerInfo( CSharedPaintManager *self, const std::string &paintChannel, const std::string &addr, int port ) = 0;
-	virtual void onISharedPaintEvent_ReceivedBroadcastTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &fromId, const std::string &message ) = 0;
+	virtual void onISharedPaintEvent_ReceivedBroadcastTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &fromId, const std::string &nickName, const std::string &message ) = 0;
 	virtual void onISharedPaintEvent_AddTask( CSharedPaintManager *self, int totalTaskCount, bool playBackWorking ) = 0;
 	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount ) = 0;
 	virtual void onISharedPaintEvent_ChangedNickName( CSharedPaintManager *self, const std::string & userId, const std::string &prevNickName, const std::string &currNickName ) = 0;
@@ -890,12 +890,12 @@ private:
 			(*it)->onISharedPaintEvent_SetBackgroundGridLine( this, size );
 		}
 	}
-	void fireObserver_ReceivedBroadcastTextMessage( const std::string &paintChannel, const std::string &fromId, const std::string &message )
+	void fireObserver_ReceivedBroadcastTextMessage( const std::string &paintChannel, const std::string &fromId, const std::string &nickName, const std::string &message )
 	{
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
-			(*it)->onISharedPaintEvent_ReceivedBroadcastTextMessage( this, paintChannel, fromId, message );
+			(*it)->onISharedPaintEvent_ReceivedBroadcastTextMessage( this, paintChannel, fromId, nickName, message );
 		}
 	}
 	void fireObserver_GetServerInfo( const std::string &paintChannel, const std::string &addr, int port )

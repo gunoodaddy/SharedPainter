@@ -130,11 +130,14 @@ public:
 		setWindowIcon( icon );
 	}
 
-	void showTrayMessage( const QString &str )
+	void showTrayMessage( const QString &str, const QString *strTitle = NULL)
 	{
-	     QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information;
+		QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information;
 
-	     trayIcon_->showMessage( PROGRAME_TEXT, str, icon, DEFAULT_TRAY_MESSAGE_DURATION_MSEC );
+		if( strTitle != NULL )
+			trayIcon_->showMessage( *strTitle, str, icon, DEFAULT_TRAY_MESSAGE_DURATION_MSEC );
+		else
+			trayIcon_->showMessage( PROGRAME_TEXT, str, icon, DEFAULT_TRAY_MESSAGE_DURATION_MSEC );
  	}
 
 	void addTextItem( const QString &str, const QFont &font, const QColor &textColor )
@@ -269,7 +272,9 @@ protected slots:
 
 private:
 	void addSystemMessage( const QString &chatMsg );
-	void addChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
+	void addYourChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
+	void addMyChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
+	void addBroadcastChatMessage(  const QString & channel, const QString & userId, const QString &nickName, const QString &chatMsg );
 
 	void sendChatMessage( void );
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
@@ -493,16 +498,6 @@ protected:
 		}
 	}
 	
-	virtual void onISharedPaintEvent_ReceivedBroadcastTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &fromId, const std::string &message )
-	{
-		QString msg = QString::fromUtf8( message.c_str(), message.size() );
-
-		if( fromId != self->myId() )
-			showTrayMessage( msg );
-
-		addTextItem( msg, fontBroadCastText_, Util::getComplementaryColor(canvas_->backgroundColor()) );
-	}
-
 	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount )
 	{
 		if( findingServerWindow_ )
@@ -530,7 +525,32 @@ protected:
 		QString qNick = Util::toStringFromUtf8( nickName );
 		QString qMsg = Util::toStringFromUtf8( chatMsg );
 
-		addChatMessage( qId, qNick, qMsg );
+		if( userId == self->myId() )
+			addMyChatMessage( qId, qNick, qMsg );
+		else
+			addYourChatMessage( qId, qNick, qMsg );
+
+		if( isActiveWindow() == false )
+		{
+			if( userId != self->myId() )
+				showTrayMessage( qMsg, &qNick );
+		}
+	}
+
+	virtual void onISharedPaintEvent_ReceivedBroadcastTextMessage( CSharedPaintManager *self, const std::string &paintChannel, const std::string &fromId, const std::string &nickName, const std::string &message )
+	{
+		QString qChannel = Util::toStringFromUtf8( paintChannel );
+		QString qId = Util::toStringFromUtf8( fromId );
+		QString qNick = Util::toStringFromUtf8( nickName );
+		QString qMsg = Util::toStringFromUtf8( message );
+
+		addBroadcastChatMessage( qChannel, qId, qNick, qMsg );
+
+		if( isActiveWindow() == false )
+		{
+			if( fromId != self->myId() )
+				showTrayMessage( qMsg, &qNick );
+		}
 	}
 
 

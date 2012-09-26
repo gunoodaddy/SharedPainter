@@ -61,6 +61,8 @@ public:
 
 	void close( void )
 	{
+		qDebug() << "CNetServiceRunner::close called";
+
 		mutex_.lock();
 		stopped_ = true;
 		mutex_.unlock();

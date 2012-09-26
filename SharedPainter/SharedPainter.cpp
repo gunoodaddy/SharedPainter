@@ -349,7 +349,7 @@ void SharedPainter::updateWindowTitle( void )
 	newTitle += " Ver ";
 	newTitle += VERSION_TEXT;
 	newTitle += ", ";
-	newTitle += AUTHOR_TEXT;
+	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->nickName());
 	newTitle += " - Channel : ";
 	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->paintChannel());
 
@@ -902,6 +902,8 @@ bool SharedPainter::getNickNameString( bool force )
 	SettingManagerPtr()->setNickName( Util::toUtf8StdString(nick) );
 
 	SharePaintManagerPtr()->changeNickName( SettingManagerPtr()->nickName() );
+
+	updateWindowTitle();
 	return true;
 }
 

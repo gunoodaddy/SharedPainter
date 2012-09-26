@@ -161,14 +161,14 @@ public:
 		if (endpoint_iter != tcp::resolver::iterator())
 		{
 			// Set a deadline for the connect operation.
-			deadline_.expires_from_now(boost::posix_time::seconds(60));
+			deadline_.expires_from_now(boost::posix_time::seconds(10));
 
 			//clientsocket_.set_option( boost::asio::ip::tcp::no_delay option(true) );
 
 			// Start the asynchronous connect operation.
 			clientsocket_.async_connect(endpoint_iter->endpoint(),
 				boost::bind(&CNetPeerSession::_handle_connect,
-				shared_from_this(), _1, endpoint_iter));
+				shared_from_this(), boost::asio::placeholders::error, endpoint_iter));
 
 		}
 		else

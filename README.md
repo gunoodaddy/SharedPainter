@@ -25,12 +25,11 @@
 * Broadcast Chatting (only available for the same network)
 
 ## Known Issues
-* Cannot received packet from udp socket sometimes, however the udp socket binded successfully.
+* Cannot received packets from udp socket sometimes, however the udp socket binded successfully.
 
 
 ## TODO
 * Multi-objects selecting by mouse dragging.
-* Chatting window
 * Figure drawing
 
 ## Requirement

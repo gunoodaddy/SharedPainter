@@ -268,6 +268,9 @@ protected slots:
 	void actionLastItem( void );
 
 private:
+	void addSystemMessage( const QString &chatMsg );
+	void addChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
+
 	void sendChatMessage( void );
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
 	void setCheckGridLineAction( bool checked );
@@ -458,13 +461,19 @@ protected:
 
 	virtual void onISharedPaintEvent_EnterPaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
 	{
-		// TODO : CHAT WINDOW ENTER USER UPDATE
+		QString qNick = Util::toStringFromUtf8( user->nickName() );
+		QString msg = qNick + tr(" joined.");
+		addSystemMessage( msg );
+
 		setStatusBar_JoinerCnt( self->userCount() );
 	}
 
 	virtual void onISharedPaintEvent_LeavePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
 	{
-		// TODO : CHAT WINDOW LEAVING USER UPDATE
+		QString qNick = Util::toStringFromUtf8( user->nickName() );
+		QString msg = qNick + tr(" left.");
+		addSystemMessage( msg );
+
 		setStatusBar_JoinerCnt( self->userCount() );
 	}
 
@@ -508,13 +517,20 @@ protected:
 
 	virtual void onISharedPaintEvent_ChangedNickName( CSharedPaintManager *self, const std::string & userId, const std::string &prevNickName, const std::string &currNickName )
 	{
-		// TODO : NICKNAME CHANGED
+		QString qPrevNick = Util::toStringFromUtf8( prevNickName );
+		QString qCurrNick = Util::toStringFromUtf8( currNickName );
+
+		QString msg = qPrevNick + tr(" has changed a nickname to ") + qCurrNick;
+		addSystemMessage( msg );
 	}
 
 	virtual void onISharedPaintEvent_ReceivedChatMessage( CSharedPaintManager *self, const std::string & userId, const std::string &nickName, const std::string &chatMsg )
 	{
-		// TODO : CHAT MESSAGE
-		ui.editChat->append( Util::toStringFromUtf8( chatMsg ) );
+		QString qId = Util::toStringFromUtf8( userId );
+		QString qNick = Util::toStringFromUtf8( nickName );
+		QString qMsg = Util::toStringFromUtf8( chatMsg );
+
+		addChatMessage( qId, qNick, qMsg );
 	}
 
 
@@ -559,6 +575,8 @@ private:
 
 	FindingServerDialog *findingServerWindow_;
 	SyncDataProgressDialog *syncProgressWindow_;
+
+	QString lastChatUserId_;
 };
 
 #endif // SHAREDPAINTER_H

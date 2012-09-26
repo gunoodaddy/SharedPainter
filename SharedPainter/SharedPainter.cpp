@@ -36,6 +36,38 @@
 static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
 
+#define ADD_CHAT_VERTICAL_SPACE()	\
+{	\
+	QTextCharFormat fmt;	\
+	fmt.setFontPointSize( 3 );	\
+	ui.editChat->setCurrentCharFormat( fmt );	\
+	ui.editChat->append( "" );	\
+}
+
+static const char *chatCSS = 
+".nicknameOther{"
+"   font-weight:bold;"
+"	color: #78BBEF;"
+"	font-size: 8pt;"
+"}"
+".nicknameMine{"
+"   font-weight:bold;"
+"	color: #69C238;"
+"	font-size: 8pt;"
+"}"
+".messageOther{"
+"	color: black;"
+"	font-size: 12pt;"
+"}"
+".messageMine{"
+"	color: black;"
+"	font-size: 12pt;"
+"}"
+".messageSystem{"
+"	color: #E0A22A;"
+"	font-size: 10pt;"
+"}";
+
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
 	, resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
@@ -50,9 +82,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	connect( ui.splitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
 	ui.painterView->setScene( canvas );
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
-	ui.painterView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-	ui.painterView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	
+	ui.editChat->document()->setDefaultStyleSheet(chatCSS);
 	ui.editChat->setReadOnly( true );
 	ui.editMsg->installEventFilter( this );
 
@@ -210,6 +241,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	}
 
 	// Setting applying
+	SharePaintManagerPtr()->changeNickName( SettingManagerPtr()->nickName() );
 	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 	actionPenWidth3();
@@ -354,6 +386,9 @@ void SharedPainter::actionExit( void )
 
 void SharedPainter::sendChatMessage( void )
 {
+	if( ! getNickNameString() )
+		return;
+
 	QString plainText = ui.editMsg->toPlainText().trimmed();
 	std::string msg = Util::toUtf8StdString( plainText );
 
@@ -367,6 +402,49 @@ void SharedPainter::setCheckGridLineAction( bool checked )
 	toolBar_GridLine_->setChecked( checked );
 	gridLineAction_->setChecked( checked );
 }
+
+
+void SharedPainter::addSystemMessage( const QString &msg )
+{
+	ADD_CHAT_VERTICAL_SPACE();
+
+	ui.editChat->append( "<html><div class=messageSystem>" + msg + "</div></html>" );
+
+	lastChatUserId_ = "";
+}
+
+void SharedPainter::addChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg )
+{
+	bool myMsgFlag = false;
+	if( Util::toUtf8StdString(userId) == SharePaintManagerPtr()->myId() )
+		myMsgFlag = true;
+
+	QString clazz;
+
+	bool continuousChatFlag = false;
+	if( lastChatUserId_ == userId )
+		continuousChatFlag = true;
+
+	if( ! continuousChatFlag )
+	{
+		ADD_CHAT_VERTICAL_SPACE();
+
+		if( myMsgFlag )
+			clazz = "nicknameMine";
+		else
+			clazz = "nicknameOther";
+		ui.editChat->append( "<html><div class=" + clazz + ">" + nickName + "</div></html>" );
+	}
+
+	if( myMsgFlag )
+		clazz = "messageMine";
+	else
+		clazz = "messageOther";
+	ui.editChat->append( "<html><div class=" + clazz + ">" + chatMsg + "</div></html>" );
+
+	lastChatUserId_ = userId;
+}
+
 
 void SharedPainter::actionImportFile( void )
 {
@@ -388,7 +466,10 @@ void SharedPainter::actionImportFile( void )
 	byteArray = f.readAll();
 
 	SharePaintManagerPtr()->clearScreen( true );
-	SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() );
+	if( ! SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() ) )
+	{
+		QMessageBox::critical( this, "", tr("cannot import this file. or this file is not compatible with this version.") );
+	}
 }
 
 void SharedPainter::setCheckShowLastAddItemAction( bool checked )
@@ -855,6 +936,10 @@ void SharedPainter::showEvent( QShowEvent * evt )
 		sz.push_back( width() - DEFAULT_INITIAL_CHATWINDOW_SIZE );
 		ui.splitter->setSizes(sz);
 		firstShow = false;
+
+		w = ui.painterView->width();
+		h = ui.painterView->height();
+		canvas_->setSceneRect(0, 0, w, h);
 	}
 }
 

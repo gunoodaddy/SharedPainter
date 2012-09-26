@@ -43,15 +43,25 @@ static bool isCompatibleVersion( const std::string &version )
 	int major1, minor1, revision1;	// mine
 	int major2, minor2, revision2;	// yours
 
-	assert( Util::parseVersionString( VERSION_TEXT, major1, minor1, revision1 ) );
+	bool ret = Util::parseVersionString( VERSION_TEXT, major1, minor1, revision1 );
+	assert( ret );
 	
 	if( ! Util::parseVersionString( version, major2, minor2, revision2 ) )
+	{
+		qDebug() << "isCompatibleVersion : parseVersionString failed : " << version.c_str();
 		return false;
+	}
 
 	if( major1 != major2 )
+	{
+		qDebug() << "isCompatibleVersion : major diff : " << major1 << major2;
 		return false;
+	}
 	if( minor1 != minor2 )
+	{
+		qDebug() << "isCompatibleVersion : minor diff : " << minor1 << minor2;
 		return false;
+	}
 
 	return true;
 }

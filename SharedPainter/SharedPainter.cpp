@@ -388,6 +388,13 @@ void SharedPainter::actionExit( void )
 	close();
 }
 
+void SharedPainter::updateLastChatTime( void )
+{
+	QString str = tr("last message time : ");
+	str += QDateTime::currentDateTime().toString();
+	ui.labelLastMessageTime->setText( str );
+}
+
 void SharedPainter::addSystemMessage( const QString &msg )
 {
 	ADD_CHAT_VERTICAL_SPACE();
@@ -427,6 +434,8 @@ void SharedPainter::addYourChatMessage( const QString & userId, const QString &n
 	ui.editChat->append( "<html><div class=messageOther>" + chatMsg + "</div></html>" );
 
 	lastChatUserId_ = userId;
+
+	updateLastChatTime();
 }
 
 
@@ -443,6 +452,8 @@ void SharedPainter::addBroadcastChatMessage( const QString & channel, const QStr
 	ui.editChat->append( "<html><div class=messageBroadcast>" + chatMsg + "</div></html>" );
 
 	lastChatUserId_ = "";
+
+	updateLastChatTime();
 }
 
 

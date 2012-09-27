@@ -156,40 +156,43 @@ public:
 	void setPaintChannel( const std::string & channel );
 	void changeNickName( const std::string & nickName );
 
-	bool connectToPeer( const std::string &addr, int port )
+	void reconnect( void )
 	{
-		if( port == listenTcpPort_ )
-			return false;
+		qDebug() << "CSharedPaintManager::reconnect()" << lastConnectAddress_.c_str() << lastConnectPort_ << lastConnectMode_ << isConnected() << isConnecting();
 
-		close();
+		if( isConnected() || isConnecting() )
+			return;
 
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
-		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
-
-		mutexSession_.lock();
-		sessionList_.push_back( userSession );
-		mutexSession_.unlock();
-
-		// must be called here for preventing from a crash by thread race condition.
-		userSession->session()->connect( addr, port );
-
-		return true;
+		if( lastConnectAddress_.empty() || lastConnectPort_ < 0 )
+			return;
+		
+		switch( lastConnectMode_ )
+		{
+		case PEER_MODE:
+			_connectToPeer( lastConnectAddress_, lastConnectPort_ );
+			break;
+		case SERVER_MODE:
+			_requestJoinServer( lastConnectAddress_, lastConnectPort_, myUserInfo_->channel() );
+			break;
+		}
 	}
 
-	bool requestJoinServer( const std::string &addr, int port, const std::string &userid, const std::string &roomid )
+	bool connectToPeer( const std::string &addr, int port )
 	{
+		retryServerReconnectCount_ = 0;
+
+		close();
+		
+		return _connectToPeer( addr, port );
+	}
+
+	bool requestJoinServer( const std::string &addr, int port, const std::string &roomid )
+	{
+		retryServerReconnectCount_ = 0;
+
 		close();
 
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
-		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
-
-		mutexSession_.lock();
-		relayServerSession_ = userSession;
-		mutexSession_.unlock();
-
-		// must be called here for preventing from a crash by thread race condition.
-		userSession->session()->connect( addr, port );
-		return true;
+		return _requestJoinServer( addr, port, roomid );
 	}
 
 	void clearAllSessions( void )
@@ -698,7 +701,7 @@ private:
 	bool startListenBroadCast( void );
 	void stopListenBroadCast( void );
 
-	bool connectToSuperPeer( boost::shared_ptr<CPaintUser> user )
+	bool _connectToSuperPeer( boost::shared_ptr<CPaintUser> user )
 	{
 		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
@@ -711,6 +714,45 @@ private:
 
 		userSession->session()->connect( user->viewIPAddress(), user->listenTcpPort() );
 
+		return true;
+	}
+
+	bool _connectToPeer( const std::string &addr, int port )
+	{
+		if( port == listenTcpPort_ )
+			return false;
+
+		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
+
+		mutexSession_.lock();
+		sessionList_.push_back( userSession );
+		mutexSession_.unlock();
+
+		// must be called here for preventing from a crash by thread race condition.
+		userSession->session()->connect( addr, port );
+
+		lastConnectMode_ = PEER_MODE;
+		lastConnectAddress_ = addr;
+		lastConnectPort_ = port;
+		return true;
+	}
+
+	bool _requestJoinServer( const std::string &addr, int port, const std::string &roomid )
+	{
+		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
+
+		mutexSession_.lock();
+		relayServerSession_ = userSession;
+		mutexSession_.unlock();
+
+		// must be called here for preventing from a crash by thread race condition.
+		userSession->session()->connect( addr, port );
+
+		lastConnectMode_ = SERVER_MODE;
+		lastConnectAddress_ = addr;
+		lastConnectPort_ = port;
 		return true;
 	}
 
@@ -745,6 +787,18 @@ private:
 	}
 
 	void _requestSyncData( void );
+
+	void tryReconnectToRelayServer( CPaintSession* unconnectedSession = NULL )
+	{
+		if( ! unconnectedSession || isRelayServerSession( unconnectedSession ) )	// if only relay server session, try reconnect
+		{
+			if( retryServerReconnectCount_++ < DEFAULT_RECONNECT_TRY_COUNT )
+			{
+				//CDefferedCaller::singleShotAfterMiliseconds( boost::bind(&CSharedPaintManager::reconnect, this), 1000 );
+				caller_.performMainThreadAfterMilliseconds( boost::bind(&CSharedPaintManager::reconnect, this), 2000 );
+			}
+		}
+	}
 
 private:
 	// observer methods
@@ -1109,6 +1163,11 @@ protected:
 		{
 			// send to my user info to relay server or super peer
 			sendMyUserInfo( session );
+
+			if( isRelayServerSession( session ) )
+			{
+				retryServerReconnectCount_ = 0;
+			}
 		}
 		else
 		{
@@ -1130,6 +1189,8 @@ protected:
 
 	virtual void onIPaintSessionEvent_ConnectFailed( CPaintSession* session )
 	{
+		tryReconnectToRelayServer( session );
+
 		if ( isRelayServerSession( session ) )
 		{
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ConnectFailed, this ) );
@@ -1140,6 +1201,8 @@ protected:
 
 	virtual void onIPaintSessionEvent_Disconnected( CPaintSession * session )
 	{
+		tryReconnectToRelayServer( session );
+
 		if( isFindingServerMode() )
 			broadCastSessionForFinder_->resumeSend();
 
@@ -1272,10 +1335,21 @@ private:
 	USER_MAP joinerMap_;
 	
 	// network
+	enum ConnectionMode
+	{
+		INIT_MODE,
+		PEER_MODE,
+		SERVER_MODE,
+	};
+
 	CNetServiceRunner netRunner_;
 	bool findingServerMode_;
 	int listenTcpPort_;
 	int listenUdpPort_;
+	int retryServerReconnectCount_;
+	ConnectionMode lastConnectMode_;
+	std::string lastConnectAddress_;
+	int lastConnectPort_;
 	std::string superPeerId_;
 	SESSION_LIST sessionList_;
 	boost::shared_ptr<CPaintSession> superPeerSession_;

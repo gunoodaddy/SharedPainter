@@ -160,10 +160,7 @@ public:
 	{
 		if (endpoint_iter != tcp::resolver::iterator())
 		{
-			// Set a deadline for the connect operation.
 			deadline_.expires_from_now(boost::posix_time::seconds(10));
-
-			//clientsocket_.set_option( boost::asio::ip::tcp::no_delay option(true) );
 
 			// Start the asynchronous connect operation.
 			clientsocket_.async_connect(endpoint_iter->endpoint(),
@@ -224,9 +221,6 @@ public:
 		// Check if the connect operation failed before the deadline expired.
 		else if (ec)
 		{
-			// error occur : check ec.message()
-			fireConnectFailEvent();
-
 			// We need to close the socket used in the previous connection attempt
 			// before starting a new one.
 			close();

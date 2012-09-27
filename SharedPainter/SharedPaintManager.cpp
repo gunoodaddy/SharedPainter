@@ -67,7 +67,9 @@ static bool isCompatibleVersion( const std::string &version )
 }
 
 
-CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), findingServerMode_(false)
+CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL)
+, listenTcpPort_(-1), listenUdpPort_(-1), retryServerReconnectCount_(0), lastConnectMode_(INIT_MODE), lastConnectPort_(-1)
+, findingServerMode_(false)
 , lastWindowWidth_(0), lastWindowHeight_(0), lastCanvasWidth_(0), lastCanvasHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
@@ -122,10 +124,18 @@ void CSharedPaintManager::onTimeoutSyncStart( void )
 
 void CSharedPaintManager::changeNickName( const std::string & nickName )
 {
+	std::string prevNickName = myUserInfo_->nickName();
+
+	if( prevNickName == nickName )
+		return;
+
 	myUserInfo_->setNickName( nickName );
 
 	std::string msg = SystemPacketBuilder::CChangeNickName::make( myUserInfo_->userId(), myUserInfo_->nickName() );
 	sendDataToUsers( msg );
+
+	if( prevNickName != "" && prevNickName != nickName )
+		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangedNickName, this, myUserInfo_->userId(), prevNickName, nickName ) );
 }
 
 void CSharedPaintManager::setPaintChannel( const std::string & channel )
@@ -387,11 +397,15 @@ void CSharedPaintManager::_requestSyncData( void )
 	if( syncStartedFlag_ )
 		return;
 
+	clearScreen( false );
+
 	QTimer::singleShot( TIMEOUT_SYNC_MSEC, this, SLOT(onTimeoutSyncStart()) );
 
 	std::string msg = SystemPacketBuilder::CSyncRequest::make();
 	if( relayServerSession_ )
 		relayServerSession_->session()->sendData( msg );
+
+	qDebug() << "CSharedPaintManager::_requestSyncData() called";
 }
 
 // this function need to check session pointer null check!
@@ -480,10 +494,10 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 	case CODE_SYSTEM_RES_JOIN:
 		{
 			bool connectSuperPeerFlag = false;
-
+			bool firstUserFlag = false;
 			std::string channel, superId;
 			USER_LIST list;
-			if( SystemPacketBuilder::CResponseJoin::parse( packetData->body, channel, list, superId ) )
+			if( SystemPacketBuilder::CResponseJoin::parse( packetData->body, channel, firstUserFlag, list, superId ) )
 			{
 				for( size_t i = 0; i < list.size(); i++ )
 					addUser( list[i] );
@@ -493,15 +507,13 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 					boost::shared_ptr<CPaintUser> user = findUser( superId );
 					if( user )
 					{
-						connectToSuperPeer( user );
+						_connectToSuperPeer( user );
 						connectSuperPeerFlag = true;
 					}
 				}
 			}
 
-			bool firstUserFlag = false;
-			if( joinerMap_.size() == 1 )
-				firstUserFlag = true;
+			qDebug() << "CODE_SYSTEM_RES_JOIN recved" << firstUserFlag << connectSuperPeerFlag << (int)relayServerSession_.get() << syncStartedFlag_;
 
 			if( false == firstUserFlag 
 				&& false == connectSuperPeerFlag 
@@ -521,7 +533,7 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 					boost::shared_ptr<CPaintUser> user = findUser( userid );
 					if( user )
 					{
-						connectToSuperPeer( user );
+						_connectToSuperPeer( user );
 					}
 				}
 				superPeerId_ = userid;
@@ -555,6 +567,7 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			std::string channel;
 			if( SystemPacketBuilder::CSyncComplete::parse( packetData->body ) )
 			{
+				syncStartedFlag_ = false;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SyncComplete, this ) );
 			}
 		}

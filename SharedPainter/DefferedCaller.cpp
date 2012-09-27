@@ -34,10 +34,12 @@ boost::thread::id CDefferedCaller::mainThreadId_ = boost::this_thread::get_id();
 
 CDefferedCaller::CDefferedCaller(void) : autoDelete_(false)
 {
+	qDebug() << "CDefferedCaller()" << this;
 }
 
 CDefferedCaller::~CDefferedCaller(void)
 {
+	qDebug() << "~CDefferedCaller()" << this << autoDelete_;
 }
 
 bool CDefferedCaller::isMainThread( void )
@@ -71,16 +73,93 @@ void CDefferedCaller::performMainThread( FUNC_TYPE func )
 }
 
 
+bool CDefferedCaller::performMainThreadAfterMilliseconds( FUNC_TYPE func, int msec )
+{
+	mutex_.lock();
+
+	boost::shared_ptr<methodtimer_t> data(new methodtimer_t);
+	data->remain_msec = msec;
+	data->func = func;
+	data->timer_start = false;
+
+	deferredMethodsForTimer_.push_back(data);
+
+	mutex_.unlock();
+
+	QEvent *evt = new QEvent(QEvent::User);
+	QApplication::postEvent(this, evt);
+	return true;
+}
+
+
+void CDefferedCaller::timerEvent( void )
+{
+	mutex_.lock();
+
+	qint64 now = QDateTime::currentMSecsSinceEpoch();
+	for( TIMER_LIST::iterator it = deferredMethodsForTimer_.begin(); it != deferredMethodsForTimer_.end(); it++) 
+	{
+		boost::shared_ptr<methodtimer_t> data = (*it);
+		if( (*it)->timer_start )
+		{
+			qint64 diffMsec = now - data->tick;
+			assert( diffMsec >= 0 );
+
+			data->remain_msec -= diffMsec;
+			data->tick = now;
+		}
+	}
+
+	TIMER_LIST methodsForTimer = deferredMethodsForTimer_;
+
+	mutex_.unlock();
+
+	for( TIMER_LIST::iterator it = methodsForTimer.begin(); it != methodsForTimer.end(); it++) 
+	{
+		if( (*it)->remain_msec < 10 )
+		{
+			(*it)->func();
+
+			mutex_.lock();
+			TIMER_LIST::iterator itF = std::find( deferredMethodsForTimer_.begin(), deferredMethodsForTimer_.end(), *it );
+			if( itF != deferredMethodsForTimer_.end() )
+				deferredMethodsForTimer_.erase( itF );
+			mutex_.unlock();
+		}
+	}
+
+	if( deferredMethodsForTimer_.size() <= 0 && autoDelete_ )
+		delete this;
+}
+
 void CDefferedCaller::customEvent(QEvent* e)
 {
 	mutex_.lock();
-	std::list<FUNC_TYPE> methods = deferredMethods_;
+	TIMER_LIST methodsForTimer = deferredMethodsForTimer_;
+	FUNC_LIST methods = deferredMethods_;
 	mutex_.unlock();
 
 	// MUST be lock-free status..
-	for( std::list<FUNC_TYPE>::iterator it = methods.begin(); it != methods.end(); it++) 
+	for( TIMER_LIST::iterator it = methodsForTimer.begin(); it != methodsForTimer.end(); it++) 
+	{
+		boost::shared_ptr<methodtimer_t> data = (*it);
+		if( false == data->timer_start )
+		{
+			data->tick = QDateTime::currentMSecsSinceEpoch();
+			QTimer::singleShot( data->remain_msec, this, SLOT(timerEvent()) );
+			data->timer_start = true;
+		}
+	}
+
+	for( FUNC_LIST::iterator it = methods.begin(); it != methods.end(); it++) 
 	{
 		(*it)();
+	}
+
+	if( methodsForTimer.size() != deferredMethodsForTimer_.size() )
+	{
+		CDefferedCaller::customEvent(e);	// recursive
+		return;
 	}
 
 	mutex_.lock();
@@ -99,6 +178,6 @@ void CDefferedCaller::customEvent(QEvent* e)
 	deferredMethods_.clear();
 	mutex_.unlock();
 
-	if( autoDelete_ )
+	if( deferredMethodsForTimer_.size() <= 0 && autoDelete_ )
 		delete this;
 }

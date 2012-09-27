@@ -430,7 +430,7 @@ void SharedPainter::addMyChatMessage( const QString & userId, const QString &nic
 	else
 		ADD_CHAT_VERTICAL_SPACE_CHAT_SMALL();
 
-	ui.editChat->append( "<html><span class=chatMark> - </span><span class=messageMine>" + chatMsg + "</span></html>" );
+	ui.editChat->append( "<html><span class=chatMark> > </span><span class=messageMine>" + chatMsg + "</span></html>" );
 
 	lastChatUserId_ = userId;
 }
@@ -449,7 +449,7 @@ void SharedPainter::addYourChatMessage( const QString & userId, const QString &n
 	else
 		ADD_CHAT_VERTICAL_SPACE_CHAT_SMALL();
 
-	ui.editChat->append( "<html><span class=chatMark> - </span><span class=messageOther>" + chatMsg + "</span></html>" );
+	ui.editChat->append( "<html><span class=chatMark> > </span><span class=messageOther>" + chatMsg + "</span></html>" );
 
 	lastChatUserId_ = userId;
 
@@ -626,7 +626,7 @@ void SharedPainter::actionConnectServer( void )
 	
 		SettingManagerPtr()->setRelayServerAddress( addr.toStdString() );
 
-		SharePaintManagerPtr()->requestJoinServer( ip, port, Util::generateMyId(), SettingManagerPtr()->paintChannel() );
+		SharePaintManagerPtr()->requestJoinServer( ip, port, SettingManagerPtr()->paintChannel() );
 		return;
 	} while( false );
 
@@ -792,6 +792,12 @@ void SharedPainter::actionClearBG( void )
 
 void SharedPainter::actionClearScreen( void )
 {
+	int res = QMessageBox::question( this, "", tr("All items and playback data will be lost and can not be rolled back.\nWould you like to proceed?"), QMessageBox::Ok|QMessageBox::Cancel);
+	if( res != QMessageBox::Ok )
+	{
+		return;
+	}
+
 	SharePaintManagerPtr()->clearScreen();
 }
 
@@ -956,9 +962,31 @@ bool SharedPainter::getPaintChannelString( bool force )
 		return getPaintChannelString( force );
 	}
 
-	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
+	std::string prevChannel = SettingManagerPtr()->paintChannel();
 
+	bool reconnectFlag = false;
+	if( prevChannel != "" && prevChannel != channel.toStdString() )
+	{
+		if( SharePaintManagerPtr()->isConnected() || SharePaintManagerPtr()->isConnecting() )
+		{
+			int res = QMessageBox::question( this, "", tr("If you change the channel, your connection will be lost.\nDo you change the channel and reconnect?"), QMessageBox::Ok|QMessageBox::Cancel);
+			if( res != QMessageBox::Ok )
+			{
+				return false;
+			}
+
+			reconnectFlag = true;
+		}
+	}
+
+	SettingManagerPtr()->setPaintChannel( channel.toStdString() );
 	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
+
+	if( reconnectFlag )
+	{
+		SharePaintManagerPtr()->close();
+		SharePaintManagerPtr()->reconnect();
+	}
 
 	updateWindowTitle();
 	return true;

@@ -346,15 +346,20 @@ namespace SystemPacketBuilder
 	public:
 		static bool parse( const std::string &body, 
 			std::string &channel, 
+			bool &firstFlag,
 			USER_LIST &list, 
 			std::string & superPeerId )
 		{
 			int pos = 0;
 			try
 			{
+				boost::uint8_t tempFirstFlag = 0;
 				boost::uint16_t count = 0;
 				pos += CPacketBufferUtil::readString8( body, pos, channel );
+				pos += CPacketBufferUtil::readInt8( body, pos, tempFirstFlag );
 				pos += CPacketBufferUtil::readInt16( body, pos, count, false );
+
+				firstFlag = (tempFirstFlag == 1) ? true : false;
 
 				for( int i = 0; i < count; i++ )
 				{

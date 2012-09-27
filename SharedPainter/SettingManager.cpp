@@ -60,6 +60,10 @@ void CSettingManager::load( void )
 	nickName_ = Util::toUtf8StdString( settings.value( "nickName" ).toString() );
 	settings.endGroup();
 
+	settings.beginGroup( "general" );
+	syncWindowSize_ = settings.value( "syncWindowSize", true ).toBool();
+	settings.endGroup();
+
 	settings.beginGroup( "network" );
 	peerAddress_		= settings.value( "peerAddress" ).toString().toStdString();
 	relayServerAddress_ = settings.value( "relayServerAddress" ).toString().toStdString();
@@ -74,6 +78,10 @@ void CSettingManager::save( void )
 
 	settings.beginGroup( "personal" );
 	settings.setValue( "nickName", Util::toStringFromUtf8(nickName_) );
+	settings.endGroup();
+
+	settings.beginGroup( "general" );
+	settings.setValue( "syncWindowSize", syncWindowSize_ );
 	settings.endGroup();
 
 	settings.beginGroup( "network" );

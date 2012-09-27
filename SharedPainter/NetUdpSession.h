@@ -144,9 +144,9 @@ public:
 		{
 			//last_sender_endpoint_ = sender_endpoint_;
 			fireReceiveEvent( read_buffer_, bytes_recvd );
-		}
 
-		_start_receive_from();
+			_start_receive_from();
+		}
 	}
 
 private:

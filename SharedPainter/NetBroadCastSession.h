@@ -165,9 +165,9 @@ public:
 		{
 			//last_sender_endpoint_ = sender_endpoint_;	// NOT WORKING
 			fireReceiveEvent( read_buffer_, bytes_recvd );
-		}
 
-		_start_receive_from();
+			_start_receive_from();
+		}
 	}
 
 	void _start_broadcast_timer( int second, bool first )

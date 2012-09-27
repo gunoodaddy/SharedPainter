@@ -65,6 +65,9 @@ public:
 		nickName_ = nickName;
 	}
 
+	bool isSyncWindowSize( void ) { return syncWindowSize_; }
+	void setSyncWindowSize( bool enable ) { syncWindowSize_ = enable; }
+
 	void load( void );
 	void save( void );
 
@@ -76,5 +79,6 @@ private:
 	std::string peerAddress_;
 	std::string relayServerAddress_;
 	std::string nickName_;
+	bool syncWindowSize_;
 	QTimer *timer_;
 };

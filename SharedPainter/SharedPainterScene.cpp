@@ -164,11 +164,14 @@ public:
 	{
 		scene_->setCursor( Qt::OpenHandCursor ); 
 
-		moveFlag_ = false;
-		if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+		if( moveFlag_ )
 		{
-			r->setPos( scenePos().x(), scenePos().y() );
-			scene_->onItemMoveEnd( r );
+			moveFlag_ = false;
+			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+			{
+				r->setPos( scenePos().x(), scenePos().y() );
+				scene_->onItemMoveEnd( r );
+			}
 		}
 
 		T::mouseReleaseEvent( event );
@@ -408,6 +411,19 @@ void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGr
 
 	if( showLastAddItemBorderFlag_ )
 		drawLastItemBorderRect();
+}
+
+
+QRectF CSharedPainterScene::itemBoundingRect( boost::shared_ptr<CPaintItem> item )
+{
+	if( ! item )
+		return QRectF();
+
+	if( ! item->drawingObject() )
+		return QRectF();
+
+	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
+	return i->boundingRect();
 }
 
 void CSharedPainterScene::removeItem( CPaintItem * item )

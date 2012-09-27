@@ -79,6 +79,7 @@ public:
 	{
 		QString str = tr("  Joiner Count : ");
 		str += QString::number(count);
+		str += " ";
 		joinerCountLabel_->setText( str );
 	}
 	void setStatusBar_PlaybackStatus( int current, int total )
@@ -270,6 +271,7 @@ protected slots:
 	void actionExportFile( void );
 	void actionBlinkLastAddItem( void );
 	void actionLastItem( void );
+	void actionPreferences( void );
 
 private:
 	void updateWindowTitle( void );
@@ -291,6 +293,24 @@ private:
 		s += "background-color: " + clr.name() + ";";
 		s += "width:20; height:20;";
 		button->setStyleSheet(s);
+	}
+
+	void checkIfItemVisibleAndRecognize( boost::shared_ptr<CPaintItem> item, const QString &msg )
+	{
+		QPoint gpos;
+		QRectF rect = item->boundingRect();
+		if( rect.x() > ui.painterView->width() )
+		{
+			gpos = ui.painterView->mapToGlobal( QPoint(ui.painterView->width(), ui.painterView->height() / 2) );
+			gpos.setX( gpos.x() - 100 );
+		}
+		else if( rect.y() > ui.painterView->height() )
+		{
+			gpos = ui.painterView->mapToGlobal( QPoint(ui.painterView->width() / 2, ui.painterView->height()) );
+			gpos.setY( gpos.y() - 50 );
+		}
+
+		QToolTip::showText( gpos, msg, ui.painterView ); 
 	}
 
 protected:
@@ -392,6 +412,8 @@ protected:
 	{
 		item->setCanvas( canvas_ );
 		item->draw();
+	
+		checkIfItemVisibleAndRecognize( item, tr("Item added") );
 
 		if( item->type() == PT_TEXT )
 		{
@@ -403,16 +425,22 @@ protected:
 	virtual void onISharedPaintEvent_UpdatePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
 	{
 		item->update();
+
+		checkIfItemVisibleAndRecognize( item, tr("Item updated") );
 	}
 
 	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item )
 	{
+		checkIfItemVisibleAndRecognize( item, tr("Item removed") );
+
 		item->remove();
 	}
 
 	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item, double x, double y )
 	{
 		item->move( x, y );
+
+		checkIfItemVisibleAndRecognize( item, tr("Item moved") );
 	}
 
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self )
@@ -452,13 +480,24 @@ protected:
 
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height )
 	{
+		if( SettingManagerPtr()->isSyncWindowSize() == false )
+			return;
+
 		resizeFreezingFlag_ = true;
 		resize( width, height );
 		resizeFreezingFlag_ = false;
 	}
+
+	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height )
+	{
+		canvas_->setSceneRect(0, 0, width, height);
+	}
 	
 	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes )
 	{
+		if( SettingManagerPtr()->isSyncWindowSize() == false )
+			return;
+
 		resizeSplitterFreezingFlag_ = true;
 		QList<int> list;
 		for( size_t i = 0; i < sizes.size(); i++ )

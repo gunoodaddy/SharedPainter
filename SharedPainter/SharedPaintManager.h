@@ -72,6 +72,7 @@ public:
 	virtual void onISharedPaintEvent_RemovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item, double x, double y ) = 0;
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
+	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
@@ -469,6 +470,17 @@ public:
 		fireObserver_SetBackgroundGridLine( size );
 	}
 	
+	int notifyResizingCanvas( int width, int height )
+	{
+		if( ! enabled_ )
+			return -1;
+
+		std::string msg = WindowPacketBuilder::CResizeCanvas::make( width, height );
+		lastCanvasWidth_ = width;
+		lastCanvasHeight_ = height;
+		return sendDataToUsers( msg );
+	}
+
 	int notifyResizingMainWindow( int width, int height )
 	{
 		if( ! enabled_ )
@@ -820,6 +832,17 @@ private:
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_ResizeMainWindow( this, width, height );
+		}
+	}
+	void fireObserver_ResizeCanvas( int width, int height )
+	{
+		lastWindowWidth_ = width;
+		lastWindowHeight_ = height;
+
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ResizeCanvas( this, width, height );
 		}
 	}
 	void fireObserver_ResizeWindowSplitter( std::vector<int> &sizes )
@@ -1228,6 +1251,8 @@ private:
 	boost::shared_ptr<CBackgroundImageItem> backgroundImageItem_;
 	int lastWindowWidth_;
 	int lastWindowHeight_;
+	int lastCanvasWidth_;
+	int lastCanvasHeight_;
 	std::vector<int> lastWindowSplitterSizes_;
 	QColor backgroundColor_;
 	int gridLineSize_;

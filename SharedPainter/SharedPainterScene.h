@@ -162,6 +162,7 @@ public:
 
 public:
 	// IGluePaintCanvas
+	virtual QRectF itemBoundingRect( boost::shared_ptr<CPaintItem> item );
 	virtual void moveItem( boost::shared_ptr<CPaintItem> item, double x, double y  );
 	virtual void updateItem( boost::shared_ptr<CPaintItem> item );
 	virtual void removeItem( CPaintItem * item );

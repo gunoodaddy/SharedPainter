@@ -68,7 +68,7 @@ static bool isCompatibleVersion( const std::string &version )
 
 
 CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL), listenTcpPort_(-1), listenUdpPort_(-1), findingServerMode_(false)
-, lastWindowWidth_(0), lastWindowHeight_(0), gridLineSize_(0)
+, lastWindowWidth_(0), lastWindowHeight_(0), lastCanvasWidth_(0), lastCanvasHeight_(0), gridLineSize_(0)
 , lastPacketId_(-1)
 {
 	// create my user info
@@ -332,6 +332,9 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 
 	// Window Size
 	allData += WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_, target );
+
+	// Canvas Size
+	allData += WindowPacketBuilder::CResizeCanvas::make( lastCanvasWidth_, lastCanvasHeight_, target );
 
 	// Window Splitter Sizes
 	allData += WindowPacketBuilder::CResizeWindowSplitter::make( lastWindowSplitterSizes_, target );
@@ -674,6 +677,18 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 				if( sizes.size() <= 0 )
 					return;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeWindowSplitter, this, sizes ) );
+			}
+		}
+		break;
+	case CODE_WINDOW_RESIZE_CANVAS:
+		{
+			std::string owner;
+			int width, height;
+			if( WindowPacketBuilder::CResizeCanvas::parse( packetData->body, width, height ) )
+			{
+				if( width <= 0 || height <= 0 )
+					return;
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeCanvas, this, width, height ) );
 			}
 		}
 		break;

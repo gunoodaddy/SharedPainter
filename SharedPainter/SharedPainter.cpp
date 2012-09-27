@@ -32,18 +32,21 @@
 #include "TextItemDialog.h"
 #include "AboutWindow.h"
 #include "UIStyleSheet.h"
+#include "PreferencesDialog.h"
 
 static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
 
-#define ADD_CHAT_VERTICAL_SPACE()	\
+#define ADD_CHAT_VERTICAL_SPACE(space)	\
 {	\
 	QTextCharFormat fmt;	\
-	fmt.setFontPointSize( 3 );	\
+	fmt.setFontPointSize( space );	\
 	ui.editChat->setCurrentCharFormat( fmt );	\
 	ui.editChat->append( "" );	\
 }
 
+#define ADD_CHAT_VERTICAL_SPACE_CHAT_SMALL()	ADD_CHAT_VERTICAL_SPACE(1)
+#define ADD_CHAT_VERTICAL_SPACE_CHAT_BIG()	ADD_CHAT_VERTICAL_SPACE(3)
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
@@ -102,8 +105,6 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		edit->addSeparator();
 		edit->addAction( "&Paste clipboard", this, SLOT(actionClipboardPaste()), Qt::CTRL+Qt::Key_V );
 		edit->addSeparator();
-		showLastItemAction_ = edit->addAction( "Blink &Last Item Always", this, SLOT(actionBlinkLastAddItem()), Qt::CTRL+Qt::Key_L );
-		edit->addSeparator();
 		edit->addAction( "&Undo", this, SLOT(actionUndo()), Qt::CTRL+Qt::Key_Z );
 		edit->addAction( "&Redo", this, SLOT(actionRedo()), Qt::CTRL+Qt::SHIFT+Qt::Key_Z );
 		menuBar->addMenu( edit );
@@ -112,13 +113,24 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		QMenu* network = new QMenu( "&Network", menuBar );
 		network->addAction( "&Connect to Relay Server", this, SLOT(actionConnectServer()) );
 		network->addAction( "&Connect to Peer", this, SLOT(actionConnect()) );
-		network->addAction( "&Nick Name", this, SLOT(actionNickName()) );
-		network->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
+		network->addSeparator();
 		startFindServerAction_ = network->addAction( "Start &Find Server", this, SLOT(actionFindingServer()), Qt::CTRL+Qt::Key_1 );
+		network->addSeparator();
 		network->addAction( "Broadcast &Text Message", this, SLOT(actionBroadcastTextMessage()), Qt::CTRL+Qt::Key_M );
+		network->addSeparator();
 		network->addAction( "Close all connections", this, SLOT(actionCloseConnection()) );
 		menuBar->addMenu( network );
 		
+		//  Menu
+		QMenu* options = new QMenu( "&Options", menuBar );
+		options->addAction( "&Nick Name", this, SLOT(actionNickName()) );
+		options->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
+		options->addSeparator();
+		showLastItemAction_ = options->addAction( "Blink &Last Item Always", this, SLOT(actionBlinkLastAddItem()), Qt::CTRL+Qt::Key_L );
+		options->addSeparator();
+		options->addAction( "&Preferences", this, SLOT(actionPreferences()) );
+		menuBar->addMenu( options );
+
 		gridLineAction_->setCheckable( true );
 		penModeAction_->setCheckable( true );
 		showLastItemAction_->setCheckable( true );
@@ -397,7 +409,7 @@ void SharedPainter::updateLastChatTime( void )
 
 void SharedPainter::addSystemMessage( const QString &msg )
 {
-	ADD_CHAT_VERTICAL_SPACE();
+	ADD_CHAT_VERTICAL_SPACE_CHAT_BIG();
 
 	ui.editChat->append( "<html><div class=messageSystem>" + msg + "</div></html>" );
 
@@ -412,10 +424,13 @@ void SharedPainter::addMyChatMessage( const QString & userId, const QString &nic
 
 	if( ! continuousChatFlag )
 	{
-		ADD_CHAT_VERTICAL_SPACE();
+		ADD_CHAT_VERTICAL_SPACE_CHAT_BIG();
 		ui.editChat->append( "<html><div class=nicknameMine>" + nickName + "</div></html>" );
 	}
-	ui.editChat->append( "<html><div class=messageMine>" + chatMsg + "</div></html>" );
+	else
+		ADD_CHAT_VERTICAL_SPACE_CHAT_SMALL();
+
+	ui.editChat->append( "<html><span class=chatMark> - </span><span class=messageMine>" + chatMsg + "</span></html>" );
 
 	lastChatUserId_ = userId;
 }
@@ -428,10 +443,13 @@ void SharedPainter::addYourChatMessage( const QString & userId, const QString &n
 
 	if( ! continuousChatFlag )
 	{
-		ADD_CHAT_VERTICAL_SPACE();
+		ADD_CHAT_VERTICAL_SPACE_CHAT_BIG();
 		ui.editChat->append( "<html><div class=nicknameOther>" + nickName + "</div></html>" );
 	}
-	ui.editChat->append( "<html><div class=messageOther>" + chatMsg + "</div></html>" );
+	else
+		ADD_CHAT_VERTICAL_SPACE_CHAT_SMALL();
+
+	ui.editChat->append( "<html><span class=chatMark> - </span><span class=messageOther>" + chatMsg + "</span></html>" );
 
 	lastChatUserId_ = userId;
 
@@ -445,7 +463,7 @@ void SharedPainter::addBroadcastChatMessage( const QString & channel, const QStr
 	if( lastChatUserId_ == userId )
 		continuousChatFlag = true;
 
-	ADD_CHAT_VERTICAL_SPACE();
+	ADD_CHAT_VERTICAL_SPACE_CHAT_BIG();
 	QString who;
 	who = nickName + tr(" in \"") + channel + tr("\" channel");
 	ui.editChat->append( "<html><div class=nicknameBroadcast>" + who + "</div></html>" );
@@ -792,6 +810,12 @@ void SharedPainter::actionCloseConnection( void )
 	SharePaintManagerPtr()->close();
 }
 
+void SharedPainter::actionPreferences( void )
+{
+	PreferencesDialog dlg(this);
+	dlg.exec();
+}
+
 void SharedPainter::actionBroadcastTextMessage( void )
 {
 	bool ok;
@@ -972,6 +996,8 @@ void SharedPainter::showEvent( QShowEvent * evt )
 		w = ui.painterView->width();
 		h = ui.painterView->height();
 		canvas_->setSceneRect(0, 0, w, h);
+
+		SharePaintManagerPtr()->notifyResizingCanvas( w, h );
 	}
 }
 
@@ -1026,11 +1052,21 @@ void SharedPainter::resizeEvent( QResizeEvent *evt )
 {
 	int w = ui.painterView->width();
 	int h = ui.painterView->height();
+	int sw = canvas_->sceneRect().width();
+	int sh = canvas_->sceneRect().height();
 
-	canvas_->setSceneRect(0, 0, w, h);
+	if( w > sw )
+		sw = w;
+	if( h > sh )
+		sh = h;
+	canvas_->setSceneRect(0, 0, sw, sh);
+	SharePaintManagerPtr()->notifyResizingCanvas( sw, sh );
 
-	if( !resizeFreezingFlag_ )
-		SharePaintManagerPtr()->notifyResizingMainWindow( width(), height() );
+	if( SettingManagerPtr()->isSyncWindowSize() )
+	{
+		if( !resizeFreezingFlag_ )
+			SharePaintManagerPtr()->notifyResizingMainWindow( width(), height() );
+	}
 
 	QMainWindow::resizeEvent(evt);
 }
@@ -1041,8 +1077,11 @@ void SharedPainter::splitterMoved( int pos, int index )
 	for (int i = 0; i < ui.splitter->sizes().size(); ++i)
 		vec.push_back( ui.splitter->sizes().at(i) );
 
-	if( !resizeSplitterFreezingFlag_ )
-		SharePaintManagerPtr()->notifyResizingWindowSplitter( vec );
+	if( SettingManagerPtr()->isSyncWindowSize() )
+	{
+		if( !resizeSplitterFreezingFlag_ )
+			SharePaintManagerPtr()->notifyResizingWindowSplitter( vec );
+	}
 }
 
 

@@ -61,6 +61,7 @@ class IGluePaintCanvas
 {
 public:
 	virtual void drawSendingStatus( boost::shared_ptr<CPaintItem> item ) = 0;
+	virtual QRectF itemBoundingRect( boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void drawLine( boost::shared_ptr<CLineItem> line ) = 0;
 	virtual void drawFile( boost::shared_ptr<CFileItem> file ) = 0;
 	virtual void drawText( boost::shared_ptr<CTextItem> text ) = 0;
@@ -146,6 +147,14 @@ public:
 	int itemId() const { return data_.itemId; }
 	void setMyItem( void ) { mine_ = true; }
 	bool isMyItem( void ) { return mine_; }
+
+	QRectF boundingRect( void )
+	{
+		if( canvas_ )
+			return canvas_->itemBoundingRect( shared_from_this() );
+
+		return QRect();
+	}
 
 	// TODO : sending packet work is not complete.
 	//void setPacketId( int packetId ) { packetId_ = packetId; }

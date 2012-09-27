@@ -112,4 +112,8 @@ static const char *gStyleSheet_Chat =
 ".messageSystem{"
 "	color: #808080;"
 "	font-size: 10pt;"
+"}"
+".chatMark{"
+"	color: #808080;"
+"	font-size: 8pt;"
 "}";

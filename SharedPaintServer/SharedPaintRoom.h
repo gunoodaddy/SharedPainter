@@ -12,7 +12,7 @@ class SharedPaintRoom
 public:
 	SharedPaintRoom( const std::string & roomid ) : roomId_(roomid), lastSyncRunnerIndex_(0) { }
 
-	void addJoiner( boost::shared_ptr<SharedPaintClient> joiner );
+	void addJoiner( boost::shared_ptr<SharedPaintClient> joiner, bool &firstFlag );
 
 	void removeJoiner( boost::shared_ptr<SharedPaintClient> joiner );
 
@@ -24,11 +24,13 @@ public:
 
 	boost::shared_ptr<SharedPaintClient> currentSuperPeerSession( void );
 
-	std::string generateJoinerInfoPacket( void );
+	std::string serializeJoinerInfoPacket( void );
 
 	void syncStart( const std::string &tartgetId );
 
 	size_t userCount( void ) { return clientMap_.size(); }
+
+	boost::shared_ptr<SharedPaintClient> findUser( const std::string &userId );
 
 private:
 	void tossSuperPeerRightToCandidates( void );

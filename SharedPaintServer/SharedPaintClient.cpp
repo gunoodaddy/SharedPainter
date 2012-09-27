@@ -43,13 +43,14 @@ void SharedPaintClient::onTimer(unsigned short id) {
 	testClient_ = boost::shared_ptr<TcpTestClient>();
 }
 
-void SharedPaintClient::_handle_CODE_SYSTEM_JOIN_SERVER(boost::shared_ptr<SharedPaintProtocol> prot) {
+void SharedPaintClient::_handle_CODE_SYSTEM_JOIN_TO_SERVER(boost::shared_ptr<SharedPaintProtocol> prot) {
 
 	std::string body( (char *)prot->payloadBuffer()->currentPtr(), prot->payloadBuffer()->remainingSize() );
 	user_->deserialize( body );
 	user_->setViewIPAddress( tcpSocket()->peerAddress()->ip() );
 
-	SharedPaintManagerPtr()->joinRoom( SELF_PTR );
+	bool firstFlag = false;
+	SharedPaintManagerPtr()->joinRoom( SELF_PTR, firstFlag );
 	
 	// roomcast this packet => notify new joiner
 	boost::shared_ptr<SharedPaintProtocol> notiProt = SystemPacketBuilder::NewJoiner::make( SELF_PTR );
@@ -58,9 +59,10 @@ void SharedPaintClient::_handle_CODE_SYSTEM_JOIN_SERVER(boost::shared_ptr<Shared
 	checkIfSuperPeer();
 
 	// make response
-	std::string userlist = SharedPaintManagerPtr()->generateJoinerInfoPacket( user_->roomId() );
+	std::string userlist = SharedPaintManagerPtr()->serializeJoinerInfoPacket( user_->roomId() );
 	boost::shared_ptr<SharedPaintClient> superPeerSession = SharedPaintManagerPtr()->currentSuperPeerSession( user_->roomId() );
-	boost::shared_ptr<SharedPaintProtocol> resProt = SystemPacketBuilder::ResponseJoin::make( user_->roomId(), userlist, superPeerSession );
+	boost::shared_ptr<SharedPaintProtocol> resProt 
+		= SystemPacketBuilder::ResponseJoin::make( user_->roomId(), firstFlag, userlist, superPeerSession );
 	resProt->processWrite( tcpSocket() );
 }
 
@@ -68,6 +70,27 @@ void SharedPaintClient::_handle_CODE_SYSTEM_JOIN_SERVER(boost::shared_ptr<Shared
 void SharedPaintClient::_handle_CODE_SYSTEM_LEAVE(boost::shared_ptr<SharedPaintProtocol> prot) {
 
 	SharedPaintManagerPtr()->leaveRoom( SELF_PTR );
+}
+
+void SharedPaintClient::_handle_CODE_SYSTEM_CHANGE_NICKNAME(boost::shared_ptr<SharedPaintProtocol> prot) {
+
+	std::string body( (char *)prot->payloadBuffer()->currentPtr(), prot->payloadBuffer()->remainingSize() );
+
+	std::string userid, nickname;
+	SystemPacketBuilder::ChangeNickName::parse( body, userid, nickname );
+
+	boost::shared_ptr<SharedPaintClient> client = SharedPaintManagerPtr()->findUser( user_->roomId(), userid );
+	if( !client )
+		return;
+	client->lock();
+	client->user()->setNickName( nickname );
+	client->unlock();
+
+	// relay!
+	if( prot->header().toId().empty() )
+		SharedPaintManagerPtr()->roomCast( user_->roomId(), user_->userId(), prot, false );
+	else
+		SharedPaintManagerPtr()->uniCast( user_->roomId(), prot );
 }
 
 void SharedPaintClient::_handle_CODE_SYSTEM_SYNC_REQUEST(boost::shared_ptr<SharedPaintProtocol> prot) {
@@ -102,12 +125,12 @@ void SharedPaintClient::onSharedPaintReceived(boost::shared_ptr<SharedPaintProto
 
 	const SharedPaintHeader &header = prot->header();
 
-	LOG_TRACE("!!onSharedPaintReceived() %x, %p\n", header.code(),  this);
+	LOG_TRACE(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !!onSharedPaintReceived() %x, %p\n", header.code(),  this);
 
 	switch( prot->code() )
 	{
-		case CODE_SYSTEM_JOIN_SERVER:
-			_handle_CODE_SYSTEM_JOIN_SERVER( prot );
+		case CODE_SYSTEM_JOIN_TO_SERVER:
+			_handle_CODE_SYSTEM_JOIN_TO_SERVER( prot );
 			break;
 		case CODE_SYSTEM_LEFT:
 			_handle_CODE_SYSTEM_LEAVE( prot );
@@ -117,6 +140,9 @@ void SharedPaintClient::onSharedPaintReceived(boost::shared_ptr<SharedPaintProto
 			break;
 		case CODE_SYSTEM_SYNC_REQUEST:
 			_handle_CODE_SYSTEM_SYNC_REQUEST( prot );
+			break;
+		case CODE_SYSTEM_CHANGE_NICKNAME:
+			_handle_CODE_SYSTEM_CHANGE_NICKNAME( prot );
 			break;
 		default:
 			{

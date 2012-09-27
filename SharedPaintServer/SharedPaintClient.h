@@ -20,6 +20,13 @@ public:
 									new SharedPaintController::SharedPaintProtocolFactory);
 	}
 
+	void lock( void ) {
+		mutex_.lock();
+	}
+	void unlock( void ) {
+		mutex_.unlock();
+	}
+
 	boost::shared_ptr<CPaintUser> user( void ) { return user_; }
 
 	void setInvalidSessionFlag( void ) { invalidSessionFlag_ = true; }
@@ -32,10 +39,11 @@ protected:
 
 private:
 	void checkIfSuperPeer( void );
-	void _handle_CODE_SYSTEM_JOIN_SERVER(boost::shared_ptr<SharedPaintProtocol> prot);
+	void _handle_CODE_SYSTEM_JOIN_TO_SERVER(boost::shared_ptr<SharedPaintProtocol> prot);
 	void _handle_CODE_SYSTEM_LEAVE(boost::shared_ptr<SharedPaintProtocol> prot);
 	void _handle_CODE_SYSTEM_TCPACK(boost::shared_ptr<SharedPaintProtocol> prot);
 	void _handle_CODE_SYSTEM_SYNC_REQUEST(boost::shared_ptr<SharedPaintProtocol> prot);
+	void _handle_CODE_SYSTEM_CHANGE_NICKNAME(boost::shared_ptr<SharedPaintProtocol> prot);
 
 private:
 	static boost::shared_ptr<SharedPaintController::SharedPaintProtocolFactory> gProtocolFactory_;
@@ -44,5 +52,6 @@ private:
 
 	bool invalidSessionFlag_;
 	boost::shared_ptr<TcpTestClient> testClient_;
+	boost::recursive_mutex mutex_;
 };
 

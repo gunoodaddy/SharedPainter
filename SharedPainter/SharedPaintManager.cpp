@@ -84,11 +84,11 @@ CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFl
 
 	backgroundColor_ = Qt::white;
 
-	broadCastSessionForSendMessage_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForSendMessage_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( NetServiceRunnerPtr()->io_service() ));
 	broadCastSessionForSendMessage_->setEvent( this );
 	broadCastSessionForSendMessage_->openUdp();
 
-	broadCastSessionForRecvMessage_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForRecvMessage_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( NetServiceRunnerPtr()->io_service() ));
 	broadCastSessionForRecvMessage_->setEvent( this );
 	if( broadCastSessionForRecvMessage_->listenUdp( DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG ) == false )
 	{
@@ -113,7 +113,7 @@ CSharedPaintManager::~CSharedPaintManager( void )
 
 	stopListenBroadCast();
 
-	netRunner_.close();
+	NetServiceRunnerPtr()->close();
 }
 
 void CSharedPaintManager::onTimeoutSyncStart( void )
@@ -174,7 +174,7 @@ bool CSharedPaintManager::startListenBroadCast( void )
 {
 	if( broadCastSessionForListener_ )
 		broadCastSessionForListener_->close();
-	broadCastSessionForListener_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForListener_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( NetServiceRunnerPtr()->io_service() ));
 	broadCastSessionForListener_->setEvent( this );
 
 	if( !broadCastSessionForListener_->listenUdp( DEFAULT_BROADCAST_PORT ) )
@@ -198,7 +198,7 @@ bool CSharedPaintManager::startFindingServer( void )
 	// for receiving server info
 	if( udpSessionForConnection_ )
 		udpSessionForConnection_->close();
-	udpSessionForConnection_ = boost::shared_ptr< CNetUdpSession >(new CNetUdpSession( netRunner_.io_service() ));
+	udpSessionForConnection_ = boost::shared_ptr< CNetUdpSession >(new CNetUdpSession( NetServiceRunnerPtr()->io_service() ));
 	udpSessionForConnection_->setEvent(this);
 
 	listenUdpPort_ = START_UDP_LISTEN_PORT;
@@ -215,7 +215,7 @@ bool CSharedPaintManager::startFindingServer( void )
 
 	if( broadCastSessionForFinder_ )
 		broadCastSessionForFinder_->close();
-	broadCastSessionForFinder_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( netRunner_.io_service() ));
+	broadCastSessionForFinder_ = boost::shared_ptr< CNetBroadCastSession >(new CNetBroadCastSession( NetServiceRunnerPtr()->io_service() ));
 	broadCastSessionForFinder_->setEvent( this );
 	broadCastSessionForFinder_->startSend( DEFAULT_BROADCAST_PORT, broadCastMsg, 3 );
 
@@ -235,7 +235,7 @@ bool CSharedPaintManager::startServer( int port )
 	if( port <= 0 )
 		port = START_SERVER_PORT;
 
-	netPeerServer_ = boost::shared_ptr<CNetPeerServer>(new CNetPeerServer( netRunner_.io_service() ));
+	netPeerServer_ = boost::shared_ptr<CNetPeerServer>(new CNetPeerServer( NetServiceRunnerPtr()->io_service() ));
 	netPeerServer_->setEvent( this );
 
 	for( int port = START_SERVER_PORT; port < START_SERVER_PORT + 100; port++ )
@@ -769,7 +769,7 @@ void CSharedPaintManager::dispatchBroadCastPacket( CNetBroadCastSession *session
 				if( udpSessionForConnection_ )
 					udpSessionForConnection_->close();
 
-				udpSessionForConnection_ = boost::shared_ptr< CNetUdpSession >(new CNetUdpSession( netRunner_.io_service() ));
+				udpSessionForConnection_ = boost::shared_ptr< CNetUdpSession >(new CNetUdpSession( NetServiceRunnerPtr()->io_service() ));
 				udpSessionForConnection_->sendData( addr, port, broadCastMsg );
 			}
 		};

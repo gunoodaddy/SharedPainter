@@ -34,6 +34,7 @@
 #include "UIStyleSheet.h"
 #include "PreferencesDialog.h"
 
+
 static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
 
@@ -54,6 +55,8 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	, screenShotMode_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
 {
+	CSingleton<CUpgradeManager>::Instance();
+
 	fontBroadCastText_ = QFont( "Times" );
 	fontBroadCastText_.setBold( true );
 	fontBroadCastText_.setPixelSize( 20 );
@@ -71,6 +74,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 	canvas_->setEvent( this );
 
+	UpgradeManagerPtr()->registerObserver( this );
 	SharePaintManagerPtr()->registerObserver( this );
 	SharePaintManagerPtr()->setCanvas( canvas_ );
 	
@@ -258,6 +262,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 SharedPainter::~SharedPainter()
 {
+	UpgradeManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->close();
 

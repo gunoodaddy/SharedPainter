@@ -11,6 +11,8 @@
 #include "DefferedCaller.h"
 #include "SharedPaintPolicy.h"
 #include "SharedPaintManager.h"
+#include "UpgradeManager.h"
 #include "SettingManager.h"
+#include "NetServiceRunner.h"
 
 extern int _debug_paint_item_cnt;

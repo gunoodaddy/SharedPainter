@@ -27,31 +27,9 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once 
+#pragma once
 
-#define VERSION_TEXT	"0.7.3"
-#define AUTHOR_TEXT		"gunoodaddy"
-#define PROGRAME_TEXT	"Shared Painter"
+#include "Singleton.h"
+#include "NetServiceRunner.h"
 
-#define NET_MAGIC_CODE	0xBEBE
-
-#define MAX_PACKET_BODY_SIZE				200000000	// 2OOMB
-
-#define DEFAULT_RECONNECT_TRY_COUNT			3
-
-#define DEFAULT_TEXT_ITEM_POS_REGION_W		9999
-#define DEFAULT_TEXT_ITEM_POS_REGION_H		300
-
-#define DEFAULT_PIXMAP_ITEM_SIZE_W			250
-
-#define DEFAULT_TRAY_MESSAGE_DURATION_MSEC	5000
-#define DEFAULT_GRID_LINE_SIZE_W			32
-#define FINDING_SERVER_TRY_COUNT			20
-
-#define DEFAULT_INITIAL_CHATWINDOW_SIZE		200
-
-#if defined(WINDOWS)
-#define NATIVE_NEWLINE_STR	"\r\n"
-#else
-#define NATIVE_NEWLINE_STR	"\n"
-#endif
+#define NetServiceRunnerPtr()		CSingleton<CNetServiceRunner>::Instance()

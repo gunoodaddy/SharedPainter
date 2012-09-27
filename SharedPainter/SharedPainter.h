@@ -41,7 +41,7 @@
 #define STR_NET_MODE_INIT			tr("Waiting.. ")
 #define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
 
-class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent
+class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent, IUpgradeEvent
 {
 	Q_OBJECT
 
@@ -629,6 +629,29 @@ protected:
 			if( fromId != self->myId() )
 				showTrayMessage( qMsg, &qNick );
 		}
+	}
+
+	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents )
+	{
+		QString msg = tr("The new version has been detected. Would you like to update?");
+		msg += "\n";
+		msg += "\n";
+		msg += tr("Version : ");
+		msg += version.c_str();
+		msg += "\n";
+		msg += "\n";
+		msg += tr("[Patch]");
+		msg += "\n";
+		msg += Util::toStringFromUtf8( patchContents );
+
+		int res = QMessageBox::question( this, "", msg, QMessageBox::Ok|QMessageBox::Cancel);
+		if( res != QMessageBox::Ok )
+		{
+			self->stopVersionCheck();
+			return;
+		}
+
+		// TODO : UPGRADE
 	}
 
 

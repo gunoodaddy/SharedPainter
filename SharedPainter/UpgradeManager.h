@@ -27,31 +27,69 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once 
+#pragma once
 
-#define VERSION_TEXT	"0.7.3"
-#define AUTHOR_TEXT		"gunoodaddy"
-#define PROGRAME_TEXT	"Shared Painter"
+#include "GlobalDefine.h"
+#include "Singleton.h"
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
-#define NET_MAGIC_CODE	0xBEBE
+#define UpgradeManagerPtr()		CSingleton<CUpgradeManager>::Instance()
 
-#define MAX_PACKET_BODY_SIZE				200000000	// 2OOMB
+class CUpgradeManager;
 
-#define DEFAULT_RECONNECT_TRY_COUNT			3
+class IUpgradeEvent
+{
+public:
+	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents ) = 0;
+};
 
-#define DEFAULT_TEXT_ITEM_POS_REGION_W		9999
-#define DEFAULT_TEXT_ITEM_POS_REGION_H		300
+class CUpgradeManager : public QObject
+{
+	Q_OBJECT
 
-#define DEFAULT_PIXMAP_ITEM_SIZE_W			250
+public:
+	CUpgradeManager(void);
+	~CUpgradeManager(void);
 
-#define DEFAULT_TRAY_MESSAGE_DURATION_MSEC	5000
-#define DEFAULT_GRID_LINE_SIZE_W			32
-#define FINDING_SERVER_TRY_COUNT			20
+public:
+	void registerObserver( IUpgradeEvent *obs )
+	{
+		observers_.remove( obs );
+		observers_.push_back( obs );
+	}
 
-#define DEFAULT_INITIAL_CHATWINDOW_SIZE		200
+	void unregisterObserver( IUpgradeEvent *obs )
+	{
+		observers_.remove( obs );
+	}
 
-#if defined(WINDOWS)
-#define NATIVE_NEWLINE_STR	"\r\n"
-#else
-#define NATIVE_NEWLINE_STR	"\n"
-#endif
+	void stopVersionCheck( void );
+
+protected slots:
+	void finished(QNetworkReply *reply);
+	void downloadProgress(qint64 done, qint64 total);
+	void onTimer( void );
+
+private:
+	void checkVersion( void );
+
+	void fireObserver_NewVersion( const std::string &version, const std::string &patchContents )
+	{
+		std::list<IUpgradeEvent *> observers = observers_;
+		for( std::list<IUpgradeEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onIUpgradeEvent_NewVersion( this, version, patchContents );
+		}
+	}
+
+private:
+	// obsevers
+	std::list<IUpgradeEvent *> observers_;
+	
+	bool enable_;
+	QNetworkAccessManager *nam_;
+	QTimer *timer_;
+	std::string remoteVersion_;
+	std::string patchContents_;
+};

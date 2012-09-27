@@ -48,6 +48,7 @@
 #include "NetUdpSession.h"
 #include "NetServiceRunner.h"
 #include "PaintUser.h"
+#include "GlobalDefine.h"
 
 #define SharePaintManagerPtr()		CSingleton<CSharedPaintManager>::Instance()
 
@@ -703,7 +704,7 @@ private:
 
 	bool _connectToSuperPeer( boost::shared_ptr<CPaintUser> user )
 	{
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CNetPeerSession> session = NetServiceRunnerPtr()->newSession();
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
 
 		mutexSession_.lock();
@@ -722,7 +723,7 @@ private:
 		if( port == listenTcpPort_ )
 			return false;
 
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CNetPeerSession> session = NetServiceRunnerPtr()->newSession();
 		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
 
 		mutexSession_.lock();
@@ -740,7 +741,7 @@ private:
 
 	bool _requestJoinServer( const std::string &addr, int port, const std::string &roomid )
 	{
-		boost::shared_ptr<CNetPeerSession> session = netRunner_.newSession();
+		boost::shared_ptr<CNetPeerSession> session = NetServiceRunnerPtr()->newSession();
 		boost::shared_ptr<CPaintSession> userSession(new CPaintSession(session, this));
 
 		mutexSession_.lock();
@@ -1342,7 +1343,6 @@ private:
 		SERVER_MODE,
 	};
 
-	CNetServiceRunner netRunner_;
 	bool findingServerMode_;
 	int listenTcpPort_;
 	int listenUdpPort_;

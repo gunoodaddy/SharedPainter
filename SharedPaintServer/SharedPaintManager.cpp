@@ -7,27 +7,39 @@
 SharedPaintManager::SharedPaintManager( void ) {
 }
 
-void SharedPaintManager::joinRoom( boost::shared_ptr<SharedPaintClient> client ) {
+void SharedPaintManager::joinRoom( boost::shared_ptr<SharedPaintClient> client, bool &firstFlag ) {
 
 	boost::recursive_mutex::scoped_lock autolock(mutexData_);
 
 	ROOM_MAP::iterator itR = roomMap_.find( client->user()->roomId() );	
 
 	if( itR != roomMap_.end() ) {
-		itR->second->addJoiner( client );
+		itR->second->addJoiner( client, firstFlag );
 	} else {
 
 		boost::shared_ptr<SharedPaintRoom> roomInfo(new SharedPaintRoom(client->user()->roomId()));
-		roomInfo->addJoiner( client );
+		roomInfo->addJoiner( client, firstFlag );
 
 		// new room & new user
 		roomMap_.insert( ROOM_MAP::value_type( client->user()->roomId(), roomInfo ) );
 	}
 
-	LOG_DEBUG("JOIN ROOM : roomid = %s, userid = %s, room count = %d", 
+	LOG_DEBUG("JOIN ROOM : roomid = %s, userid = %s, room count = %d, firstFlag = %d", 
 		client->user()->roomId().c_str(), 
 		client->user()->userId().c_str(), 
-		totalUserCount() );
+		totalUserCount(),
+		firstFlag);
+}
+
+boost::shared_ptr<SharedPaintClient> SharedPaintManager::findUser( const std::string &roomid, const std::string &userId ) {
+	
+	boost::recursive_mutex::scoped_lock autolock(mutexData_);
+
+	ROOM_MAP::iterator itR = roomMap_.find( roomid );	
+	if( itR != roomMap_.end() ) {
+		return itR->second->findUser( userId );
+	}
+	return boost::shared_ptr<SharedPaintClient>();
 }
 
 size_t SharedPaintManager::totalUserCount( void ) {
@@ -58,13 +70,13 @@ void SharedPaintManager::leaveRoom( boost::shared_ptr<SharedPaintClient> client 
 		client->user()->roomId().c_str(), userid.c_str(), totalUserCount() );
 }
 	
-std::string SharedPaintManager::generateJoinerInfoPacket( const std::string &roomid ) {
+std::string SharedPaintManager::serializeJoinerInfoPacket( const std::string &roomid ) {
 	
 	boost::recursive_mutex::scoped_lock autolock(mutexData_);
 
 	ROOM_MAP::iterator itR = roomMap_.find( roomid );	
 	if( itR != roomMap_.end() ) {
-		return itR->second->generateJoinerInfoPacket();
+		return itR->second->serializeJoinerInfoPacket();
 	}
 
 	return "";

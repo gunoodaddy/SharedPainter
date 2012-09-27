@@ -4,7 +4,7 @@
 #include "SystemPacketBuilder.h"
 #include "SharedPaintClient.h"
 
-void SharedPaintRoom::addJoiner( boost::shared_ptr<SharedPaintClient> joiner ) {
+void SharedPaintRoom::addJoiner( boost::shared_ptr<SharedPaintClient> joiner, bool &firstFlag ) {
 	CLIENT_MAP::iterator itC = clientMap_.find( joiner->user()->userId() );
 	if( itC == clientMap_.end() ) {
 		// new user
@@ -19,6 +19,8 @@ void SharedPaintRoom::addJoiner( boost::shared_ptr<SharedPaintClient> joiner ) {
 			itC->second = joiner;	// overwrite
 		} 
 	}
+
+	firstFlag = clientMap_.size() == 1 ? true : false;
 }
 
 
@@ -43,6 +45,16 @@ void SharedPaintRoom::removeJoiner( boost::shared_ptr<SharedPaintClient> joiner 
 	}
 }
 
+
+boost::shared_ptr<SharedPaintClient> SharedPaintRoom::findUser( const std::string &userId ) {
+	
+	CLIENT_MAP::iterator itC = clientMap_.find( userId );
+	if( itC != clientMap_.end() ) {
+		return itC->second;
+	}
+	return boost::shared_ptr<SharedPaintClient>();
+}
+
 void SharedPaintRoom::tossSuperPeerRightToCandidates( void ) {
 
 	CLIENT_MAP::iterator itC = clientMap_.begin();
@@ -56,7 +68,7 @@ void SharedPaintRoom::tossSuperPeerRightToCandidates( void ) {
 	}
 }
 
-std::string SharedPaintRoom::generateJoinerInfoPacket( void ) {
+std::string SharedPaintRoom::serializeJoinerInfoPacket( void ) {
 
 	int pos = 0;
 	std::string body;

@@ -43,10 +43,18 @@ class CDefferedCaller : public QObject
 public:
 	typedef boost::function< void () > FUNC_TYPE;
 
+	static void singleShot( FUNC_TYPE func ) 
+	{
+		CDefferedCaller *caller = new CDefferedCaller;
+		caller->setAutoDelete();
+		caller->performMainThreadAlwaysDeffered( func );
+	}
+
 	CDefferedCaller(void);
 	~CDefferedCaller(void);
 
 	bool isMainThread( void );
+	void setAutoDelete( void ) { autoDelete_ = true; }
 	void performMainThreadAlwaysDeffered( FUNC_TYPE func );
 	void performMainThread( FUNC_TYPE func );	// if on main thread now, just call directly!
 
@@ -54,6 +62,7 @@ private:
 	void customEvent(QEvent* e);
 
 private:
+	bool autoDelete_;
 	std::list<FUNC_TYPE> deferredMethods_;
 	boost::recursive_mutex mutex_;
 	static boost::thread::id mainThreadId_;

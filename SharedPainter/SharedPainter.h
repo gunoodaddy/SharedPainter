@@ -295,22 +295,58 @@ private:
 		button->setStyleSheet(s);
 	}
 
+	void showErrorMessage( const std::string &error )
+	{
+		QMessageBox::critical( this, "", Util::toStringFromUtf8(error) );
+	}
+
 	void checkIfItemVisibleAndRecognize( boost::shared_ptr<CPaintItem> item, const QString &msg )
 	{
-		QPoint gpos;
-		QRectF rect = item->boundingRect();
-		if( rect.x() > ui.painterView->width() )
-		{
-			gpos = ui.painterView->mapToGlobal( QPoint(ui.painterView->width(), ui.painterView->height() / 2) );
-			gpos.setX( gpos.x() - 100 );
-		}
-		else if( rect.y() > ui.painterView->height() )
-		{
-			gpos = ui.painterView->mapToGlobal( QPoint(ui.painterView->width() / 2, ui.painterView->height()) );
-			gpos.setY( gpos.y() - 50 );
-		}
+#define VIEW_W	ui.painterView->width()
+#define VIEW_H	ui.painterView->height()
 
-		QToolTip::showText( gpos, msg, ui.painterView ); 
+		static const int TW = 120;
+		static const int TH = 50;
+		static const int DIR_EAST = 0x1;
+		static const int DIR_WEST = 0x2;
+		static const int DIR_SOUTH = 0x4;
+		static const int DIR_NORTH = 0x8;
+	
+		QPointF spos = ui.painterView->mapToScene(0, 0);
+		QRectF rect = item->boundingRect();
+		QRectF sceneRect( spos.x(), spos.y(), VIEW_W, VIEW_H );
+	
+		int direction = 0;
+		if( (rect.x() + rect.width()) < sceneRect.x() )
+			direction |= DIR_WEST;
+
+		if( (rect.y() + rect.height()) < sceneRect.y() )
+			direction |= DIR_NORTH;
+
+		if( rect.x() > (sceneRect.x() + sceneRect.width()) )
+			direction |= DIR_EAST;
+
+		if( rect.y() > (sceneRect.y() + sceneRect.height()) )
+			direction |= DIR_SOUTH;
+
+		int posX = 0;
+		int posY = 0;
+
+		if( direction == DIR_EAST )					{ posX = VIEW_W - TW;	posY = VIEW_H/2;	}
+		else if( direction == DIR_WEST )			{ posX = 0;				posY = VIEW_H/2;	}
+		else if( direction == DIR_NORTH )			{ posX = VIEW_W/2;		posY = 0;			}
+		else if( direction == DIR_SOUTH )			{ posX = VIEW_W/2;		posY = VIEW_H - TH;	}
+		else if( direction == (DIR_EAST|DIR_NORTH) ){ posX = VIEW_W - TW;	posY = 0;			}
+		else if( direction == (DIR_EAST|DIR_SOUTH) ){ posX = VIEW_W - TW;	posY = VIEW_H - TH;	}
+		else if( direction == (DIR_WEST|DIR_NORTH) ){ posX = 0;				posY = 0;			}
+		else if( direction == (DIR_WEST|DIR_SOUTH) ){ posX = 0;				posY = VIEW_H - TH;	}
+	
+		//qDebug() << "checkIfItemVisibleAndRecognize : VIEW = " << VIEW_W << VIEW_H << " ITEM = " << rect << " SCENE = " << sceneRect << " DIR = " << direction << " RES = " << posX << posY;
+		if( direction != 0 )
+		{
+			QPoint gpos = ui.painterView->mapToGlobal( QPoint(posX, posY) );
+			QToolTip::showText( gpos, msg, ui.painterView ); 
+		}
 	}
 
 protected:
@@ -326,6 +362,11 @@ protected:
 	}
 
 	// ISharedPaintEvent
+	virtual void onISharedPaintEvent_ShowErrorMessage( CSharedPaintManager *self, const std::string &error )
+	{
+		CDefferedCaller::singleShot( boost::bind(&SharedPainter::showErrorMessage, this, error) );
+	}
+
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self )
 	{
 		setStatus( CONNECTED );
@@ -342,12 +383,12 @@ protected:
 	{
 		if( self->isFindingServerMode() )
 		{
-			static CDefferedCaller caller;
-
-			caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::showFindingServerWindow, this) );
+			CDefferedCaller::singleShot( boost::bind(&SharedPainter::showFindingServerWindow, this) );
 		}
 
 		setStatus( DISCONNECTED );
+
+		hideSyncProgressWindow();
 	}
 
 	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self )
@@ -362,22 +403,16 @@ protected:
 	
 	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
 	{
-		static CDefferedCaller caller;
-
-		caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::showSyncProgressWindow, this) );
+		CDefferedCaller::singleShot( boost::bind(&SharedPainter::showSyncProgressWindow, this) );
 	}
 
 	virtual void onISharedPaintEvent_SyncComplete( CSharedPaintManager *self )
 	{
-		static CDefferedCaller caller;
-
-		caller.performMainThreadAlwaysDeffered( boost::bind(&SharedPainter::hideSyncProgressWindow, this) );
+		CDefferedCaller::singleShot( boost::bind(&SharedPainter::hideSyncProgressWindow, this) );
 	}
 
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes )
 	{
-		//qDebug() << "onISharedPaintEvent_SendingPacket" << packetId << wroteBytes << totalBytes;
-
 		if( currPacketId_ != packetId )
 		{
 			wroteProgressBar_->setRange(0, totalBytes);
@@ -388,6 +423,7 @@ protected:
 
 		/*
 		// TODO : SENDING PACKET ITEM PROGRESS
+		//qDebug() << "onISharedPaintEvent_SendingPacket" << packetId << wroteBytes << totalBytes;
 		ITEM_LIST list = self->findItem( packetId );
 		for( size_t i = 0; i < list.size(); i++ )
 		{

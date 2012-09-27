@@ -32,7 +32,7 @@
 
 boost::thread::id CDefferedCaller::mainThreadId_ = boost::this_thread::get_id();
 
-CDefferedCaller::CDefferedCaller(void)
+CDefferedCaller::CDefferedCaller(void) : autoDelete_(false)
 {
 }
 
@@ -98,4 +98,7 @@ void CDefferedCaller::customEvent(QEvent* e)
 
 	deferredMethods_.clear();
 	mutex_.unlock();
+
+	if( autoDelete_ )
+		delete this;
 }

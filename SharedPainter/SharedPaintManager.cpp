@@ -314,7 +314,8 @@ bool CSharedPaintManager::deserializeData( const char * data, size_t size )
 	for( size_t i = 1; i < slicer.parsedItemCount(); i++ )
 	{
 		boost::shared_ptr<CPacketData> data = slicer.parsedItem( i );
-		dispatchPaintPacket( NULL, data );
+		if( ! dispatchPaintPacket( NULL, data ) ) 
+			break;
 	}
 
 	std::string allData(data, size);
@@ -394,8 +395,12 @@ void CSharedPaintManager::_requestSyncData( void )
 }
 
 // this function need to check session pointer null check!
-void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::shared_ptr<CPacketData> packetData )
+bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::shared_ptr<CPacketData> packetData )
 {
+	if( ! isConnected() )
+		return false;
+
+	bool res = true;
 	switch( packetData->code )
 	{
 	case CODE_SYSTEM_VERSION_INFO:
@@ -416,8 +421,18 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 
 			if( error )
 			{
-				qDebug() << "Version invalied.. not compatible with target user..";
+				std::string errorMsg = "Your version is not compatible with current users in this channel.";
+				errorMsg += "\n(";
+				errorMsg += version;
+				errorMsg += " <> ";
+				errorMsg += VERSION_TEXT;
+				errorMsg += ")";
+
+				qDebug() << errorMsg.c_str();	// TEST TODO : REMOVE THIS
+				clearAllSessions();
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::close, this ) );
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ShowErrorMessage, this, errorMsg ) );
+				res = false;
 			}
 		}
 		break;
@@ -664,7 +679,7 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			if( WindowPacketBuilder::CResizeMainWindow::parse( packetData->body, width, height ) )
 			{
 				if( width <= 0 || height <= 0 )
-					return;
+					break;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeMainWindow, this, width, height ) );
 			}
 		}
@@ -675,7 +690,7 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			if( WindowPacketBuilder::CResizeWindowSplitter::parse( packetData->body, sizes ) )
 			{
 				if( sizes.size() <= 0 )
-					return;
+					break;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeWindowSplitter, this, sizes ) );
 			}
 		}
@@ -687,12 +702,14 @@ void CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			if( WindowPacketBuilder::CResizeCanvas::parse( packetData->body, width, height ) )
 			{
 				if( width <= 0 || height <= 0 )
-					return;
+					break;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeCanvas, this, width, height ) );
 			}
 		}
 		break;
 	}
+
+	return res;
 }
 
 

@@ -60,6 +60,7 @@ class CSharedPaintManager;
 class ISharedPaintEvent
 {
 public:
+	virtual void onISharedPaintEvent_ShowErrorMessage( CSharedPaintManager *self, const std::string &error ) = 0;
 	virtual void onISharedPaintEvent_Connected( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self ) = 0;
 	virtual void onISharedPaintEvent_SendingPacket( CSharedPaintManager *self, int packetId, size_t wroteBytes, size_t totalBytes ) = 0;
@@ -715,7 +716,7 @@ private:
 
 	void dispatchBroadCastPacket( CNetBroadCastSession *session, boost::shared_ptr<CPacketData> packetData );
 	void dispatchUdpPacket( CNetUdpSession *session, boost::shared_ptr<CPacketData> packetData );
-	void dispatchPaintPacket( CPaintSession *session, boost::shared_ptr<CPacketData> packetData );
+	bool dispatchPaintPacket( CPaintSession *session, boost::shared_ptr<CPacketData> packetData );
 
 	inline bool isRelayServerSession( CPaintSession* session )
 	{
@@ -769,6 +770,14 @@ private:
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_Disconnected( this );
+		}
+	}
+	void fireObserver_ShowErrorMessage( const std::string &error )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ShowErrorMessage( this, error );
 		}
 	}
 	void fireObserver_SyncStart( void )

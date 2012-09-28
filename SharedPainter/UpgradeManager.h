@@ -83,6 +83,20 @@ public:
 	void doUpgradeNow( void );
 	void stopVersionCheck( void );
 
+	bool currentVersionContents( std::string &version, std::string &patchContents )
+	{
+		mutex_.lock();
+		if( remoteVersion_.empty() )
+		{
+			mutex_.unlock();
+			return false;
+		}
+		version = remoteVersion_;
+		patchContents = patchContents_;
+		mutex_.unlock();
+		return true;
+	}
+
 protected slots:
 	void finished(QNetworkReply *reply);
 	void downloadProgress(qint64 done, qint64 total);

@@ -2,12 +2,12 @@
 #include "UpgradeWindow.h"
 #include "UIStyleSheet.h"
 
-#define ADD_CHAT_VERTICAL_SPACE(space)	\
+#define ADD_CHAT_VERTICAL_SPACE(edit, space)	\
 {	\
 	QTextCharFormat fmt;	\
 	fmt.setFontPointSize( space );	\
-	ui.textEditUpgrade->setCurrentCharFormat( fmt );	\
-	ui.textEditUpgrade->append( "" );	\
+	edit->setCurrentCharFormat( fmt );	\
+	edit->append( "" );	\
 }
 
 UpgradeWindow::UpgradeWindow(QWidget *parent)
@@ -24,21 +24,27 @@ UpgradeWindow::~UpgradeWindow()
 }
 
 
-void UpgradeWindow::setContents( const QString &version, const QString &patchContents )
+void UpgradeWindow::setContents( QTextEdit *edit, const QString &version, const QString &patchContents )
 {
 	QString temp = tr("Version : ");
 	temp += version;
 
-	ui.textEditUpgrade->append( "<html><div class=version>" + temp + "</div></html>" );
-	ADD_CHAT_VERTICAL_SPACE( 10 );
+	edit->append( "<html><div class=version>" + temp + "</div></html>" );
+	ADD_CHAT_VERTICAL_SPACE( edit, 10 );
 	
 	temp = tr("[Update]");
-	ui.textEditUpgrade->append( "<html><div class=title>" + temp + "</div></html>" );
-	ADD_CHAT_VERTICAL_SPACE( 5 );
+	edit->append( "<html><div class=title>" + temp + "</div></html>" );
+	ADD_CHAT_VERTICAL_SPACE( edit, 5 );
 
 	temp = patchContents;
 	temp = temp.replace( "\r\n", "<br>" ).replace("\n", "<br>");
-	ui.textEditUpgrade->append( "<html><div class=contents>" + temp + "</div></html>" );
+	edit->append( "<html><div class=contents>" + temp + "</div></html>" );
+}
+
+
+void UpgradeWindow::setContents( const QString &version, const QString &patchContents )
+{
+	setContents( ui.textEditUpgrade, version, patchContents );
 }
 
 void UpgradeWindow::onOK( void )

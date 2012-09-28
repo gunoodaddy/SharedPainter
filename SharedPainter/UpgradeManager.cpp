@@ -138,6 +138,8 @@ void CUpgradeManager::onTimer( void )
 
 void CUpgradeManager::processVersionInfoFile( void )
 {
+	mutex_.lock();
+
 	int lineCnt = 0;
 	while( 1 )
 	{
@@ -163,6 +165,8 @@ void CUpgradeManager::processVersionInfoFile( void )
 
 	QString tempStr(patchContents_.c_str());
 	patchContents_ = tempStr.trimmed().toStdString();
+
+	mutex_.unlock();
 
 	if( std::string(VERSION_TEXT) < remoteVersion_ )
 		gotoNextState();

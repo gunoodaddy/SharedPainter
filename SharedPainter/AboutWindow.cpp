@@ -29,6 +29,7 @@
 
 #include "StdAfx.h"
 #include "AboutWindow.h"
+#include "UpgradeWindow.h"
 
 AboutWindow::AboutWindow(QWidget *parent)
 	: QDialog(parent)
@@ -40,6 +41,11 @@ AboutWindow::AboutWindow(QWidget *parent)
 	QString version = "Ver ";
 	version += VERSION_TEXT;
 	ui.labelVersion->setText(version);
+
+	std::string ver, patchContents;
+	UpgradeManagerPtr()->currentVersionContents( ver, patchContents );
+
+	//UpgradeWindow::setContents( ui.editCurrentPatch, 
 }
 
 AboutWindow::~AboutWindow()

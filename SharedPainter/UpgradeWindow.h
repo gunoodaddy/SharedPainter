@@ -14,6 +14,7 @@ public:
 
 public:
 	void setContents( const QString &version, const QString &patchContents );
+	static void setContents( QTextEdit *edit, const QString &version, const QString &patchContents );
 
 private slots:
 	void onOK( void );

@@ -634,7 +634,7 @@ protected:
 
 	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents )
 	{
-		UpgradeWindow wnd;
+		UpgradeWindow wnd(this);
 
 		wnd.setContents( version.c_str(), Util::toStringFromUtf8( patchContents ) );
 

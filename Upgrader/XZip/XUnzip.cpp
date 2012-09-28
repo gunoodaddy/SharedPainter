@@ -4085,6 +4085,7 @@ ZRESULT TUnzip::Unzip(int index,void *dst,unsigned int len,DWORD flags)
 		unzGoToNextFile(uf);
 	ZIPENTRY ze; 
 	Get(index,&ze);
+	ze.attr = NULL;
 
 	// zipentry=directory is handled specially
 	if ((ze.attr & FILE_ATTRIBUTE_DIRECTORY) != 0)

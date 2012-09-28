@@ -64,6 +64,8 @@ bool unzipPatchFile( void )
 
 	CloseZip(hz);
 
+	QFile::remove( DEFAULT_UPGRADE_FILE_NAME );
+
 #else
 	// TODO : other platform(MacOS) unzip patch file
 #endif
@@ -79,6 +81,35 @@ void launchProgram( const QString & path )
 #else
 	// TODO : other platform(MacOS) launch program.
 #endif
+}
+
+bool renamePatchFile( const QString & dst )
+{
+	QString _dst = QDir::toNativeSeparators(QDir::currentPath()) + QDir::separator() + dst;
+	QString src = _dst;
+	src += "_";
+
+	if( ! QFile::exists( src ) )
+		return true;
+
+	int tryCount = 5;
+	while( --tryCount >= 0 )
+	{
+		if( !QFile::remove( _dst ) )
+			qDebug() << "failed to delete file : " << _dst;
+
+		if( QFile::rename( src, _dst ) )
+			break;
+
+		processSleep( 100 );
+
+		qDebug() << "renamePatchFile failed : " << tryCount;
+	}
+
+	if( tryCount < 0 )
+		return false;
+
+	return true;
 }
 
 int main(int argc, char *argv[])
@@ -101,7 +132,7 @@ int main(int argc, char *argv[])
 		return -1;
 
 	// Remove Patch file.
-	QFile::remove( DEFAULT_UPGRADE_FILE_NAME );
+	renamePatchFile( PROGRAM_FILE_NAME );
 
 	// Run application
 	launchProgram( PROGRAM_FILE_NAME );

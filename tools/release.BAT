@@ -13,3 +13,5 @@ del /s %TARGET_DIR%\%OUTPUT_FILE%
 7z a -tzip %TARGET_DIR%\%OUTPUT_FILE% %PATCH_FILE1%
 del /F/Q/S %PATCH_FILE1%
 
+notepad %TARGET_DIR%\version.txt
+

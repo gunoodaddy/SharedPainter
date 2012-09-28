@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm122"
+				AdditionalOptions="-Zm133"
 				AdditionalIncludeDirectories=".\GeneratedFiles;.;&quot;$(QT_DIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QT_DIR)\include\QtCore&quot;;&quot;$(QT_DIR)\include\QtNetwork&quot;;&quot;$(QT_DIR)\include\QtGui&quot;;&quot;$(BOOST_DIR)&quot;"
 				PreprocessorDefinitions="UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;_WIN32_WINDOWS"
 				RuntimeLibrary="2"
@@ -110,7 +110,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm122"
+				AdditionalOptions="-Zm133"
 				Optimization="0"
 				AdditionalIncludeDirectories=".\GeneratedFiles;.;&quot;$(QT_DIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QT_DIR)\include\QtCore&quot;;&quot;$(QT_DIR)\include\QtNetwork&quot;;&quot;$(QT_DIR)\include\QtGui&quot;;&quot;$(BOOST_DIR)&quot;"
 				PreprocessorDefinitions="UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;_WIN32_WINDOWS"

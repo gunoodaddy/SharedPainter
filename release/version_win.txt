@@ -1,4 +1,5 @@
-0.7.4
+0.7.5
 upgrade feature added.
-After exit app, if you cannot see 0.7.4 string in the app's title bar,
+
+After exit app, if you cannot see 0.7.5 string in the app's title bar,
 please tell gunoodaddy this issue.

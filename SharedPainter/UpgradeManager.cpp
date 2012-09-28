@@ -90,7 +90,7 @@ void CUpgradeManager::doJob( void )
 		else
 			break;
 	case DownloadVersionInfo:
-		currentReply_ = nam_->get(QNetworkRequest(QUrl("https://raw.github.com/gunoodaddy/SharedPainter/master/release/version.txt")));
+		currentReply_ = nam_->get(QNetworkRequest(QUrl("https://raw.github.com/gunoodaddy/SharedPainter/master/release/version_win.txt")));
 		connect( currentReply_, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)), Qt::DirectConnection );
 		gotoNextState();
 		break;
@@ -101,7 +101,7 @@ void CUpgradeManager::doJob( void )
 		processVersionInfoFile();
 		break;
 	case DownloadPatchFile:
-		currentReply_ = nam_->get(QNetworkRequest(QUrl("https://raw.github.com/gunoodaddy/SharedPainter/master/release/SharedPainter.zip")));
+		currentReply_ = nam_->get(QNetworkRequest(QUrl("https://raw.github.com/gunoodaddy/SharedPainter/master/release/patch_win.zip")));
 		connect( currentReply_, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)), Qt::DirectConnection );
 		gotoNextState();
 		break;

@@ -6,7 +6,7 @@
 @SET PATCH_FILE1=SharedPainter.exe
 @SET PATCH_FILE1_TEMP=%PATCH_FILE1%_
 
-@SET OUTPUT_FILE=SharedPainter.zip
+@SET OUTPUT_FILE=patch_win.zip
 
 copy %RELEASE_DIR%\%PATCH_FILE1% %PATCH_FILE1_TEMP%
 

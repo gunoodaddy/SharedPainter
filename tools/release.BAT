@@ -1,0 +1,15 @@
+@ECHO OFF 
+
+@SET RELEASE_DIR=..\Win32\Release
+@SET TARGET_DIR=..\release
+
+@SET PATCH_FILE1=SharedPainter.exe
+
+@SET OUTPUT_FILE=SharedPainter.zip
+
+copy %RELEASE_DIR%\%PATCH_FILE1% .
+
+del /s %TARGET_DIR%\%OUTPUT_FILE%
+7z a -tzip %TARGET_DIR%\%OUTPUT_FILE% %PATCH_FILE1%
+del /F/Q/S %PATCH_FILE1%
+

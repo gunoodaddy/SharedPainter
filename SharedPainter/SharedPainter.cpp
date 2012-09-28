@@ -373,7 +373,10 @@ void SharedPainter::updateWindowTitle( void )
 	newTitle += ", ";
 	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->nickName());
 	newTitle += " - Channel : ";
-	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->paintChannel());
+	if( SettingManagerPtr()->paintChannel().empty() == false )
+		newTitle += Util::toStringFromUtf8(SettingManagerPtr()->paintChannel());
+	else
+		newTitle += tr("<Empty>");
 
 	setWindowTitle( newTitle );
 }

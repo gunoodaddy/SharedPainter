@@ -58,6 +58,7 @@ void CDefferedCaller::performMainThreadAlwaysDeffered( FUNC_TYPE func )
 	mutex_.unlock();
 
 	QEvent *evt = new QEvent(QEvent::User);
+	moveToThread( QApplication::instance()->thread() );
 	QApplication::postEvent(this, evt);
 }
 
@@ -87,6 +88,7 @@ bool CDefferedCaller::performMainThreadAfterMilliseconds( FUNC_TYPE func, int ms
 	mutex_.unlock();
 
 	QEvent *evt = new QEvent(QEvent::User);
+	moveToThread( QApplication::instance()->thread() );
 	QApplication::postEvent(this, evt);
 	return true;
 }

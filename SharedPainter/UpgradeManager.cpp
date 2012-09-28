@@ -3,21 +3,38 @@
 
 CUpgradeManager::CUpgradeManager(void) : upgradeState_(FirstRunState), currentTimerSecond_(0)
 {
-	timer_ = new QTimer(this);
-	timer_->start(1000);
-	connect( timer_, SIGNAL(timeout()), this, SLOT(onTimer()) );
-
-	nam_ = new QNetworkAccessManager(this);
-	connect( nam_, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)) );
+	start();
 }
 
 CUpgradeManager::~CUpgradeManager(void)
 {
 }
 
+void CUpgradeManager::run()
+{
+	QTimer timer;
+	timer.setInterval( 1000 );
+	timer.moveToThread( this );
+	connect( &timer, SIGNAL(timeout()), this, SLOT(onTimer()), Qt::DirectConnection );
+	timer.start();
+
+	nam_ = new QNetworkAccessManager();
+	nam_->moveToThread( this );
+	connect( nam_, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)), Qt::DirectConnection );
+
+	exec();
+	
+	delete nam_;
+}
+
+void CUpgradeManager::close( void )
+{
+	quit();
+}
+
 void CUpgradeManager::doUpgradeNow( void )
 {
-	timer_->stop();
+	gotoState( WaitForUnlimited );
 
 	// Run Upgrader
 	Util::executeProgram( PROGRAM_UPGRADER_FILE_NAME );
@@ -28,9 +45,25 @@ void CUpgradeManager::doUpgradeNow( void )
 
 void CUpgradeManager::stopVersionCheck( void )
 {
-	timer_->stop();
+	mutex_.lock();
+	upgradeState_ = true;
 	currentTimerSecond_ = 0;
-	upgradeState_ = InitState;
+	upgradeState_ = WaitForUnlimited;
+	mutex_.unlock();
+}
+
+void CUpgradeManager::gotoState( int state )
+{
+	mutex_.lock();
+	upgradeState_ = state;
+	mutex_.unlock();
+}
+
+void CUpgradeManager::gotoNextState( void )
+{
+	mutex_.lock();
+	upgradeState_++;
+	mutex_.unlock();
 }
 
 void CUpgradeManager::doJob( void )
@@ -46,20 +79,20 @@ void CUpgradeManager::doJob( void )
 	switch( upgradeState_ )
 	{
 	case FirstRunState:
-		upgradeState_ = DownloadVersionInfo;	// at the first, run right now once!
+		gotoState( DownloadVersionInfo );	// at the first, run right now once!
 		break;
 	case InitState:
 		if( currentTimerSecond_ >= DEFAULT_UPGRADE_CHECK_SECOND )
 		{
-			upgradeState_ = DownloadVersionInfo;
+			gotoNextState();
 			// go through next state
 		}
 		else
 			break;
 	case DownloadVersionInfo:
 		currentReply_ = nam_->get(QNetworkRequest(QUrl("https://raw.github.com/gunoodaddy/SharedPainter/master/release/version.txt")));
-		connect( currentReply_, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)) );
-		upgradeState_ = DownloadingVersionInfo;
+		connect( currentReply_, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)), Qt::DirectConnection );
+		gotoNextState();
 		break;
 	case DownloadingVersionInfo:
 		// waiting for finishing download
@@ -69,8 +102,8 @@ void CUpgradeManager::doJob( void )
 		break;
 	case DownloadPatchFile:
 		currentReply_ = nam_->get(QNetworkRequest(QUrl("https://raw.github.com/gunoodaddy/SharedPainter/master/release/SharedPainter.zip")));
-		connect( currentReply_, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)) );
-		upgradeState_ = DownloadingPatchFile;
+		connect( currentReply_, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)), Qt::DirectConnection );
+		gotoNextState();
 		break;
 	case DownloadingPatchFile:
 		// waiting for finishing download
@@ -81,16 +114,24 @@ void CUpgradeManager::doJob( void )
 	case WaitConfirmFromUser:
 		// waiting for user confirm ( User must call doUpgradeNow or stopVersionCheck )
 		break;
+	case WaitForUnlimited:
+		// waiting for unlimited... 
+		break;
 	case ErrorState:
-		// TODO : UpgradeManager need more detail error handling?
-		upgradeState_ = InitState;
+		// TODO : UpgradeManager need more handling???
+		mutex_.lock();
+		currentTimerSecond_ = 0;
+		mutex_.unlock();
+		gotoState( InitState );
 		break;
 	}
 }
 
 void CUpgradeManager::onTimer( void )
 {
+	mutex_.lock();
 	currentTimerSecond_++;
+	mutex_.unlock();
 	doJob();
 }
 
@@ -123,11 +164,10 @@ void CUpgradeManager::processVersionInfoFile( void )
 	patchContents_ = tempStr.trimmed().toStdString();
 
 	if( std::string(VERSION_TEXT) < remoteVersion_ )
-		upgradeState_++;	// go to next stage!
+		gotoNextState();
 	else
 	{
-		currentTimerSecond_ = 0;
-		upgradeState_ = InitState;
+		gotoState( ErrorState );
 	}
 }
 
@@ -139,7 +179,7 @@ void CUpgradeManager::processPatchFile( void )
 	QFile f( DEFAULT_UPGRADE_FILE_NAME );
 	if( !f.open( QIODevice::WriteOnly ) )
 	{
-		upgradeState_ = ErrorState;
+		gotoState( ErrorState );
 		return;
 	}
 
@@ -147,14 +187,14 @@ void CUpgradeManager::processPatchFile( void )
 	int ret = out.writeRawData( res.data(), res.size() );
 	if( ret != res.size() )
 	{
-		upgradeState_ = ErrorState;
+		gotoState( ErrorState );
 		return;
 	}
 	f.close();
 
-	fireObserver_NewVersion( remoteVersion_, patchContents_ );
+	CDefferedCaller::singleShot( boost::bind( &CUpgradeManager::fireObserver_NewVersion, this, remoteVersion_, patchContents_) );
 
-	upgradeState_++;	// go to next stage!
+	gotoNextState();
 }
 
 
@@ -163,14 +203,13 @@ void CUpgradeManager::finished(QNetworkReply *reply)
 	// error handling
 	if(reply->error() != QNetworkReply::NoError)  
 	{
-		currentTimerSecond_ = 0;
-		upgradeState_ = ErrorState;
+		gotoState( ErrorState );
 		
 		qDebug() << reply->errorString();
 		return;
 	}
 
-	upgradeState_++;	// go to next stage!
+	gotoNextState();
 }
 
 

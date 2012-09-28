@@ -833,6 +833,10 @@
 		<Filter
 			Name="Manager"
 			>
+			<File
+				RelativePath=".\SharedPaintPolicy.h"
+				>
+			</File>
 			<Filter
 				Name="Upgrade Manager"
 				>
@@ -937,10 +941,6 @@
 							Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 						/>
 					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\SharedPaintPolicy.h"
-					>
 				</File>
 				<Filter
 					Name="Command"

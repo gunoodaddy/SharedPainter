@@ -52,4 +52,6 @@ void UpgradeWindow::onCancel( void )
 {
 	UpgradeManagerPtr()->stopVersionCheck();
 	reject();
+
+	QMessageBox::information( NULL, "", tr("You can upgrade manually by executing <b>Upgrader program</b>, after exit this application") ); 
 }

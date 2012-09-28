@@ -29,7 +29,7 @@
 
 #pragma once 
 
-#define VERSION_TEXT	"0.7.3"
+#define VERSION_TEXT	"0.7.4"
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 
@@ -37,7 +37,8 @@
 #define PROGRAM_FILE_NAME			"SharedPainter.exe"
 #define PROGRAM_UPGRADER_FILE_NAME	"Upgrader.exe"
 #else
-#define PROGRAM_FILE_NAME	"SharedPainter"
+#define PROGRAM_FILE_NAME			"SharedPainter"
+#define PROGRAM_UPGRADER_FILE_NAME	"Upgrader"
 #endif
 
 #define NET_MAGIC_CODE	0xBEBE
@@ -46,7 +47,7 @@
 
 #define DEFAULT_RECONNECT_TRY_COUNT			3
 
-#define DEFAULT_UPGRADE_CHECK_SECOND		60
+#define DEFAULT_UPGRADE_CHECK_SECOND		20
 #define DEFAULT_UPGRADE_FILE_NAME			"patch.zip"
 
 #define DEFAULT_TEXT_ITEM_POS_REGION_W		9999

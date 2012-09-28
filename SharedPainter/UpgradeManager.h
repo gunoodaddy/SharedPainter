@@ -44,7 +44,7 @@ public:
 	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents ) = 0;
 };
 
-class CUpgradeManager : public QObject
+class CUpgradeManager : public QThread
 {
 	Q_OBJECT
 
@@ -64,7 +64,7 @@ public:
 		DownloadingPatchFile,
 		DownloadCompletePatchFile,
 		WaitConfirmFromUser,
-		WaitForLongTimeNextPatch,
+		WaitForUnlimited,
 		ErrorState,
 	};
 	void registerObserver( IUpgradeEvent *obs )
@@ -78,6 +78,8 @@ public:
 		observers_.remove( obs );
 	}
 
+	void close( void );
+
 	void doUpgradeNow( void );
 	void stopVersionCheck( void );
 
@@ -87,6 +89,9 @@ protected slots:
 	void onTimer( void );
 
 private:
+	void run();
+	void gotoState( int state );
+	void gotoNextState( void );
 	void doJob( void );
 	void processVersionInfoFile( void );
 	void processPatchFile( void );
@@ -109,7 +114,8 @@ private:
 
 	QNetworkAccessManager *nam_;
 	QNetworkReply *currentReply_;
-	QTimer *timer_;
 	std::string remoteVersion_;
 	std::string patchContents_;
+
+	QMutex mutex_;
 };

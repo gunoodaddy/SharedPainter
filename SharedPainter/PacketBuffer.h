@@ -278,7 +278,7 @@ public:
 		boost::uint32_t len = 0;
 		pos += readInt32( buf, pos, len, LE );
 		int nread = read( buf, pos, value, len );
-		if(nread != len)
+		if(nread != (int)len)
 			throw CPacketException("readString32 failed..");
 		return 4 + len;
 	}
@@ -472,7 +472,7 @@ public:
 		boost::uint32_t pos = 0;
 		pos += readInt32(len);
 		int nread = read(value, len);
-		if(nread != len)
+		if(nread != (int)len)
 			throw CPacketException("readString32 failed..");
 		return pos + len;
 	}

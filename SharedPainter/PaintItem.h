@@ -559,7 +559,7 @@ public:
 
 			QDataStream out(&f);
 			int ret = out.writeRawData( fileData.c_str(), fileData.size() );
-			if( ret != fileData.size() )
+			if( ret != (int)fileData.size() )
 			{
 				return false;
 			}

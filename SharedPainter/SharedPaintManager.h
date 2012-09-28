@@ -175,6 +175,8 @@ public:
 		case SERVER_MODE:
 			_requestJoinServer( lastConnectAddress_, lastConnectPort_, myUserInfo_->channel() );
 			break;
+		default:
+			break;
 		}
 	}
 

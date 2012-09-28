@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <QtGui>
+
 namespace Util
 {
 	std::string generateMyId( void );

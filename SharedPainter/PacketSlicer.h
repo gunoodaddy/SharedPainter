@@ -175,7 +175,7 @@ private:
 
 				currHeaderLen_ += buffer_.readInt16( currCode_ );
 				qDebug() << "============================ packet recved " << currCode_;
-				if( currCode_ < 0 || currCode_ >= CODE_MAX )
+				if( currCode_ >= CODE_MAX )
 				{
 					init();
 					return false;

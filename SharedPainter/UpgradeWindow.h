@@ -1,7 +1,7 @@
 #ifndef UPGRADEWINDOW_H
 #define UPGRADEWINDOW_H
 
-#include <QWidget>
+#include <QDialog>
 #include "ui_UpgradeWindow.h"
 
 class UpgradeWindow : public QDialog

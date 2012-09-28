@@ -73,7 +73,6 @@ public:
 	{
 		try
 		{
-			boost::uint8_t f;
 			boost::uint32_t t;
 			int pos = readPos ? *readPos : 0;
 

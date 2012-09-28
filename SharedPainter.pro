@@ -9,18 +9,11 @@ QT       += core gui network
 TARGET = SharedPainter
 TEMPLATE = app
 
+CONFIG   += console precompile_header
+
 DEFINES += _CRT_SECURE_NO_WARNINGS
 
-win32{
-RC_FILE = SharedPainter/SharedPainter.rc
-QMAKE_CXXFLAGS_DEBUG += -wd4100 -wd4101
-QMAKE_CXXFLAGS_RELEASE += -wd4100 -wd4101
-}
-
-PRECOMPILED_HEADER = SharedPainter/stdafx.h
-
 SOURCES +=  \
-    SharedPainter/TextItemDialog.cpp \
     SharedPainter/stdafx.cpp \
     SharedPainter/SharedPaintManager.cpp \
     SharedPainter/SharedPaintCommandManager.cpp \
@@ -32,20 +25,27 @@ SOURCES +=  \
     SharedPainter/PacketBuffer.cpp \
     SharedPainter/DefferedCaller.cpp \
     SharedPainter/Util.cpp \
+    SharedPainter/TextItemDialog.cpp \
     SharedPainter/FindingServerDialog.cpp \
-	SharedPainter/SyncDataProgressDialog.cpp \
-	SharedPainter/AboutWindow.cpp \
+    SharedPainter/SyncDataProgressDialog.cpp \
+    SharedPainter/PreferencesDialog.cpp \
+    SharedPainter/UpgradeWindow.cpp \
+    SharedPainter/UpgradeManager.cpp \
+    SharedPainter/AboutWindow.cpp \
     SharedPainter/main.cpp
 
 HEADERS  += \
+    SharedPainter/stdafx.h \
+    SharedPainter/PreferencesDialog.h \
+    SharedPainter/UpgradeWindow.h \
     SharedPainter/FindingServerDialog.h \
     SharedPainter/WindowPacketBuilder.h \
     SharedPainter/TextItemDialog.h \
-	SharedPainter/SyncDataProgressDialog.h \
-	SharedPainter/AboutWindow.h \
+    SharedPainter/SyncDataProgressDialog.h \
+    SharedPainter/AboutWindow.h \
     SharedPainter/SystemPacketBuilder.h \
     SharedPainter/UdpPacketBuilder.h \
-    SharedPainter/stdafx.h \
+    SharedPainter/UpgradeManager.h \
     SharedPainter/Singleton.h \
     SharedPainter/SharedPaintPolicy.h \
     SharedPainter/SharedPaintManager.h \
@@ -77,24 +77,39 @@ HEADERS  += \
     SharedPainter/BroadCastPacketBuilder.h \
     SharedPainter/TaskPacketBuilder.h
 
-INCLUDEPATH += $(BOOST_DIR)
+FORMS    += \
+    SharedPainter/FindingServerDialog.ui \
+    SharedPainter/SyncDataProgressDialog.ui \
+    SharedPainter/AboutWindow.ui \
+    SharedPainter/textitemdialog.ui \
+    SharedPainter/PreferencesDialog.ui \
+    SharedPainter/UpgradeWindow.ui \
+    SharedPainter/sharedpainter.ui
 
-CONFIG(debug, debug|release) {
-LIBS += -L$(BOOST_DIR)/lib
-} else {
-LIBS += -L$(BOOST_DIR)/lib
+RESOURCES += \
+    SharedPainter/sharedpainter.qrc
+
+
+win32{
+RC_FILE = SharedPainter/SharedPainter.rc
+QMAKE_CXXFLAGS_DEBUG += -wd4100 -wd4101
+QMAKE_CXXFLAGS_RELEASE += -wd4100 -wd4101
 }
+
+PRECOMPILED_HEADER = SharedPainter/stdafx.h
+
+macx{
+QMAKE_CXXFLAGS_WARN_ON = ""
+QMAKE_CXXFLAGS += -Wno-unused-variable -Wno-unused-parameter -Wno-reorder
+}
+
+INCLUDEPATH += $(BOOST_DIR)
+LIBS += -L$(BOOST_DIR)/lib -lboost_thread -lboost_system
 
 win32{
 LIBS += -luser32 -lshell32 -lgdi32
 }
 
-FORMS    += \
-    SharedPainter/FindingServerDialog.ui \
-	SharedPainter/SyncDataProgressDialog.ui \
-	SharedPainter/AboutWindow.ui \
-    SharedPainter/textitemdialog.ui \
-    SharedPainter/sharedpainter.ui
-
-RESOURCES += \
-    SharedPainter/sharedpainter.qrc
+macx{
+LIBS += -lboost_thread -lboost_system
+}

@@ -114,8 +114,8 @@ public:
 	}
 
 private:
-	IPaintSessionEvent *evtTarget_;
 	boost::shared_ptr<CNetPeerSession> session_;
+	IPaintSessionEvent *evtTarget_;
 	CPacketSlicer packetSlicer_;
 
 	std::deque< boost::shared_ptr<CNetPacketData> > packetList_;

@@ -229,16 +229,15 @@ private:
 private:
 	static const int _BUF_SIZE = 4096;
 	boost::asio::io_service& io_service_;
+	boost::asio::ip::udp::socket socket_;
+	INetBroadCastSessionEvent *evtTarget_;
 
-	bool stopBroadCastMsgFlag_;
-	boost::asio::deadline_timer broadcast_timer_;
 	int broadCastPort_;
-	std::string broadCastMsg_;
 	int sendMsgSecond_;
 	int sentCount_;
-
-	INetBroadCastSessionEvent *evtTarget_;
-	boost::asio::ip::udp::socket socket_;
+	bool stopBroadCastMsgFlag_;
+	std::string broadCastMsg_;
+	boost::asio::deadline_timer broadcast_timer_;
 	boost::asio::ip::udp::endpoint sender_endpoint_;
 	char read_buffer_[_BUF_SIZE];
 };

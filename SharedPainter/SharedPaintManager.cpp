@@ -513,7 +513,7 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 				}
 			}
 
-			qDebug() << "CODE_SYSTEM_RES_JOIN recved" << firstUserFlag << connectSuperPeerFlag << (int)relayServerSession_.get() << syncStartedFlag_;
+            qDebug() << "CODE_SYSTEM_RES_JOIN recved" << firstUserFlag << connectSuperPeerFlag << (relayServerSession_ ? true : false) << syncStartedFlag_;
 
 			if( false == firstUserFlag 
 				&& false == connectSuperPeerFlag 

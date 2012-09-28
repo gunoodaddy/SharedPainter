@@ -69,26 +69,26 @@ public:
 
 	void setItemData( boost::weak_ptr<CPaintItem> data )
 	{
-		setAcceptHoverEvents( true );
+		T::setAcceptHoverEvents( true );
 
 		itemData_ = data;
-	
+
 		if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
 		{
-			setData( ITEM_DATA_KEY_OWNER, QString(r->owner().c_str()) );
-			setData( ITEM_DATA_KEY_ITEMID, QString::number(r->itemId()) );
-		
-			r->setPos( scenePos().x(), scenePos().y() );
+			T::setData( ITEM_DATA_KEY_OWNER, QString(r->owner().c_str()) );
+			T::setData( ITEM_DATA_KEY_ITEMID, QString::number(r->itemId()) );
+
+			r->setPos( T::scenePos().x(), T::scenePos().y() );
 			r->setDrawingObject( this );
 		}
 	}
-/*
-	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) 
-	{ 
-		QStyleOptionGraphicsItem myOption(*option); 
-		myOption.state &= ~QStyle::State_Selected; 
-		T::paint(painter, &myOption, widget); 
-	} 
+	/*
+	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+	{
+		QStyleOptionGraphicsItem myOption(*option);
+		myOption.state &= ~QStyle::State_Selected;
+		T::paint(painter, &myOption, widget);
+	}
 */
 	void keyPressEvent( QKeyEvent * event )
 	{
@@ -115,7 +115,7 @@ public:
 		if( scene_->isFreePenMode() )
 			return;
 
-		scene_->setCursor( Qt::OpenHandCursor ); 
+		scene_->setCursor( Qt::OpenHandCursor );
 	}
 
 	void hoverLeaveEvent( QGraphicsSceneHoverEvent * event )
@@ -123,7 +123,7 @@ public:
 		if( scene_->isFreePenMode() )
 			return;
 
-		scene_->setCursor( Qt::PointingHandCursor ); 
+		scene_->setCursor( Qt::PointingHandCursor );
 	}
 
 	void mouseDoubleClickEvent( QGraphicsSceneMouseEvent * event )
@@ -138,13 +138,13 @@ public:
 		T::mouseDoubleClickEvent( event );
 	}
 
-	void mouseMoveEvent( QGraphicsSceneMouseEvent * event ) 
+	void mouseMoveEvent( QGraphicsSceneMouseEvent * event )
 	{
 		if( !moveFlag_ )
 		{
 			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
 			{
-				r->setPos( scenePos().x(), scenePos().y() );
+				r->setPos( T::scenePos().x(), T::scenePos().y() );
 				scene_->onItemMoveBegin( r );
 			}
 			moveFlag_ = true;
@@ -153,23 +153,23 @@ public:
 		T::mouseMoveEvent( event );
 	}
 
-	void mousePressEvent( QGraphicsSceneMouseEvent * event ) 
+	void mousePressEvent( QGraphicsSceneMouseEvent * event )
 	{
-		scene_->setCursor( Qt::ClosedHandCursor ); 
+		scene_->setCursor( Qt::ClosedHandCursor );
 
 		T::mousePressEvent( event );
 	}
 
-	void mouseReleaseEvent( QGraphicsSceneMouseEvent * event ) 
+	void mouseReleaseEvent( QGraphicsSceneMouseEvent * event )
 	{
-		scene_->setCursor( Qt::OpenHandCursor ); 
+		scene_->setCursor( Qt::OpenHandCursor );
 
 		if( moveFlag_ )
 		{
 			moveFlag_ = false;
 			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
 			{
-				r->setPos( scenePos().x(), scenePos().y() );
+				r->setPos( T::scenePos().x(), T::scenePos().y() );
 				scene_->onItemMoveEnd( r );
 			}
 		}

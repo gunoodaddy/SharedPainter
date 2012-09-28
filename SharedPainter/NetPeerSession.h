@@ -33,6 +33,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <deque>
 #include "DefferedCaller.h"
@@ -76,13 +77,7 @@ public:
 
 		stopped_ = false;
 
-		char temp[100];
-#if defined(Q_WS_WIN)
-		 _itoa(port, temp, 10);
-#else
-		itoa(port, temp, 10);
-#endif
-		std::string portstr = temp;
+		std::string portstr = boost::lexical_cast <std::string>(port);
 
 		try
 		{

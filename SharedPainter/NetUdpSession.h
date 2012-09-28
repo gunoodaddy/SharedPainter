@@ -30,6 +30,7 @@
 #pragma once
 
 #include "INetPeerEvent.h"
+#include <boost/lexical_cast.hpp>
 
 class CNetUdpSession : public boost::enable_shared_from_this<CNetUdpSession>
 {
@@ -59,13 +60,7 @@ public:
 
 	void sendData( const std::string &addr, int port, const std::string &data )
 	{
-		char temp[100];
-#if defined(Q_WS_WIN)
-		 _itoa(port, temp, 10);
-#else
-		itoa(port, temp, 10);
-#endif
-		std::string portstr = temp;
+		std::string portstr = boost::lexical_cast <std::string>(port);
 
 		boost::asio::ip::udp::resolver resolver(io_service_);  
 		boost::asio::ip::udp::resolver::query query(boost::asio::ip::udp::v4(), addr, portstr);  
@@ -162,9 +157,9 @@ private:
 private:
 	static const int _BUF_SIZE = 4096;
 	boost::asio::io_service& io_service_;
-
-	INetUdpSessionEvent *evtTarget_;
 	boost::asio::ip::udp::socket socket_;
+	INetUdpSessionEvent *evtTarget_;
+
 	boost::asio::ip::udp::endpoint sender_endpoint_;
 	//boost::asio::ip::udp::endpoint last_sender_endpoint_;	// not thread safe
 	char read_buffer_[_BUF_SIZE];

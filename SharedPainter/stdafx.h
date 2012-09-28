@@ -4,7 +4,9 @@
 #include <boost/bind.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/shared_ptr.hpp>
+#ifdef Q_WS_WIN
 #include <qt_windows.h>
+#endif
 #include <QtGui>
 #include <iostream>
 #include <deque>

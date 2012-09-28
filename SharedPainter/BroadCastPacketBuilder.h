@@ -97,7 +97,6 @@ namespace BroadCastPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::uint16_t temp_port;
 				pos += CPacketBufferUtil::readString8( body, pos, paintChannel );
 				pos += CPacketBufferUtil::readString8( body, pos, myId );
 				pos += CPacketBufferUtil::readString8( body, pos, myNick );

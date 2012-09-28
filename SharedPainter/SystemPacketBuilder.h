@@ -60,7 +60,6 @@ namespace SystemPacketBuilder
 			int pos = 0;
 			try
 			{
-				boost::uint16_t temp_port;
 				pos += CPacketBufferUtil::readString8( body, pos, id );
 				pos += CPacketBufferUtil::readString8( body, pos, nick );
 				pos += CPacketBufferUtil::readString8( body, pos, msg );

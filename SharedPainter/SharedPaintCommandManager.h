@@ -156,7 +156,7 @@ public:
 	bool isPlaybackMode( void )
 	{
 		if( DEFAULT_INIT_PLAYBACK_POS == currentPlayPos_ /* init position */
-				|| (historyTaskList_.size() - 1 == currentPlayPos_ /* last position */ ) )
+				|| ((int)historyTaskList_.size() - 1 == currentPlayPos_ /* last position */ ) )
 		{
 			return false;
 		}

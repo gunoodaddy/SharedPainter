@@ -17,3 +17,4 @@
 #include "NetServiceRunner.h"
 
 extern int _debug_paint_item_cnt;
+extern bool _exit_flag;

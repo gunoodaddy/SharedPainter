@@ -931,7 +931,7 @@ bool SharedPainter::getNickNameString( bool force )
 
 	if( ! ok )
 	{
-		if( exitFlag_ )
+		if( exitFlag_ || _exit_flag )
 			return false;
 
 		if( SettingManagerPtr()->nickName().empty() )
@@ -967,7 +967,7 @@ bool SharedPainter::getPaintChannelString( bool force )
 	QString channel = QInputDialog::getText(this, tr("Paint Channel"), tr("Channel: any string"), QLineEdit::Normal, SettingManagerPtr()->paintChannel().c_str(), &ok);
 	if( ! ok )
 	{
-		if( exitFlag_ )
+		if( exitFlag_ || _exit_flag )
 			return false;
 
 		if( SettingManagerPtr()->paintChannel().empty() )

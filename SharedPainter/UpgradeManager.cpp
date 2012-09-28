@@ -40,6 +40,7 @@ void CUpgradeManager::doUpgradeNow( void )
 	Util::executeProgram( PROGRAM_UPGRADER_FILE_NAME );
 
 	// Program exit..
+	_exit_flag = true;
 	qApp->exit(0);
 }
 

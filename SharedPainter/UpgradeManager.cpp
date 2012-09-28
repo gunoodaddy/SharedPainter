@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "UpgradeManager.h"
 
-CUpgradeManager::CUpgradeManager(void) : upgradeState_(FirstRunState), currentTimerSecond_(0)
+CUpgradeManager::CUpgradeManager(void) : upgradeState_(FirstRunState), currentTimerSecond_(0), patchFileDownloaded_(false)
 {
 	start();
 }
@@ -32,8 +32,22 @@ void CUpgradeManager::close( void )
 	quit();
 }
 
+bool CUpgradeManager::isAvailableUpgrade( void )
+{
+	if( ! patchFileDownloaded_ )
+		return false;
+
+	if( std::string(VERSION_TEXT) >= remoteVersion_ )
+		return false;
+
+	return true;
+}
+
 void CUpgradeManager::doUpgradeNow( void )
 {
+	if( ! patchFileDownloaded_ )
+		return;
+
 	gotoState( WaitForUnlimited );
 
 	// Run Upgrader
@@ -196,6 +210,8 @@ void CUpgradeManager::processPatchFile( void )
 		return;
 	}
 	f.close();
+
+	patchFileDownloaded_ = true;
 
 	CDefferedCaller::singleShot( boost::bind( &CUpgradeManager::fireObserver_NewVersion, this, remoteVersion_, patchContents_) );
 

@@ -41,6 +41,9 @@ public:
 	AboutWindow(QWidget *parent = 0);
 	~AboutWindow();
 
+private slots:
+	void onUpgrade( void );
+
 private:
 	Ui::AboutWindow ui;
 };

@@ -30,6 +30,7 @@
 #include "StdAfx.h"
 #include "AboutWindow.h"
 #include "UpgradeWindow.h"
+#include "UIStyleSheet.h"
 
 AboutWindow::AboutWindow(QWidget *parent)
 	: QDialog(parent)
@@ -41,14 +42,29 @@ AboutWindow::AboutWindow(QWidget *parent)
 	QString version = "Ver ";
 	version += VERSION_TEXT;
 	ui.labelVersion->setText(version);
+	ui.editCurrentPatch->document()->setDefaultStyleSheet(gStyleSheet_UpdateEdit);
 
 	std::string ver, patchContents;
-	UpgradeManagerPtr()->currentVersionContents( ver, patchContents );
+	if( UpgradeManagerPtr()->currentVersionContents( ver, patchContents ) )
+	{
+		UpgradeWindow::setContents( ui.editCurrentPatch, Util::toStringFromUtf8(ver), Util::toStringFromUtf8(patchContents) );
+		ui.editCurrentPatch->moveCursor( QTextCursor::Start );
 
-	//UpgradeWindow::setContents( ui.editCurrentPatch, 
+		ui.buttonUpgrade->setEnabled( UpgradeManagerPtr()->isAvailableUpgrade() );
+	}
+	else
+	{
+		ui.editCurrentPatch->append( "Not received version info");
+		ui.buttonUpgrade->setEnabled(false);
+	}
 }
 
 AboutWindow::~AboutWindow()
 {
 
+}
+
+void AboutWindow::onUpgrade( void )
+{
+	UpgradeManagerPtr()->doUpgradeNow();
 }

@@ -104,7 +104,7 @@ QMAKE_CXXFLAGS += -Wno-unused-variable -Wno-unused-parameter -Wno-reorder
 }
 
 INCLUDEPATH += $(BOOST_DIR)
-LIBS += -L$(BOOST_DIR)/lib -lboost_thread -lboost_system
+LIBS += -L$(BOOST_DIR)/lib
 
 win32{
 LIBS += -luser32 -lshell32 -lgdi32

@@ -83,6 +83,8 @@ public:
 	void doUpgradeNow( void );
 	void stopVersionCheck( void );
 
+	bool isAvailableUpgrade( void );
+
 	bool currentVersionContents( std::string &version, std::string &patchContents )
 	{
 		mutex_.lock();
@@ -130,6 +132,6 @@ private:
 	QNetworkReply *currentReply_;
 	std::string remoteVersion_;
 	std::string patchContents_;
-
+	bool patchFileDownloaded_;
 	QMutex mutex_;
 };

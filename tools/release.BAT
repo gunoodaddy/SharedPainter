@@ -14,5 +14,5 @@ del /s %TARGET_DIR%\%OUTPUT_FILE%
 7z a -tzip %TARGET_DIR%\%OUTPUT_FILE% %PATCH_FILE1_TEMP%
 del /F/Q/S %PATCH_FILE1_TEMP%
 
-notepad %TARGET_DIR%\version.txt
+notepad %TARGET_DIR%\version_win.txt
 

@@ -70,6 +70,11 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	ui.editChat->setReadOnly( true );
 	ui.editMsg->installEventFilter( this );
 
+	// test
+	//UpgradeWindow wnd;
+	//wnd.setContents( VERSION_TEXT, Util::toStringFromUtf8( "test123\ntest222" ) );
+	//wnd.exec();
+
 	setCursor( Qt::ArrowCursor ); 
 
 	canvas_->setEvent( this );

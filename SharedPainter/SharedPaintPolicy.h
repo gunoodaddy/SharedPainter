@@ -33,11 +33,21 @@
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 
+#ifdef Q_WS_WIN
+#define PROGRAM_FILE_NAME			"SharedPainter.exe"
+#define PROGRAM_UPGRADER_FILE_NAME	"Upgrader.exe"
+#else
+#define PROGRAM_FILE_NAME	"SharedPainter"
+#endif
+
 #define NET_MAGIC_CODE	0xBEBE
 
 #define MAX_PACKET_BODY_SIZE				200000000	// 2OOMB
 
 #define DEFAULT_RECONNECT_TRY_COUNT			3
+
+#define DEFAULT_UPGRADE_CHECK_SECOND		60
+#define DEFAULT_UPGRADE_FILE_NAME			"patch.zip"
 
 #define DEFAULT_TEXT_ITEM_POS_REGION_W		9999
 #define DEFAULT_TEXT_ITEM_POS_REGION_H		300
@@ -50,7 +60,7 @@
 
 #define DEFAULT_INITIAL_CHATWINDOW_SIZE		200
 
-#if defined(WINDOWS)
+#ifdef Q_WS_WIN
 #define NATIVE_NEWLINE_STR	"\r\n"
 #else
 #define NATIVE_NEWLINE_STR	"\n"

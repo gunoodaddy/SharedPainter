@@ -37,6 +37,8 @@ namespace Util
 
 	QColor getComplementaryColor( const QColor &clr, const QColor &lineClr = QColor() );
 
+	bool executeProgram( const QString &path );
+
 	inline bool stringTokenizer(const std::string &strSrc, const std::string& strDelimiter, std::vector<std::string> &strList)
 	{
 		size_t offsetPrev = 0;

@@ -29,6 +29,22 @@
 
 #include "stdafx.h"
 #include "Util.h"
+#if defined(Q_WS_WIN)
+#include <Shellapi.h>
+#endif
+#include <QtGui/QApplication>
+
+bool Util::executeProgram( const QString &path )
+{
+#if defined(Q_WS_WIN)
+	ShellExecute(NULL, L"open", path.toStdWString().c_str(), L"", L"", SW_SHOWNORMAL);
+#else
+	// TODO : other platform(MacOS) launch program.
+	assert( false );
+#endif
+	return true;
+}
+
 
 std::string Util::generateMyId( void )
 {

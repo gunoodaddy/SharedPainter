@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedPainter", "SharedPainter\SharedPainter.vcproj", "{1486C906-6BCA-46BA-B7BE-5E21DCB1793E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Upgrader", "Upgrader\Upgrader.vcproj", "{E0DBB7DD-E05A-42C5-8C3C-FC19E24500F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +15,10 @@ Global
 		{1486C906-6BCA-46BA-B7BE-5E21DCB1793E}.Debug|Win32.Build.0 = Debug|Win32
 		{1486C906-6BCA-46BA-B7BE-5E21DCB1793E}.Release|Win32.ActiveCfg = Release|Win32
 		{1486C906-6BCA-46BA-B7BE-5E21DCB1793E}.Release|Win32.Build.0 = Release|Win32
+		{E0DBB7DD-E05A-42C5-8C3C-FC19E24500F5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E0DBB7DD-E05A-42C5-8C3C-FC19E24500F5}.Debug|Win32.Build.0 = Debug|Win32
+		{E0DBB7DD-E05A-42C5-8C3C-FC19E24500F5}.Release|Win32.ActiveCfg = Release|Win32
+		{E0DBB7DD-E05A-42C5-8C3C-FC19E24500F5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

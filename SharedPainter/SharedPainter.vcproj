@@ -19,7 +19,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(PlatformName)\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			>
 			<Tool
@@ -89,7 +89,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(PlatformName)\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -525,6 +525,10 @@
 				RelativePath=".\GeneratedFiles\ui_textitemdialog.h"
 				>
 			</File>
+			<File
+				RelativePath=".\GeneratedFiles\ui_UpgradeWindow.h"
+				>
+			</File>
 			<Filter
 				Name="Release"
 				Filter="cpp;moc"
@@ -652,6 +656,18 @@
 				</File>
 				<File
 					RelativePath=".\GeneratedFiles\Release\moc_UpgradeManager.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\GeneratedFiles\Release\moc_UpgradeWindow.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -790,6 +806,18 @@
 				</File>
 				<File
 					RelativePath=".\GeneratedFiles\Debug\moc_UpgradeManager.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\GeneratedFiles\Debug\moc_UpgradeWindow.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -1851,6 +1879,68 @@
 				</File>
 				<File
 					RelativePath=".\textitemdialog.ui"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Uic&apos;ing $(InputFileName)..."
+							CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+							AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+							Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Uic&apos;ing $(InputFileName)..."
+							CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+							AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+							Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Upgrade Window"
+				Filter="ui"
+				UniqueIdentifier="{99349809-55BA-4b9d-BF79-8FDBB0286EB3}"
+				>
+				<File
+					RelativePath=".\UpgradeWindow.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\UpgradeWindow.h"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Moc&apos;ing UpgradeWindow.h..."
+							CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-fStdAfx.h&quot; &quot;-f../../UpgradeWindow.h&quot;  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -D_WIN32_WINDOWS &quot;-I.\GeneratedFiles&quot; &quot;-I.&quot; &quot;-I$(QT_DIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QT_DIR)\include\QtCore&quot; &quot;-I$(QT_DIR)\include\QtNetwork&quot; &quot;-I$(QT_DIR)\include\QtGui&quot; &quot;-I$(BOOST_DIR)\.&quot;&#x0D;&#x0A;"
+							AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+							Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							Description="Moc&apos;ing UpgradeWindow.h..."
+							CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-fStdAfx.h&quot; &quot;-f../../UpgradeWindow.h&quot;  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -D_WIN32_WINDOWS -D_UNICODE &quot;-I.\GeneratedFiles&quot; &quot;-I.&quot; &quot;-I$(QT_DIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QT_DIR)\include\QtCore&quot; &quot;-I$(QT_DIR)\include\QtNetwork&quot; &quot;-I$(QT_DIR)\include\QtGui&quot; &quot;-I$(BOOST_DIR)\.&quot;&#x0D;&#x0A;"
+							AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+							Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\UpgradeWindow.ui"
 					>
 					<FileConfiguration
 						Name="Release|Win32"

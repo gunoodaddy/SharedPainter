@@ -117,3 +117,20 @@ static const char *gStyleSheet_Chat =
 "	color: #808080;"
 "	font-size: 8pt;"
 "}";
+
+static const char *gStyleSheet_UpdateEdit = 
+".version{"
+"   font-weight:bold;"
+"	color: #00BB00;"
+"	font-size: 14pt;"
+"}"
+".contents{"
+"   font-weight:bold;"
+"	color: #3578B5;"
+"	font-size: 10pt;"
+"}"
+".title{"
+"   font-weight:bold;"
+"	color: black;"
+"	font-size: 12pt;"
+"}";

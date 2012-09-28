@@ -53,6 +53,20 @@ public:
 	~CUpgradeManager(void);
 
 public:
+
+	enum State{
+		FirstRunState,
+		InitState,
+		DownloadVersionInfo,
+		DownloadingVersionInfo,
+		DownloadCompleteVersionInfo,
+		DownloadPatchFile,
+		DownloadingPatchFile,
+		DownloadCompletePatchFile,
+		WaitConfirmFromUser,
+		WaitForLongTimeNextPatch,
+		ErrorState,
+	};
 	void registerObserver( IUpgradeEvent *obs )
 	{
 		observers_.remove( obs );
@@ -64,6 +78,7 @@ public:
 		observers_.remove( obs );
 	}
 
+	void doUpgradeNow( void );
 	void stopVersionCheck( void );
 
 protected slots:
@@ -72,7 +87,9 @@ protected slots:
 	void onTimer( void );
 
 private:
-	void checkVersion( void );
+	void doJob( void );
+	void processVersionInfoFile( void );
+	void processPatchFile( void );
 
 	void fireObserver_NewVersion( const std::string &version, const std::string &patchContents )
 	{
@@ -87,8 +104,11 @@ private:
 	// obsevers
 	std::list<IUpgradeEvent *> observers_;
 	
-	bool enable_;
+	int upgradeState_;
+	int currentTimerSecond_;
+
 	QNetworkAccessManager *nam_;
+	QNetworkReply *currentReply_;
 	QTimer *timer_;
 	std::string remoteVersion_;
 	std::string patchContents_;

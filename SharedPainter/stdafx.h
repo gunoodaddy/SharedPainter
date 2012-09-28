@@ -1,10 +1,11 @@
 #pragma once
 
-#include <QtGui>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/shared_ptr.hpp>
+#include <qt_windows.h>
+#include <QtGui>
 #include <iostream>
 #include <deque>
 

@@ -37,6 +37,7 @@
 #include "SharedPaintPolicy.h"
 #include "FindingServerDialog.h"
 #include "SyncDataProgressDialog.h"
+#include "UpgradeWindow.h"
 
 #define STR_NET_MODE_INIT			tr("Waiting.. ")
 #define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
@@ -633,25 +634,11 @@ protected:
 
 	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents )
 	{
-		QString msg = tr("The new version has been detected. Would you like to update?");
-		msg += "\n";
-		msg += "\n";
-		msg += tr("Version : ");
-		msg += version.c_str();
-		msg += "\n";
-		msg += "\n";
-		msg += tr("[Patch]");
-		msg += "\n";
-		msg += Util::toStringFromUtf8( patchContents );
+		UpgradeWindow wnd;
 
-		int res = QMessageBox::question( this, "", msg, QMessageBox::Ok|QMessageBox::Cancel);
-		if( res != QMessageBox::Ok )
-		{
-			self->stopVersionCheck();
-			return;
-		}
+		wnd.setContents( version.c_str(), Util::toStringFromUtf8( patchContents ) );
 
-		// TODO : UPGRADE
+		wnd.exec();
 	}
 
 

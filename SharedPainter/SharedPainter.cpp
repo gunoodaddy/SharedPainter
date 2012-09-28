@@ -52,7 +52,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
 	, resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
-	, screenShotMode_(false), wroteProgressBar_(NULL)
+	, screenShotMode_(false), exitFlag_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
 {
 	CSingleton<CUpgradeManager>::Instance();
@@ -928,6 +928,9 @@ bool SharedPainter::getNickNameString( bool force )
 
 	if( ! ok )
 	{
+		if( exitFlag_ )
+			return false;
+
 		if( SettingManagerPtr()->nickName().empty() )
 			return getNickNameString( force );
 		return true;
@@ -961,6 +964,9 @@ bool SharedPainter::getPaintChannelString( bool force )
 	QString channel = QInputDialog::getText(this, tr("Paint Channel"), tr("Channel: any string"), QLineEdit::Normal, SettingManagerPtr()->paintChannel().c_str(), &ok);
 	if( ! ok )
 	{
+		if( exitFlag_ )
+			return false;
+
 		if( SettingManagerPtr()->paintChannel().empty() )
 			return getPaintChannelString( force );
 		return true;
@@ -1011,7 +1017,7 @@ void SharedPainter::checkSetting( void )
 {
 	// must be set..
 	getNickNameString();
-	getPaintChannelString();
+//	getPaintChannelString();
 }
 
 void SharedPainter::showEvent( QShowEvent * evt )
@@ -1052,6 +1058,8 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 		evt->ignore();
 		return;
 	}
+
+	exitFlag_ = true;
 
 	SettingManagerPtr()->save();
 	SharePaintManagerPtr()->clearScreen( false );

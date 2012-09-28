@@ -653,6 +653,7 @@ private:
 	bool resizeSplitterFreezingFlag_;
 	bool playbackSliderFreezingFlag_;
 	bool screenShotMode_;
+	bool exitFlag_;
 	QPoint orgPos_;
 	QLabel *broadCastTypeLabel_;
 	QLabel *statusBarLabel_;

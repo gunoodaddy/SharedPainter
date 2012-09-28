@@ -23,10 +23,7 @@
 * System tray
 * Channel Chatting
 * Broadcast Chatting (only available for the same network)
-
-## Known Issues
-* Cannot received packets from udp socket sometimes, however the udp socket binded successfully.
-
+* Auto version update feature
 
 ## TODO
 * Multi-objects selecting by mouse dragging.

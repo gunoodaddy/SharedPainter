@@ -1054,6 +1054,9 @@ void SharedPainter::showEvent( QShowEvent * evt )
 
 void SharedPainter::closeEvent( QCloseEvent *evt )
 {
+#ifdef Q_WS_MAC 
+	// MAC OS not support trayicon. so we just exit this app.
+#else
 	if (trayIcon_->isVisible()) {
 		QMessageBox::information(this, tr("Systray"),
 			tr("The program will keep running in the "
@@ -1064,6 +1067,7 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 		evt->ignore();
 		return;
 	}
+#endif
 
 	exitFlag_ = true;
 

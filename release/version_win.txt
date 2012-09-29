@@ -1,5 +1,7 @@
-0.7.5
-upgrade feature added.
+0.7.6
+- joiner list view added
+- tray icon removed on Mac
+- minor bug fix
 
-After exit app, if you cannot see 0.7.5 string in the app's title bar,
+After exit app, if you cannot see 0.7.6 string in the app's title bar,
 please tell gunoodaddy this issue.

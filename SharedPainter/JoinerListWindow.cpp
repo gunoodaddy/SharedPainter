@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "JoinerListWindow.h"
 #include "ui_JoinerListWindow.h"
 

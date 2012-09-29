@@ -39,6 +39,8 @@ void UpgradeWindow::setContents( QTextEdit *edit, const QString &version, const 
 	temp = patchContents;
 	temp = temp.replace( "\r\n", "<br>" ).replace("\n", "<br>");
 	edit->append( "<html><div class=contents>" + temp + "</div></html>" );
+
+	edit->moveCursor( QTextCursor::Start );
 }
 
 

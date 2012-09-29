@@ -48,7 +48,6 @@ AboutWindow::AboutWindow(QWidget *parent)
 	if( UpgradeManagerPtr()->currentVersionContents( ver, patchContents ) )
 	{
 		UpgradeWindow::setContents( ui.editCurrentPatch, Util::toStringFromUtf8(ver), Util::toStringFromUtf8(patchContents) );
-		ui.editCurrentPatch->moveCursor( QTextCursor::Start );
 
 		ui.buttonUpgrade->setEnabled( UpgradeManagerPtr()->isAvailableUpgrade() );
 	}

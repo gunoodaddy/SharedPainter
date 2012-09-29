@@ -126,7 +126,6 @@ public:
 		else
 			setCursor( Qt::PointingHandCursor ); 
 	}
-	void resetBackground( const QRectF &rect );
 	void setPenSetting( const QColor &clr, int width )
 	{
 		penClr_ = clr;
@@ -134,6 +133,11 @@ public:
 	}
 
 	bool isFreePenMode( void ) { return freePenMode_; }
+
+	void updateBackground( void )
+	{
+		resetBackground( sceneRect() );
+	}
 
 	int backgroundGridLineSize( void ) { return gridLineSize_; }
 	int penWidth( void ) { return penWidth_; }
@@ -217,6 +221,8 @@ private:
 		currentZValue_ += 0.01;
 		return currentZValue_;
 	}
+
+	void resetBackground( const QRectF &rect );
 
 	boost::shared_ptr<CPaintItem> findPaintItem( QGraphicsItem *item );
 	void clearLastItemBorderRect( void );

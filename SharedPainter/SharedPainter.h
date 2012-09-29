@@ -234,6 +234,7 @@ protected:
 	}
 	
 protected slots:
+	void clickedJoinerButton( void );
 	void checkSetting( void );
 	void splitterMoved( int pos, int index );
 	void onTimer( void );

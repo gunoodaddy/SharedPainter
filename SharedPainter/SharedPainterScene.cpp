@@ -257,6 +257,7 @@ void CSharedPainterScene::onTimer( void )
 
 void CSharedPainterScene::sceneRectChanged(const QRectF &rect)
 {
+	qDebug() << "sceneRectChanged" << rect;
 	resetBackground( rect );
 }
 
@@ -619,7 +620,7 @@ void CSharedPainterScene::clearBackgroundImage( void )
 
 	backgroundPixmap_ = QPixmap();
 
-	resetBackground( sceneRect () );
+	resetBackground( sceneRect() );
 }
 
 
@@ -628,7 +629,19 @@ void CSharedPainterScene::drawBackgroundImage( boost::shared_ptr<CBackgroundImag
 	backgroundImageItem_ = image;
 
 	if( image )
+	{
 		backgroundPixmap_ = image->createPixmap();
+
+		int newSceneW = sceneRect().width();
+		int newSceneH = sceneRect().height();
+
+		QSize size = backgroundPixmap_.size();
+		if( newSceneW < size.width() )
+			newSceneW = size.width();
+		if( newSceneH < size.height() )
+			newSceneH = size.height();
+		setSceneRect( 0, 0, newSceneW, newSceneH );
+	}
 	else
 	{
 		clearBackgroundImage();

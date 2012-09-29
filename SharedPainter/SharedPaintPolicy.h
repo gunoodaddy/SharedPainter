@@ -29,7 +29,7 @@
 
 #pragma once 
 
-#define VERSION_TEXT	"0.7.5"
+#define VERSION_TEXT	"0.7.6"
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 
@@ -59,7 +59,7 @@
 #define DEFAULT_GRID_LINE_SIZE_W			32
 #define FINDING_SERVER_TRY_COUNT			20
 
-#define DEFAULT_INITIAL_CHATWINDOW_SIZE		200
+#define DEFAULT_INITIAL_CHATWINDOW_SIZE		240
 
 #ifdef Q_WS_WIN
 #define NATIVE_NEWLINE_STR	"\r\n"

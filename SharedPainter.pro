@@ -32,7 +32,8 @@ SOURCES +=  \
     SharedPainter/UpgradeWindow.cpp \
     SharedPainter/UpgradeManager.cpp \
     SharedPainter/AboutWindow.cpp \
-    SharedPainter/main.cpp
+    SharedPainter/main.cpp \
+    SharedPainter/JoinerListWindow.cpp
 
 HEADERS  += \
     SharedPainter/stdafx.h \
@@ -75,7 +76,9 @@ HEADERS  += \
     SharedPainter/DefferedCaller.h \
     SharedPainter/CommonPacketBuilder.h \
     SharedPainter/BroadCastPacketBuilder.h \
-    SharedPainter/TaskPacketBuilder.h
+    SharedPainter/TaskPacketBuilder.h \
+    SharedPainter/UIStyleSheet.h \
+    SharedPainter/JoinerListWindow.h
 
 FORMS    += \
     SharedPainter/FindingServerDialog.ui \
@@ -84,7 +87,8 @@ FORMS    += \
     SharedPainter/textitemdialog.ui \
     SharedPainter/PreferencesDialog.ui \
     SharedPainter/UpgradeWindow.ui \
-    SharedPainter/sharedpainter.ui
+    SharedPainter/sharedpainter.ui \
+    SharedPainter/JoinerListWindow.ui
 
 RESOURCES += \
     SharedPainter/sharedpainter.qrc

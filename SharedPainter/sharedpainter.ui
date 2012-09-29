@@ -30,22 +30,57 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="labelLastMessageTime">
+         <widget class="QFrame" name="frame">
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>0</height>
+            <width>0</width>
+            <height>22</height>
            </size>
           </property>
-          <property name="font">
-           <font>
-            <family>Arial</family>
-            <pointsize>8</pointsize>
-           </font>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
           </property>
-          <property name="text">
-           <string>last message time will show up</string>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
           </property>
+          <widget class="QPushButton" name="joinerButton">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>75</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Joiner List</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="labelLastMessageTime">
+           <property name="geometry">
+            <rect>
+             <x>80</x>
+             <y>0</y>
+             <width>261</width>
+             <height>21</height>
+            </rect>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Arial</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>last message time will show up</string>
+           </property>
+          </widget>
          </widget>
         </item>
         <item>
@@ -139,9 +174,7 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="sharedpainter.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>actionExit</sender>
@@ -159,6 +192,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>joinerButton</sender>
+   <signal>clicked()</signal>
+   <receiver>SharedPainterClass</receiver>
+   <slot>clickedJoinerButton()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>47</x>
+     <y>578</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>358</x>
+     <y>342</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>clickedConnectButton()</slot>
@@ -167,5 +216,6 @@
   <slot>clickedStartClientButton()</slot>
   <slot>clickedScreenShotButton()</slot>
   <slot>actionExit()</slot>
+  <slot>clickedJoinerButton()</slot>
  </slots>
 </ui>

@@ -408,6 +408,26 @@ void CSharedPaintManager::_requestSyncData( void )
 	qDebug() << "CSharedPaintManager::_requestSyncData() called";
 }
 
+
+static bool joinerListSorter( boost::shared_ptr<CPaintUser> i, boost::shared_ptr<CPaintUser> j)
+{
+	return i->nickName() < j->nickName();
+}
+
+USER_LIST CSharedPaintManager::userList( void )
+{
+	USER_LIST res;
+	USER_MAP::iterator it = joinerMap_.begin();
+	for( ; it != joinerMap_.end(); it++ )
+	{
+		res.push_back( it->second );
+	}
+
+	std::sort( res.begin(), res.end(), joinerListSorter );
+	return res;
+}
+
+
 // this function need to check session pointer null check!
 bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::shared_ptr<CPacketData> packetData )
 {

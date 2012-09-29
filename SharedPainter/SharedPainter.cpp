@@ -33,7 +33,7 @@
 #include "AboutWindow.h"
 #include "UIStyleSheet.h"
 #include "PreferencesDialog.h"
-
+#include "JoinerListWindow.h"
 
 static const int DEFAULT_HIDE_POS_X = 9999;
 static const int DEFAULT_HIDE_POS_Y = 9999;
@@ -196,10 +196,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		toolBar_SliderPlayback_->setRange(0, 0);
 		changeToobarButtonColor( toolBar_penColorButton_, canvas_->penColor() );
 		changeToobarButtonColor( toolBar_bgColorButton_, QColor(Qt::white) );
-
-
 	}
-
 
 	// create status bar
 	{
@@ -221,7 +218,6 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		setStatusBar_PlaybackStatus( 0, 0 );
 	}
 	
-
 	// create system tray
 	{
 		trayIconMenu_ = new QMenu(this);
@@ -304,6 +300,7 @@ bool SharedPainter::eventFilter(QObject *object, QEvent *event)
 				toolBar_SliderPlayback_->setValue( newValue );
 		}
 	}
+
 	return QMainWindow::eventFilter(object,event);
 }
 
@@ -362,6 +359,12 @@ void SharedPainter::onTrayActivated( QSystemTrayIcon::ActivationReason reason )
 	default:
 		;
 	}
+}
+
+void SharedPainter::clickedJoinerButton( void )
+{
+	JoinerListWindow view( SharePaintManagerPtr()->userList(), this );
+	view.exec();
 }
 
 void SharedPainter::updateWindowTitle( void )
@@ -1122,15 +1125,22 @@ void SharedPainter::resizeEvent( QResizeEvent *evt )
 
 void SharedPainter::splitterMoved( int pos, int index )
 {
-	std::vector<int> vec;
-	for (int i = 0; i < ui.splitter->sizes().size(); ++i)
-		vec.push_back( ui.splitter->sizes().at(i) );
-
 	if( SettingManagerPtr()->isSyncWindowSize() )
 	{
 		if( !resizeSplitterFreezingFlag_ )
+		{
+			std::vector<int> vec;
+			for (int i = 0; i < ui.splitter->sizes().size(); ++i)
+				vec.push_back( ui.splitter->sizes().at(i) );
+
 			SharePaintManagerPtr()->notifyResizingWindowSplitter( vec );
+		}
 	}
+
+	bool prevFlag = resizeFreezingFlag_;
+	resizeFreezingFlag_ = true;
+	resizeEvent( NULL );
+	resizeFreezingFlag_ = prevFlag;
 }
 
 

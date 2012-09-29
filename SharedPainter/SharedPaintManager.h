@@ -543,6 +543,8 @@ public:
 		return joinerMap_.size();
 	}
 
+	USER_LIST userList( void );
+
 private:
 	void sendMyUserInfo( CPaintSession* session )
 	{

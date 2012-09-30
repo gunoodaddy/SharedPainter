@@ -34,6 +34,8 @@
 
 CSettingManager::CSettingManager(void)
 {
+	iniFile = qApp->applicationDirPath() + QDir::separator() + DEFAULT_FILE_NAME;
+
 	// Save timer
 	timer_ = new QTimer(this);
 	timer_->start(10000);	// 10 sec
@@ -54,7 +56,7 @@ void CSettingManager::onTimer( void )
 
 void CSettingManager::load( void )
 {
-	QSettings settings( DEFAULT_FILE_NAME, QSettings::IniFormat );
+	QSettings settings( iniFile, QSettings::IniFormat );
 
 	settings.beginGroup( "personal" );
 	nickName_ = Util::toUtf8StdString( settings.value( "nickName" ).toString() );
@@ -62,6 +64,8 @@ void CSettingManager::load( void )
 
 	settings.beginGroup( "general" );
 	syncWindowSize_ = settings.value( "syncWindowSize", true ).toBool();
+	serverConnectOnStart_ = settings.value( "serverConnectOnStart", true ).toBool();
+	blinkLastItem_ = settings.value( "blinkLastItem", false ).toBool();
 	settings.endGroup();
 
 	settings.beginGroup( "network" );
@@ -74,7 +78,7 @@ void CSettingManager::load( void )
 
 void CSettingManager::save( void )
 {
-	QSettings settings( DEFAULT_FILE_NAME, QSettings::IniFormat );
+	QSettings settings( iniFile, QSettings::IniFormat );
 
 	settings.beginGroup( "personal" );
 	settings.setValue( "nickName", Util::toStringFromUtf8(nickName_) );
@@ -82,6 +86,8 @@ void CSettingManager::save( void )
 
 	settings.beginGroup( "general" );
 	settings.setValue( "syncWindowSize", syncWindowSize_ );
+	settings.setValue( "serverConnectOnStart", serverConnectOnStart_ );
+	settings.setValue( "blinkLastItem", blinkLastItem_ );
 	settings.endGroup();
 
 	settings.beginGroup( "network" );

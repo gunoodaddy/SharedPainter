@@ -350,6 +350,9 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 	// Window Splitter Sizes
 	allData += WindowPacketBuilder::CResizeWindowSplitter::make( lastWindowSplitterSizes_, target );
 
+	// Canvas Scrollbar pos
+	allData += WindowPacketBuilder::CChangeCanvasScrollPos::make( lastScrollHPos_, lastScrollVPos_, target );
+
 	// Background Grid Line
 	if( gridLineSize_ > 0 )
 		allData += PaintPacketBuilder::CSetBackgroundGridLine::make( gridLineSize_, target );

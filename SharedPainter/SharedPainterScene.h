@@ -222,6 +222,7 @@ private:
 		return currentZValue_;
 	}
 
+	void startBlinkLastItem( void );
 	void resetBackground( const QRectF &rect );
 
 	boost::shared_ptr<CPaintItem> findPaintItem( QGraphicsItem *item );
@@ -269,7 +270,7 @@ private:
 	int timeoutRemoveLastCoverItem_;
 	int lastItemBorderType_;
 	boost::shared_ptr<CPaintItem> lastAddItem_;
-	bool lastAddItemShowFlag_;
+	bool lastTempBlinkShowFlag_;
 	bool showLastAddItemBorderFlag_;
 	bool freezeActionFlag_;
 };

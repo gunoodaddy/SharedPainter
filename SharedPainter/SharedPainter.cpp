@@ -51,7 +51,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
-	, resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
+	, changeScrollPosFreezingFlag_(false), resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
 	, screenShotMode_(false), exitFlag_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
 {
@@ -65,7 +65,11 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	connect( ui.splitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
 	ui.painterView->setScene( canvas );
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
-	
+	QScrollBar *scrollBarH = ui.painterView->horizontalScrollBar();
+	QScrollBar *scrollBarV = ui.painterView->verticalScrollBar();
+	connect( scrollBarH, SIGNAL(valueChanged(int)), this, SLOT(onPaintViewHScrollBarChanged(int)) );
+	connect( scrollBarV, SIGNAL(valueChanged(int)), this, SLOT(onPaintViewVScrollBarChanged(int)) );
+
 	ui.editChat->document()->setDefaultStyleSheet(gStyleSheet_Chat);
 	ui.editChat->setReadOnly( true );
 	ui.editMsg->installEventFilter( this );
@@ -135,14 +139,11 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		options->addAction( "&Nick Name", this, SLOT(actionNickName()) );
 		options->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
 		options->addSeparator();
-		showLastItemAction_ = options->addAction( "Blink &Last Item Always", this, SLOT(actionBlinkLastAddItem()), Qt::CTRL+Qt::Key_L );
-		options->addSeparator();
 		options->addAction( "&Preferences", this, SLOT(actionPreferences()) );
 		menuBar->addMenu( options );
 
 		gridLineAction_->setCheckable( true );
 		penModeAction_->setCheckable( true );
-		showLastItemAction_->setCheckable( true );
 	}
 
 
@@ -235,15 +236,13 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	}
 
 	// Setting applying
-	SharePaintManagerPtr()->changeNickName( SettingManagerPtr()->nickName() );
-	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
-	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
-	actionPenWidth3();
+	applySetting();
 
 	// change status to "init"
 	setStatus( INIT );
 
-	// Pen mode activated..
+	// Setting default pen
+	actionPenWidth3();
 	actionFreePenMode();
 
 	// Key Hooking Timer 
@@ -271,6 +270,13 @@ SharedPainter::~SharedPainter()
 	hideSyncProgressWindow();
 
 	delete keyHookTimer_;
+}
+
+void SharedPainter::applySetting( void )
+{
+	SharePaintManagerPtr()->changeNickName( SettingManagerPtr()->nickName() );
+	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
+	canvas_->setSettingShowLastAddItemBorder( SettingManagerPtr()->isBlinkLastItem() );
 }
 
 
@@ -361,48 +367,29 @@ void SharedPainter::onTrayActivated( QSystemTrayIcon::ActivationReason reason )
 	}
 }
 
+void SharedPainter::onPaintViewVScrollBarChanged( int value )
+{
+	if( SettingManagerPtr()->isSyncWindowSize() )
+	{
+		if( !changeScrollPosFreezingFlag_ )
+			SharePaintManagerPtr()->notifyChangeCanvasScrollPos( ui.painterView->horizontalScrollBar()->value(), value );
+	}
+}
+
+void SharedPainter::onPaintViewHScrollBarChanged( int value )
+{
+	if( SettingManagerPtr()->isSyncWindowSize() )
+	{
+		if( !changeScrollPosFreezingFlag_ )
+			SharePaintManagerPtr()->notifyChangeCanvasScrollPos( value, ui.painterView->verticalScrollBar()->value() );
+	}
+}
+
 void SharedPainter::clickedJoinerButton( void )
 {
 	JoinerListWindow view( SharePaintManagerPtr()->userList(), this );
 	view.exec();
 }
-
-void SharedPainter::updateWindowTitle( void )
-{
-	// Title
-	QString newTitle = PROGRAME_TEXT;
-	newTitle += " Ver ";
-	newTitle += VERSION_TEXT;
-	newTitle += ", ";
-	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->nickName());
-	newTitle += " - Channel : ";
-	if( SettingManagerPtr()->paintChannel().empty() == false )
-		newTitle += Util::toStringFromUtf8(SettingManagerPtr()->paintChannel());
-	else
-		newTitle += tr("<Empty>");
-
-	setWindowTitle( newTitle );
-}
-
-void SharedPainter::sendChatMessage( void )
-{
-	if( ! getNickNameString() )
-		return;
-
-	QString plainText = ui.editMsg->toPlainText().trimmed();
-	std::string msg = Util::toUtf8StdString( plainText );
-
-	SharePaintManagerPtr()->sendChatMessage( msg );
-
-	ui.editMsg->setText( "" );
-}
-
-void SharedPainter::setCheckGridLineAction( bool checked )
-{
-	toolBar_GridLine_->setChecked( checked );
-	gridLineAction_->setChecked( checked );
-}
-
 
 void SharedPainter::actionAbout( void )
 {
@@ -515,17 +502,6 @@ void SharedPainter::actionImportFile( void )
 	{
 		QMessageBox::critical( this, "", tr("cannot import this file. or this file is not compatible with this version.") );
 	}
-}
-
-void SharedPainter::setCheckShowLastAddItemAction( bool checked )
-{
-	showLastItemAction_->setChecked( checked );
-}
-
-void SharedPainter::actionBlinkLastAddItem( void )
-{
-	canvas_->setSettingShowLastAddItemBorder( !canvas_->isSettingShowLastAddItemBorder() );
-	setCheckShowLastAddItemAction( canvas_->isSettingShowLastAddItemBorder() );
 }
 
 void SharedPainter::actionLastItem( void )
@@ -835,7 +811,12 @@ void SharedPainter::actionCloseConnection( void )
 void SharedPainter::actionPreferences( void )
 {
 	PreferencesDialog dlg(this);
-	dlg.exec();
+	int res = dlg.exec();
+
+	if( QDialog::Accepted == res )
+	{
+		applySetting();
+	}
 }
 
 void SharedPainter::actionBroadcastTextMessage( void )
@@ -917,6 +898,41 @@ void SharedPainter::actionClipboardPaste( void )
 	 }
 }
 
+void SharedPainter::updateWindowTitle( void )
+{
+	// Title
+	QString newTitle = PROGRAME_TEXT;
+	newTitle += " Ver ";
+	newTitle += VERSION_TEXT;
+	newTitle += ", ";
+	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->nickName());
+	newTitle += " - Channel : ";
+	if( SettingManagerPtr()->paintChannel().empty() == false )
+		newTitle += Util::toStringFromUtf8(SettingManagerPtr()->paintChannel());
+	else
+		newTitle += tr("<Empty>");
+
+	setWindowTitle( newTitle );
+}
+
+void SharedPainter::sendChatMessage( void )
+{
+	if( ! getNickNameString() )
+		return;
+
+	QString plainText = ui.editMsg->toPlainText().trimmed();
+	std::string msg = Util::toUtf8StdString( plainText );
+
+	SharePaintManagerPtr()->sendChatMessage( msg );
+
+	ui.editMsg->setText( "" );
+}
+
+void SharedPainter::setCheckGridLineAction( bool checked )
+{
+	toolBar_GridLine_->setChecked( checked );
+	gridLineAction_->setChecked( checked );
+}
 
 bool SharedPainter::getNickNameString( bool force )
 {
@@ -1019,11 +1035,23 @@ void SharedPainter::keyPressEvent ( QKeyEvent * event )
 	QWidget::keyPressEvent(event); 
 } 
 
-void SharedPainter::checkSetting( void )
+void SharedPainter::onAppSafeStarted( void )
 {
 	// must be set..
 	getNickNameString();
-//	getPaintChannelString();
+
+	// automatically relay server connect
+	if( SettingManagerPtr()->isRelayServerConnectOnStarting() )
+	{
+		QString address( SettingManagerPtr()->relayServerAddress().c_str() );
+		QStringList list = address.split(":");
+		if( list.size() == 2 )
+		{
+			std::string ip = list.at(0).toStdString();
+			int port = list.at(1).toInt();
+			SharePaintManagerPtr()->requestJoinServer( ip, port, SettingManagerPtr()->paintChannel() );
+		}
+	}
 }
 
 void SharedPainter::showEvent( QShowEvent * evt )
@@ -1035,7 +1063,7 @@ void SharedPainter::showEvent( QShowEvent * evt )
 	static bool firstShow = true;
 	if( firstShow )
 	{
-		QTimer::singleShot( 100, this, SLOT(checkSetting()) );
+		QTimer::singleShot( 100, this, SLOT(onAppSafeStarted()) );
 
 		QList<int> sz;
 		sz.push_back( DEFAULT_INITIAL_CHATWINDOW_SIZE );

@@ -29,7 +29,7 @@
 
 #pragma once 
 
-#define VERSION_TEXT	"0.7.7"
+#define VERSION_TEXT	"0.8.0"
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 

@@ -113,7 +113,7 @@ namespace Util
 		if( path )
 			res += *path;
 		else
-			res = QDir::currentPath();
+			res = qApp->applicationDirPath();
 
 		res += QDir::separator();
 		res += "Download";

@@ -65,8 +65,14 @@ public:
 		nickName_ = nickName;
 	}
 
+	bool isBlinkLastItem( void ) { return blinkLastItem_; }
+	void setBlinkLastItem( bool enable ) { blinkLastItem_ = enable; }
+
 	bool isSyncWindowSize( void ) { return syncWindowSize_; }
 	void setSyncWindowSize( bool enable ) { syncWindowSize_ = enable; }
+
+	bool isRelayServerConnectOnStarting( void ) { return serverConnectOnStart_; }
+	void setRelayServerConnectOnStarting( bool enable ) { serverConnectOnStart_ = enable; }
 
 	void load( void );
 	void save( void );
@@ -75,10 +81,14 @@ protected slots:
 	void onTimer( void );
 
 private:
+	QString iniFile;
 	std::string paintChannel_;
 	std::string peerAddress_;
 	std::string relayServerAddress_;
 	std::string nickName_;
 	bool syncWindowSize_;
+	bool serverConnectOnStart_;
+	bool blinkLastItem_;
+
 	QTimer *timer_;
 };

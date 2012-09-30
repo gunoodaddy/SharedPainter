@@ -209,7 +209,7 @@ private:
 
 CSharedPainterScene::CSharedPainterScene(void )
 : eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
-, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastAddItemShowFlag_(false), showLastAddItemBorderFlag_(false), freezeActionFlag_(false)
+, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastTempBlinkShowFlag_(false), showLastAddItemBorderFlag_(false), freezeActionFlag_(false)
 {
 	backgroundColor_ = Qt::white;
 	penClr_ = Qt::blue;
@@ -239,12 +239,12 @@ void CSharedPainterScene::onTimer( void )
 
 	if( timeoutRemoveLastCoverItem_ > 0)
 	{
-		if( lastAddItemShowFlag_ )
+		if( lastTempBlinkShowFlag_ )
 			lastCoverGraphicsItem_->show();
 		else
 			lastCoverGraphicsItem_->hide();
 
-		lastAddItemShowFlag_ = !lastAddItemShowFlag_;
+		lastTempBlinkShowFlag_ = !lastTempBlinkShowFlag_;
 	}
 
 	if( timeoutRemoveLastCoverItem_ <= 0 )
@@ -393,9 +393,28 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 	lastBorderItem->setZValue( currentZValue() );
 	lastCoverGraphicsItem_ = lastBorderItem;
 
-	lastAddItemShowFlag_ = true;
+	// clear
+	lastTempBlinkShowFlag_ = true;
 	lastTimeValue_ = time(NULL);
 	timeoutRemoveLastCoverItem_ = DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM;
+}
+
+void CSharedPainterScene::startBlinkLastItem( void )
+{
+	if( !lastAddItem_ )
+		return;
+
+	if( lastAddItem_->type() == PT_LINE && lastAddItem_->isMyItem() )
+	{
+		// NOTHING TO DO..
+	}
+	else
+	{
+		clearLastItemBorderRect();
+
+		if( showLastAddItemBorderFlag_ )
+			drawLastItemBorderRect();
+	}
 }
 
 void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGraphicsItem* drawingItem, int borderType )
@@ -408,10 +427,8 @@ void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGr
 	lastItemBorderType_ = borderType;
 	lastAddItem_ = item;
 
-	clearLastItemBorderRect();
-
-	if( showLastAddItemBorderFlag_ )
-		drawLastItemBorderRect();
+	// Blink last item feature
+	startBlinkLastItem();
 }
 
 

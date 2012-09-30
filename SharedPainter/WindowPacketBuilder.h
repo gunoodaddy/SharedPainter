@@ -52,7 +52,7 @@ namespace WindowPacketBuilder
 			return "";
 		}
 
-		static bool parse( const std::string &body, int scrollH, int scrollV )
+		static bool parse( const std::string &body, int &scrollH, int &scrollV )
 		{
 			int pos = 0;
 			try

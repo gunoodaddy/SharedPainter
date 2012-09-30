@@ -234,13 +234,16 @@ protected:
 	}
 	
 protected slots:
+	void onPaintViewVScrollBarChanged( int value );
+	void onPaintViewHScrollBarChanged( int value );
 	void clickedJoinerButton( void );
-	void checkSetting( void );
+	void onAppSafeStarted( void );
 	void splitterMoved( int pos, int index );
 	void onTimer( void );
 	void onTrayMessageClicked( void );
 	void onTrayActivated( QSystemTrayIcon::ActivationReason reason );
 	void onPlaybackSliderValueChanged( int value  );
+	void applySetting( void );
 
 	void actionAbout( void );
 	void actionCloseConnection( void );
@@ -273,7 +276,6 @@ protected slots:
 	void actionGridLine( void );
 	void actionImportFile( void );
 	void actionExportFile( void );
-	void actionBlinkLastAddItem( void );
 	void actionLastItem( void );
 	void actionPreferences( void );
 
@@ -288,7 +290,6 @@ private:
 	void sendChatMessage( void );
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
 	void setCheckGridLineAction( bool checked );
-	void setCheckShowLastAddItemAction( bool checked );
 	bool getPaintChannelString( bool force = false );
 	bool getNickNameString( bool force = false );
 	void changeToobarButtonColor( QPushButton *button, const QColor &clr )
@@ -532,7 +533,20 @@ protected:
 	{
 		canvas_->setSceneRect(0, 0, width, height);
 	}
-	
+
+	virtual void onISharedPaintEvent_ChangeCanvasScrollPos( CSharedPaintManager *self, int posH, int posV )
+	{
+		if( SettingManagerPtr()->isSyncWindowSize() == false )
+			return;
+
+		changeScrollPosFreezingFlag_ = true;
+
+		ui.painterView->horizontalScrollBar()->setValue( posH );
+		ui.painterView->verticalScrollBar()->setValue( posV );
+
+		changeScrollPosFreezingFlag_ = false;
+	}
+
 	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes )
 	{
 		if( SettingManagerPtr()->isSyncWindowSize() == false )
@@ -652,6 +666,7 @@ private:
 
 	int currPaintItemId_;
 	int currPacketId_;
+	bool changeScrollPosFreezingFlag_;
 	bool resizeFreezingFlag_;
 	bool resizeSplitterFreezingFlag_;
 	bool playbackSliderFreezingFlag_;
@@ -666,7 +681,6 @@ private:
 	QAction *penWidthAction_;
 	QAction *penModeAction_;
 	QAction *gridLineAction_;
-	QAction *showLastItemAction_;
 	QAction *startFindServerAction_;
 	QAction *toolBar_MoveMode_;
 	QAction *toolBar_PenMode_;

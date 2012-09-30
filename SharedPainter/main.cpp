@@ -5,6 +5,10 @@
 
 int main(int argc, char *argv[])
 {
+	QApplication a(argc, argv);
+
+	qDebug() << "App path : " << qApp->applicationDirPath() << "Current Path : " << QDir::currentPath();
+
 #if defined(Q_WS_WIN)
 
 	HANDLE semaphore;
@@ -12,18 +16,16 @@ int main(int argc, char *argv[])
 	BOOL alreadyExist = (GetLastError() == ERROR_ALREADY_EXISTS);
 	if(alreadyExist)
 	{
-		if( ! QFileInfo("MULTI_INSTANCE.opt").isFile() )
+		QString f = qApp->applicationDirPath() + QDir::separator() + "MULTI_INSTANCE.opt";
+		if( ! QFileInfo( f ).isFile() )
 		{
 			::MessageBoxA( NULL, "This program is running already.", PROGRAME_TEXT, MB_OK );
 			return -1;
 		}
 	}
 #endif
-
 	CSingleton<CDefferedCaller>::Instance();
 	CSingleton<CSharedPaintManager>::Instance();
-
-	QApplication a(argc, argv);
 
 	a.setOrganizationName(AUTHOR_TEXT);
 	a.setApplicationName(PROGRAME_TEXT);

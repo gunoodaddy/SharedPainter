@@ -60,13 +60,39 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>20</y>
+       <y>50</y>
        <width>221</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
       <string>Window Size &amp;&amp; Chat View Sync</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBoxServerConnOnStart">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>291</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Automatically connect to relay server on start</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBoxBlinkLastItem">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>80</y>
+       <width>291</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Blink last Item always</string>
      </property>
     </widget>
    </widget>

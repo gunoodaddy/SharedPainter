@@ -65,7 +65,7 @@ void CSettingManager::load( void )
 	settings.beginGroup( "general" );
 	syncWindowSize_ = settings.value( "syncWindowSize", true ).toBool();
 	serverConnectOnStart_ = settings.value( "serverConnectOnStart", true ).toBool();
-	blinkLastItem_ = settings.value( "blinkLastItem", false ).toBool();
+	blinkLastItem_ = settings.value( "blinkLastItem", true ).toBool();
 	settings.endGroup();
 
 	settings.beginGroup( "network" );

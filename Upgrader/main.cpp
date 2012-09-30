@@ -118,14 +118,15 @@ int main(int argc, char *argv[])
 
 	while(1)
 	{
+		processSleep( 100 );
+
 		qDebug() << "checkIfRunningProcess()";
 		if( checkIfRunningProcess() == false )
 			break;
-		processSleep( 100 );
 	}
 
 	// for race condition, SharedPainter program exiting..
-	processSleep( 2000 );
+	processSleep( 200 );
 
 	// Extract Patch file.
 	if (unzipPatchFile() )

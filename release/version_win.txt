@@ -1,4 +1,4 @@
-0.8.0
+0.8.1
 - scrollbar sync feature
 - preferences update
 - protocol command changed. (not compatible)
@@ -11,5 +11,5 @@
 - tray icon removed on Mac
 - minor bug fix
 
-After restart this app, if you cannot see 0.8.0 string in the app's title bar,
+After restart this app, if you cannot see 0.8.1 string in the app's title bar,
 please tell gunoodaddy this issue.

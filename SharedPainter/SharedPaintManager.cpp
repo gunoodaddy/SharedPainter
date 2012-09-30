@@ -1,4 +1,4 @@
-/*                                                                                                                                           
+/*
 * Copyright (c) 2012, Eunhyuk Kim(gunoodaddy) 
 * All rights reserved.
 *
@@ -563,7 +563,6 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 	case CODE_SYSTEM_TCPSYN:
 		{
 			assert( relayServerSession_ );
-			std::string channel;
 			if( SystemPacketBuilder::CTcpSyn::parse( packetData->body ) )
 			{
 				// SEND ACK PACKET TO SERVER
@@ -584,7 +583,6 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 		break;
 	case CODE_SYSTEM_SYNC_COMPLETE:
 		{
-			std::string channel;
 			if( SystemPacketBuilder::CSyncComplete::parse( packetData->body ) )
 			{
 				syncStartedFlag_ = false;
@@ -683,8 +681,6 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 		break;	
 	case CODE_PAINT_CREATE_ITEM:
 		{
-			std::string owner;
-			int itemId;
 			boost::shared_ptr<CPaintItem> item = PaintPacketBuilder::CCreateItem::parse( packetData->body );
 			if( item )
 			{
@@ -694,8 +690,6 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 		break;
 	case CODE_TASK_EXECUTE:
 		{
-			std::string owner;
-			int itemId;
 			boost::shared_ptr<CSharedPaintTask> task = TaskPacketBuilder::CExecuteTask::parse( packetData->body );
 			if( task )
 			{
@@ -707,7 +701,6 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 		break;
 	case CODE_WINDOW_RESIZE_MAIN_WND:
 		{
-			std::string owner;
 			int width, height;
 			if( WindowPacketBuilder::CResizeMainWindow::parse( packetData->body, width, height ) )
 			{
@@ -730,13 +723,23 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 		break;
 	case CODE_WINDOW_RESIZE_CANVAS:
 		{
-			std::string owner;
 			int width, height;
 			if( WindowPacketBuilder::CResizeCanvas::parse( packetData->body, width, height ) )
 			{
 				if( width <= 0 || height <= 0 )
 					break;
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ResizeCanvas, this, width, height ) );
+			}
+		}
+		break;
+	case CODE_WINDOW_CHANGE_CANVAS_SCROLL_POS:
+		{
+			int posH, posV;
+			if( WindowPacketBuilder::CChangeCanvasScrollPos::parse( packetData->body, posH, posV ) )
+			{
+				if( posH < 0 || posV < 0 )
+					break;
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangeCanvasScrollPos, this, posH, posV ) );
 			}
 		}
 		break;

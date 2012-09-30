@@ -75,6 +75,7 @@ public:
 	virtual void onISharedPaintEvent_MovePaintItem( CSharedPaintManager *self, boost::shared_ptr<CPaintItem> item, double x, double y ) = 0;
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height ) = 0;
+	virtual void onISharedPaintEvent_ChangeCanvasScrollPos( CSharedPaintManager *self, int posH, int posV ) = 0;
 	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
@@ -475,6 +476,17 @@ public:
 		sendDataToUsers( msg );
 
 		fireObserver_SetBackgroundGridLine( size );
+	}
+
+	int notifyChangeCanvasScrollPos( int scrollH, int scrollV )
+	{
+		if( ! enabled_ )
+			return -1;
+
+		std::string msg = WindowPacketBuilder::CChangeCanvasScrollPos::make( scrollH, scrollV );
+		lastScrollHPos_ = scrollH;
+		lastScrollVPos_ = scrollV;
+		return sendDataToUsers( msg );
 	}
 	
 	int notifyResizingCanvas( int width, int height )
@@ -900,6 +912,17 @@ private:
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_ResizeMainWindow( this, width, height );
+		}
+	}
+	void fireObserver_ChangeCanvasScrollPos( int posH, int posV )
+	{
+		lastScrollHPos_ = posH;
+		lastScrollVPos_ = posV;
+
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ChangeCanvasScrollPos( this, posH, posV );
 		}
 	}
 	void fireObserver_ResizeCanvas( int width, int height )
@@ -1330,6 +1353,8 @@ private:
 	int lastWindowHeight_;
 	int lastCanvasWidth_;
 	int lastCanvasHeight_;
+	int lastScrollHPos_;
+	int lastScrollVPos_;
 	std::vector<int> lastWindowSplitterSizes_;
 	QColor backgroundColor_;
 	int gridLineSize_;
@@ -1344,7 +1369,7 @@ private:
 	{
 		INIT_MODE,
 		PEER_MODE,
-		SERVER_MODE,
+		SERVER_MODE
 	};
 
 	bool findingServerMode_;

@@ -33,6 +33,43 @@
 
 namespace WindowPacketBuilder
 {
+	class CChangeCanvasScrollPos
+	{
+	public:
+		static std::string make( int scrollH, int scrollV, const std::string *target = NULL )
+		{
+			int pos = 0;
+			try
+			{
+				std::string body;
+				pos += CPacketBufferUtil::writeInt16( body, pos, scrollH, true );
+				pos += CPacketBufferUtil::writeInt16( body, pos, scrollV, true );
+
+				return CommonPacketBuilder::makePacket( CODE_WINDOW_CHANGE_CANVAS_SCROLL_POS, body, NULL, target );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static bool parse( const std::string &body, int scrollH, int scrollV )
+		{
+			int pos = 0;
+			try
+			{
+				boost::uint16_t h, v;
+				pos += CPacketBufferUtil::readInt16( body, pos, h, true );
+				pos += CPacketBufferUtil::readInt16( body, pos, v, true );
+				scrollH = h;
+				scrollV = v;
+			}catch(...)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
 	class CResizeWindowSplitter
 	{
 	public:

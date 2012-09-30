@@ -34,6 +34,41 @@
 
 static CDefferedCaller gCaller;
 
+void CSharedPaintCommandManager::setAllowPainterToDraw( const std::string &userId, bool enabled )
+{
+	if( enabled )
+	{
+		if( isAllowPainterToDraw( userId ) )
+			return;
+		allowPainters_.insert( userId );
+	}
+	else
+	{
+		if( !isAllowPainterToDraw( userId ) )
+			return;
+		allowPainters_.erase( userId );
+	}
+
+	if( enabled )
+	{
+		for( size_t i = 0; i < historyTaskList_.size(); i++ )
+		{
+			if( historyTaskList_[i]->owner() != userId )
+				continue;
+			historyTaskList_[i]->execute();
+		}
+	}
+	else
+	{
+		for( int i = historyTaskList_.size() - 1; i >= 0; i-- )
+		{
+			if( historyTaskList_[i]->owner() != userId )
+				continue;
+			historyTaskList_[i]->rollback();
+		}
+	}
+}
+
 bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData )
 {
 	task->setSharedPaintManager( spManager_ );
@@ -54,8 +89,8 @@ bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask
 
 		task->setSendData( sendData );
 
-		// now playback working, skip to execute this task.
-		if( playbackWorkingFlag )
+		// now playback working or user not allowed, skip to execute this task.
+		if( playbackWorkingFlag || !isAllowPainterToDraw(task->owner()))
 			return true;
 	}
 

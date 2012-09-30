@@ -533,6 +533,16 @@ public:
 		commandMngr_.playbackTo( position );
 	}
 
+	void setAllowPainterToDraw( const std::string &userId, bool enabled )
+	{
+		commandMngr_.setAllowPainterToDraw( userId, enabled );
+	}
+
+	bool isAllowPainterToDraw( const std::string &userId )
+	{
+		return commandMngr_.isAllowPainterToDraw( userId );
+	}
+
 private:
 	void sendAllSyncData( int toSessionId )
 	{
@@ -542,7 +552,7 @@ private:
 		std::string packetPackage;
 		packetPackage += SystemPacketBuilder::CSyncStart::make( myUserInfo_->channel(), myUserInfo_->userId(), "" );
 		packetPackage += serializeData();
-		packetPackage += generateJoinerInfoPacket();
+		packetPackage += serializeJoinerList();
 		packetPackage += SystemPacketBuilder::CSyncComplete::make( "" );
 
 		sendDataToUsers( packetPackage, toSessionId );
@@ -556,6 +566,8 @@ public:
 	}
 
 	USER_LIST userList( void );
+
+	USER_LIST historyUserList( void ) { return joinerHistory_; }
 
 private:
 	void sendMyUserInfo( CPaintSession* session )
@@ -578,8 +590,18 @@ private:
 
 	bool addUser( boost::shared_ptr<CPaintUser> user )
 	{
-		bool firstFlag = true;
 		mutexUser_.lock();
+		boost::shared_ptr<CPaintUser> historyUser = findHistoryUser( user->userId() );
+		if( historyUser )
+		{
+			historyUser->setData( user->data() );
+			user = historyUser;
+		}
+		else
+			addHistoryUser( user );
+
+		bool firstFlag = true;
+
 		std::pair<USER_MAP::iterator, bool> res = joinerMap_.insert( USER_MAP::value_type( user->userId(), user ) );
 		if( !res.second )
 		{
@@ -652,14 +674,51 @@ private:
 		removeUser( removing );
 	}
 
+	void addHistoryUser( boost::shared_ptr<CPaintUser> user )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+		boost::shared_ptr<CPaintUser> res = findHistoryUser( user->userId() );
+		if( !res )
+		{
+			joinerHistory_.push_back( user );
+
+			commandMngr_.addPainter( user->userId() );
+		}
+	}
+
+	boost::shared_ptr<CPaintUser> findHistoryUser( const std::string &userId )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+
+		USER_LIST::iterator it = joinerHistory_.begin();
+		for( ; it != joinerHistory_.end(); it++ )
+		{
+			if( (*it)->userId() == userId )
+				return *it;
+		}
+		return boost::shared_ptr<CPaintUser>();
+	}
+
 	void clearAllUsers( void )
 	{
 		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
 		joinerMap_.clear();
-		joinerMap_.insert( USER_MAP::value_type(myUserInfo_->userId(), myUserInfo_) );
+		joinerHistory_.clear();
+
+		addUser( myUserInfo_ );
 	}
 
-	std::string generateJoinerInfoPacket( void )
+	std::string serializeHistoryJoinerList( void )
+	{
+		std::string allData;
+
+		// User Info
+		allData = SystemPacketBuilder::CHistoryUserList::make( joinerHistory_ );
+
+		return allData;
+	}
+
+	std::string serializeJoinerList( void )
 	{
 		std::string allData;
 
@@ -668,8 +727,7 @@ private:
 		USER_MAP::iterator it = joinerMap_.begin();
 		for( ; it != joinerMap_.end(); it++ )
 		{
-			std::string msg = SystemPacketBuilder::CJoinerToSuperPeer::make( it->second );
-			allData += msg;
+			allData += SystemPacketBuilder::CJoinerToSuperPeer::make( it->second );
 		}
 		mutexUser_.unlock();
 
@@ -1363,7 +1421,8 @@ private:
 	boost::recursive_mutex mutexUser_;
 	boost::shared_ptr<CPaintUser> myUserInfo_;
 	USER_MAP joinerMap_;
-	
+	USER_LIST joinerHistory_;
+
 	// network
 	enum ConnectionMode
 	{

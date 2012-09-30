@@ -365,6 +365,9 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 	if( backgroundImageItem_ )
 		allData += PaintPacketBuilder::CSetBackgroundImage::make( backgroundImageItem_, target );
 
+	// History all drawer (joiner)
+	allData += serializeHistoryJoinerList();
+
 	// History all paint item
 	commandMngr_.lock();
 	size_t itemSize = 0;
@@ -381,8 +384,8 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 	// History all task
 	commandMngr_.lock();
 	size_t taskSize = 0;
-	const TASK_ARRAY &taskList = commandMngr_.historyTaskList();
-	TASK_ARRAY::const_iterator itTask = taskList.begin();
+	const TASK_LIST &taskList = commandMngr_.historyTaskList();
+	TASK_LIST::const_iterator itTask = taskList.begin();
 	for( ; itTask != taskList.end(); itTask++ )
 	{
 		std::string msg = TaskPacketBuilder::CExecuteTask::make( boost::const_pointer_cast<CSharedPaintTask>(*itTask), target );
@@ -488,7 +491,9 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 	case CODE_SYSTEM_JOIN_TO_SERVER:
 		{
 			boost::shared_ptr<CPaintUser> user = SystemPacketBuilder::CJoinToServer::parse( packetData->body );
-			
+			if( !user )
+				break;
+
 			assert( isRelayServerSession( session ) );
 		
 			addUser( user );
@@ -640,6 +645,17 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			if( SystemPacketBuilder::CChatMessage::parse( packetData->body, userId, nickName, msg ) )
 			{
 				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ReceivedChatMessage, this, userId, nickName, msg ) );
+			}
+		}
+		break;
+	case CODE_SYSTEM_HISTORY_USER_LIST:
+		{
+			USER_LIST list = SystemPacketBuilder::CHistoryUserList::parse( packetData->body );
+			for( size_t i = 0; i < list.size(); i++ )
+			{
+				boost::shared_ptr<CPaintUser> user = findHistoryUser( list[i]->userId() );
+				if( !user )
+					addHistoryUser( list[i] );
 			}
 		}
 		break;

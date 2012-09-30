@@ -40,6 +40,7 @@
 #include "FindingServerDialog.h"
 #include "SyncDataProgressDialog.h"
 #include "UpgradeWindow.h"
+#include "PainterListWindow.h"
 
 #define STR_NET_MODE_INIT			tr("Waiting.. ")
 #define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
@@ -278,6 +279,7 @@ protected slots:
 	void actionExportFile( void );
 	void actionLastItem( void );
 	void actionPreferences( void );
+	void actionPainterList( void );
 
 private:
 	void updateWindowTitle( void );
@@ -689,6 +691,7 @@ private:
 	QPushButton *toolBar_penColorButton_;
 	QPushButton *toolBar_bgColorButton_;
 	QProgressBar *wroteProgressBar_;
+	PainterListWindow *painterListWindow_;
 	QTimer *keyHookTimer_;
 
 	double lastTextPosX_;

@@ -1,4 +1,4 @@
-/*                                                                                                                                           
+/*
 * Copyright (c) 2012, Eunhyuk Kim(gunoodaddy) 
 * All rights reserved.
 *
@@ -164,6 +164,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.toolBar->addWidget( toolBar_penColorButton_ );
 		
 		QToolButton *penWidthButton = new QToolButton();
+		//penWidthButton->setArrowType( Qt::NoArrow );
 		QMenu *menuPenWidth = new QMenu();
 		menuPenWidth->addAction( "Pen Width 20", this, SLOT(actionPenWidth20()) );
 		menuPenWidth->addAction( "Pen Width 10", this, SLOT(actionPenWidth10()) );
@@ -185,6 +186,10 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.png"), "Clear Screen", this, SLOT(actionClearScreen()) );
 		ui.toolBar->addSeparator();
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/last_item.png"), " Blink Last Added Item", this, SLOT(actionLastItem()) );
+
+		ui.toolBar->addSeparator();
+		ui.toolBar->addAction( tr("Painter List"), this, SLOT(actionPainterList()) );
+
 		toolBar_SliderPlayback_ = new QSlider(Qt::Horizontal);
 		ui.toolBar->addWidget( toolBar_SliderPlayback_ );
 		connect( toolBar_SliderPlayback_, SIGNAL(valueChanged(int)), this, SLOT(onPlaybackSliderValueChanged(int)) );
@@ -258,6 +263,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	// start server 
 	SharePaintManagerPtr()->startServer();
 	setStatusBar_NetworkInfo( Util::getMyIPAddress(), SharePaintManagerPtr()->acceptPort() );
+
+	// Create PaintList window
+	painterListWindow_ = new PainterListWindow( );
 }
 
 SharedPainter::~SharedPainter()
@@ -819,6 +827,11 @@ void SharedPainter::actionPreferences( void )
 	}
 }
 
+void SharedPainter::actionPainterList( void )
+{
+	painterListWindow_->show();
+}
+
 void SharedPainter::actionBroadcastTextMessage( void )
 {
 	bool ok;
@@ -1098,6 +1111,12 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 #endif
 
 	exitFlag_ = true;
+
+	if( painterListWindow_ )
+	{
+		delete painterListWindow_;
+		painterListWindow_ = NULL;
+	}
 
 	SettingManagerPtr()->save();
 	SharePaintManagerPtr()->clearScreen( false );

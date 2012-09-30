@@ -92,7 +92,7 @@ public:
 		return historyItemSet_;
 	}
 
-	const TASK_ARRAY &historyTaskList( void )
+	const TASK_LIST &historyTaskList( void )
 	{
 		return historyTaskList_;
 	}
@@ -196,6 +196,19 @@ public:
 		return itemList->findItem( itemId );
 	}
 
+	void addPainter( const std::string &userId )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
+		allowPainters_.insert( userId );
+	}
+
+	void setAllowPainterToDraw( const std::string &userId, bool enabled );
+
+	bool isAllowPainterToDraw( const std::string &userId )
+	{
+		return allowPainters_.find( userId ) != allowPainters_.end();
+	}
+
 private:
 
 	void _playforwardTo( int from, int to );
@@ -216,7 +229,7 @@ protected:
 
 	CSharedPaintManager *spManager_;
 
-	TASK_ARRAY historyTaskList_;
+	TASK_LIST historyTaskList_;
 	ITEM_SET historyItemSet_;		// for iterating
 	ITEM_LIST_MAP userItemListMap_;	// for searching
 
@@ -225,5 +238,6 @@ protected:
 
 	boost::recursive_mutex mutex_;
 
+	std::set< std::string > allowPainters_;
 	int currentPlayPos_;
 };

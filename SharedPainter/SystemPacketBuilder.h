@@ -411,4 +411,52 @@ namespace SystemPacketBuilder
 			return false;
 		}
 	};
+
+	class CHistoryUserList
+	{
+	public:
+		static std::string make( USER_LIST list )
+		{
+			try
+			{
+				int pos = 0;
+				std::string body;
+				pos += CPacketBufferUtil::writeInt16( body, pos, (boost::uint16_t)list.size(), true );
+
+				for( size_t i = 0; i < list.size(); i++ )
+				{
+					body += list[i]->serialize();
+				}
+
+				return CommonPacketBuilder::makePacket( CODE_SYSTEM_HISTORY_USER_LIST, body );
+			}catch(...)
+			{
+			}
+			return "";
+		}
+
+		static USER_LIST parse( const std::string &body )
+		{
+			int pos = 0;
+			try
+			{
+				USER_LIST list;
+				boost::uint16_t count = 0;
+				pos += CPacketBufferUtil::readInt16( body, pos, count, true );
+
+				for( int i = 0; i < count; i++ )
+				{
+					boost::shared_ptr<CPaintUser> user(new CPaintUser);
+					user->deserialize( body, &pos );
+					list.push_back( user );
+				}
+				return list;
+
+			}catch(...)
+			{
+			}
+			return USER_LIST();
+		}
+	};
+
 };

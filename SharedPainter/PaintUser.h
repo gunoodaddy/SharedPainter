@@ -64,6 +64,7 @@ public:
 	void setLocalIPAddress( const std::string &ip ) { data_.localIp = ip; }
 	void setViewIPAddress( const std::string &ip ) { data_.viewIp = ip; }
 
+	const struct SPaintUserInfoData &data( void ) { return data_; }
 	bool isSuperPeerCandidate( void ) { return data_.superPeerCandidate; }   
 	const std::string &localIPAddress( void ) { return data_.localIp; }
 	const std::string &viewIPAddress( void ) { return data_.viewIp; }
@@ -82,6 +83,7 @@ public:
 		pos += CPacketBufferUtil::writeString8( body, pos, data_.localIp );
 		pos += CPacketBufferUtil::writeInt16( body, pos, data_.listenTcpPort, true );
 		pos += CPacketBufferUtil::writeInt8( body, pos, data_.superPeerCandidate ? 1 : 0 );
+
 		return body;
 	}        
 

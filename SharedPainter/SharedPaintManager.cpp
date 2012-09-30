@@ -431,9 +431,6 @@ USER_LIST CSharedPaintManager::userList( void )
 // this function need to check session pointer null check!
 bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::shared_ptr<CPacketData> packetData )
 {
-	if( ! isConnected() )
-		return false;
-
 	bool res = true;
 	switch( packetData->code )
 	{

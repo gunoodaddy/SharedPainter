@@ -98,6 +98,12 @@ public:
 		{
 			boost::shared_ptr<CPacketData> data = packetSlicer_.parsedItem( i );
 
+			if ( ! session_->isConnected() )
+			{
+				qDebug() << "onINetPeerSessionEvent_Received failed : session not connected";
+				break;
+			}
+
 			if( evtTarget_ )
 				evtTarget_->onIPaintSessionEvent_ReceivedPacket( this, data );
 		}

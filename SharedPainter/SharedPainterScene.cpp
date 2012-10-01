@@ -65,7 +65,7 @@ template<class T>
 class CMyGraphicItem : public T
 {
 public:
-	CMyGraphicItem( CSharedPainterScene *scene ) : scene_(scene), moveFlag_(false) { }
+	CMyGraphicItem( CSharedPainterScene *scene ) : scene_(scene) { }
 
 	void setItemData( boost::weak_ptr<CPaintItem> data )
 	{
@@ -82,17 +82,9 @@ public:
 			r->setDrawingObject( this );
 		}
 	}
-	/*
-	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-	{
-		QStyleOptionGraphicsItem myOption(*option);
-		myOption.state &= ~QStyle::State_Selected;
-		T::paint(painter, &myOption, widget);
-	}
-*/
+
 	QVariant itemChange( QGraphicsItem::GraphicsItemChange change, const QVariant & value )
 	{
-		qDebug() << "itemChange ##############################" << change << value;
 		if( change == ItemPositionChange )
 		{
 			QPointF newPos = value.toPointF();
@@ -155,21 +147,6 @@ public:
 		T::mouseDoubleClickEvent( event );
 	}
 
-	void mouseMoveEvent( QGraphicsSceneMouseEvent * event )
-	{
-//		if( !moveFlag_ )
-//		{
-//			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
-//			{
-//				r->setPos( T::scenePos().x(), T::scenePos().y() );
-//				scene_->onItemMoveBegin( r );
-//			}
-//			moveFlag_ = true;
-//		}
-
-		T::mouseMoveEvent( event );
-	}
-
 	void mousePressEvent( QGraphicsSceneMouseEvent * event )
 	{
 		scene_->setCursor( Qt::ClosedHandCursor );
@@ -179,18 +156,7 @@ public:
 
 	void mouseReleaseEvent( QGraphicsSceneMouseEvent * event )
 	{
-		qDebug() << "mouse item move end" << this;
 		scene_->setCursor( Qt::OpenHandCursor );
-
-//		if( moveFlag_ )
-//		{
-//			moveFlag_ = false;
-////			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
-////			{
-////				r->setPos( T::scenePos().x(), T::scenePos().y() );
-////				scene_->onItemMoveEnd( r );
-////			}
-//		}
 
 		T::mouseReleaseEvent( event );
 	}
@@ -219,7 +185,6 @@ public:
 	}
 
 private:
-	bool moveFlag_;
 	CSharedPainterScene *scene_;
 	boost::weak_ptr<CPaintItem> itemData_;
 };
@@ -521,7 +486,14 @@ void CSharedPainterScene::moveItem( boost::shared_ptr<CPaintItem> item, double x
 	clearLastItemBorderRect();
 
 	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
+
+	// freeze move changes notify
+	i->setFlag( QGraphicsItem::ItemSendsGeometryChanges, false );
+
 	i->setPos( x, y );
+	
+	// thaw move changes notify
+	i->setFlag( QGraphicsItem::ItemSendsGeometryChanges, true );
 	invalidate( i->boundingRect() );
 }
 

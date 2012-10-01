@@ -533,8 +533,11 @@ void SharedPainter::actionSaveImageFile( void )
 	if( path.isEmpty() )
 		return;
 
-	QPixmap pixMap = QPixmap::grabWidget(ui.painterView);
-	pixMap.save(path);
+	QImage newImage( canvas_->sceneRect().toRect().size(), QImage::Format_RGB32 );
+	QPainter painter( &newImage );
+	canvas_->render(&painter);
+
+	newImage.save( path );
 
 }
 

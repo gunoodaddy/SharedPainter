@@ -1,3 +1,6 @@
+0.8.4
+- Blink last item bug fix
+
 0.8.3
 - [Save Image] bug fix
 

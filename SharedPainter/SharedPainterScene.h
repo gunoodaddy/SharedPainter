@@ -248,6 +248,7 @@ private:
 	QColor penClr_;
 	int penWidth_;
 	QPointF prevPos_;
+	bool freezeActionFlag_;
 	bool drawFlag_;
 	bool freePenMode_;
 	QImage image_;
@@ -264,6 +265,7 @@ private:
 	QColor backgroundColor_;
 	int gridLineSize_;
 
+	// blink last item
 	QTimer *timer_;
 	QGraphicsItem *lastCoverGraphicsItem_;
 	int lastTimeValue_;
@@ -272,7 +274,6 @@ private:
 	boost::shared_ptr<CPaintItem> lastAddItem_;
 	bool lastTempBlinkShowFlag_;
 	bool showLastAddItemBorderFlag_;
-	bool freezeActionFlag_;
 };
 
 #endif // CSHAREDPAINTERSCENE_H

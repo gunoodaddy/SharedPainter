@@ -208,8 +208,8 @@ private:
 
 
 CSharedPainterScene::CSharedPainterScene(void )
-: eventTarget_(NULL), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
-, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastTempBlinkShowFlag_(false), showLastAddItemBorderFlag_(false), freezeActionFlag_(false)
+: eventTarget_(NULL), freezeActionFlag_(false), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
+, lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastTempBlinkShowFlag_(false), showLastAddItemBorderFlag_(false)
 {
 	backgroundColor_ = Qt::white;
 	penClr_ = Qt::blue;
@@ -451,6 +451,9 @@ void CSharedPainterScene::removeItem( CPaintItem * item )
 
 	if( ! item->drawingObject() )
 		return;
+
+	if( lastAddItem_.get() == item )
+		clearLastItemBorderRect();
 
 	QGraphicsItem* i = reinterpret_cast<QGraphicsItem *>(item->drawingObject());
 	QGraphicsScene::removeItem( i );

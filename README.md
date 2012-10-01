@@ -24,9 +24,9 @@
 * Channel Chatting
 * Broadcast Chatting (only available for the same network)
 * Auto version update feature
+* Multi-objects selecting by mouse dragging.
 
 ## TODO
-* Multi-objects selecting by mouse dragging.
 * Figure drawing
 
 ## Requirement

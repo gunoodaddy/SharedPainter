@@ -41,6 +41,18 @@
 #define PROGRAM_UPGRADER_FILE_NAME	"Upgrader"
 #endif
 
+#ifdef Q_WS_WIN
+#define REMOTE_UPGRADE_VERSION_URL	"https://raw.github.com/gunoodaddy/SharedPainter/master/release/version_win.txt"
+#define REMOTE_UPGRADE_PATCH_URL	"https://raw.github.com/gunoodaddy/SharedPainter/master/release/patch_win.zip"
+#elif Q_WS_MAC
+#define REMOTE_UPGRADE_VERSION_URL	"https://raw.github.com/gunoodaddy/SharedPainter/master/release/version_mac.txt"
+#define REMOTE_UPGRADE_PATCH_URL	"https://raw.github.com/gunoodaddy/SharedPainter/master/release/patch_mac.zip"
+#else
+#define REMOTE_UPGRADE_VERSION_URL ""
+#define REMOTE_UPGRADE_PATCH_URL	""
+#error "this platform not support"
+#endif
+
 #define NET_MAGIC_CODE	0xBEBE
 
 #define MAX_PACKET_BODY_SIZE				200000000	// 2OOMB

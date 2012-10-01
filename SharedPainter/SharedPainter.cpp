@@ -422,8 +422,8 @@ void SharedPainter::actionExit( void )
 
 void SharedPainter::updateLastChatTime( void )
 {
-	QString str = tr("last message time : ");
-	str += QDateTime::currentDateTime().toString();
+	//QString str = tr("last message time : ");
+	QString str = QDateTime::currentDateTime().toString();
 	ui.labelLastMessageTime->setText( str );
 }
 

@@ -44,6 +44,7 @@ public:
 	virtual void onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual boost::shared_ptr<CPaintItem> onICanvasViewEvent_FindItem( CSharedPainterScene *view, const std::string &owner, int itemId ) = 0;
+	virtual QString onICanvasViewEvent_GetToolTipText( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 };
 
 class CSharedPainterScene : public QGraphicsScene, public IGluePaintCanvas
@@ -83,7 +84,7 @@ public:
 		// SO I call QApplication::setOverrideCursor()...
 
 		//setCursor( QCursor(QPixmap(":/SharedPainter/Resources/draw_disabled.png")) );
-	
+
 		QList<QGraphicsView *> list = views();
 		for (int i = 0; i < list.size(); ++i)
 		{
@@ -121,10 +122,22 @@ public:
 		if( enable )
 		{
 			clearSelectedItemState();
+			QList<QGraphicsView *> list = views();
+			for (int i = 0; i < list.size(); ++i)
+			{
+				list.at(i)->setDragMode( QGraphicsView::NoDrag );
+			}
 			setCursor( QCursor(QPixmap(":/SharedPainter/Resources/draw_line.png")) );
 		}
 		else
-			setCursor( Qt::PointingHandCursor ); 
+		{
+			QList<QGraphicsView *> list = views();
+			for (int i = 0; i < list.size(); ++i)
+			{
+				list.at(i)->setDragMode( QGraphicsView::RubberBandDrag );
+			}
+			setCursor( Qt::PointingHandCursor );
+		}
 	}
 	void setPenSetting( const QColor &clr, int width )
 	{

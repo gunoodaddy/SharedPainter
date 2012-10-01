@@ -367,6 +367,7 @@ protected:
 	{
 		return SharePaintManagerPtr()->findPaintItem( owner, itemId );
 	}
+	virtual QString onICanvasViewEvent_GetToolTipText( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item );
 
 	// ISharedPaintEvent
 	virtual void onISharedPaintEvent_ShowErrorMessage( CSharedPaintManager *self, const std::string &error )

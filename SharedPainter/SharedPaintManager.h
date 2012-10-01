@@ -572,6 +572,19 @@ public:
 
 	USER_LIST historyUserList( void ) { return joinerHistory_; }
 
+	boost::shared_ptr<CPaintUser> findHistoryUser( const std::string &userId )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+
+		USER_LIST::iterator it = joinerHistory_.begin();
+		for( ; it != joinerHistory_.end(); it++ )
+		{
+			if( (*it)->userId() == userId )
+				return *it;
+		}
+		return boost::shared_ptr<CPaintUser>();
+	}
+
 private:
 	void sendMyUserInfo( CPaintSession* session )
 	{
@@ -690,19 +703,6 @@ private:
 
 			commandMngr_.addPainter( user->userId() );
 		}
-	}
-
-	boost::shared_ptr<CPaintUser> findHistoryUser( const std::string &userId )
-	{
-		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
-
-		USER_LIST::iterator it = joinerHistory_.begin();
-		for( ; it != joinerHistory_.end(); it++ )
-		{
-			if( (*it)->userId() == userId )
-				return *it;
-		}
-		return boost::shared_ptr<CPaintUser>();
 	}
 
 	void clearAllUsers( void )

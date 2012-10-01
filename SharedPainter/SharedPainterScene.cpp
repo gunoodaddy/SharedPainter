@@ -90,6 +90,23 @@ public:
 		T::paint(painter, &myOption, widget);
 	}
 */
+	QVariant itemChange( QGraphicsItem::GraphicsItemChange change, const QVariant & value )
+	{
+		qDebug() << "itemChange ##############################" << change << value;
+		if( change == ItemPositionChange )
+		{
+			QPointF newPos = value.toPointF();
+
+			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+			{
+				r->setPos( newPos.x(), newPos.y() );
+				scene_->onItemMoveEnd( r );
+				return newPos;
+			}
+		}
+		return QGraphicsItem::itemChange(change, value);
+	}
+
 	void keyPressEvent( QKeyEvent * event )
 	{
 		if( event->key() == Qt::Key_Delete )
@@ -140,15 +157,15 @@ public:
 
 	void mouseMoveEvent( QGraphicsSceneMouseEvent * event )
 	{
-		if( !moveFlag_ )
-		{
-			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
-			{
-				r->setPos( T::scenePos().x(), T::scenePos().y() );
-				scene_->onItemMoveBegin( r );
-			}
-			moveFlag_ = true;
-		}
+//		if( !moveFlag_ )
+//		{
+//			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+//			{
+//				r->setPos( T::scenePos().x(), T::scenePos().y() );
+//				scene_->onItemMoveBegin( r );
+//			}
+//			moveFlag_ = true;
+//		}
 
 		T::mouseMoveEvent( event );
 	}
@@ -162,17 +179,18 @@ public:
 
 	void mouseReleaseEvent( QGraphicsSceneMouseEvent * event )
 	{
+		qDebug() << "mouse item move end" << this;
 		scene_->setCursor( Qt::OpenHandCursor );
 
-		if( moveFlag_ )
-		{
-			moveFlag_ = false;
-			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
-			{
-				r->setPos( T::scenePos().x(), T::scenePos().y() );
-				scene_->onItemMoveEnd( r );
-			}
-		}
+//		if( moveFlag_ )
+//		{
+//			moveFlag_ = false;
+////			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
+////			{
+////				r->setPos( T::scenePos().x(), T::scenePos().y() );
+////				scene_->onItemMoveEnd( r );
+////			}
+//		}
 
 		T::mouseReleaseEvent( event );
 	}
@@ -421,8 +439,12 @@ void CSharedPainterScene::commonAddItem( boost::shared_ptr<CPaintItem> item, QGr
 {
 	clearSelectedItemState();
 
-	drawingItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable);
+	drawingItem->setFlags( QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges );
 	addItem( drawingItem );
+
+	QString tooltip = eventTarget_->onICanvasViewEvent_GetToolTipText( this, item );
+	if( tooltip.isEmpty() == false )
+		drawingItem->setToolTip( tooltip );
 
 	lastItemBorderType_ = borderType;
 	lastAddItem_ = item;

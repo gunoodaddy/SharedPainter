@@ -18,5 +18,6 @@
 #include "SettingManager.h"
 #include "NetServiceRunner.h"
 
+extern bool _multi_instance_mode;
 extern int _debug_paint_item_cnt;
 extern bool _exit_flag;

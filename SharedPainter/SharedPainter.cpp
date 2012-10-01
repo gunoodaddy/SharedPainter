@@ -1,4 +1,4 @@
-/*                                                                                                                                           
+/*
 * Copyright (c) 2012, Eunhyuk Kim(gunoodaddy) 
 * All rights reserved.
 *
@@ -56,6 +56,15 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
 {
 	CSingleton<CUpgradeManager>::Instance();
+
+	std::string myId = SettingManagerPtr()->myId();
+	if( myId.empty() )
+	{
+		myId = Util::generateMyId();
+		SettingManagerPtr()->setMyId( myId );
+	}
+
+	SharePaintManagerPtr()->initialize( myId );
 
 	fontBroadCastText_ = QFont( "Times" );
 	fontBroadCastText_.setBold( true );
@@ -164,6 +173,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.toolBar->addWidget( toolBar_penColorButton_ );
 		
 		QToolButton *penWidthButton = new QToolButton();
+		//penWidthButton->setArrowType( Qt::NoArrow );
 		QMenu *menuPenWidth = new QMenu();
 		menuPenWidth->addAction( "Pen Width 20", this, SLOT(actionPenWidth20()) );
 		menuPenWidth->addAction( "Pen Width 10", this, SLOT(actionPenWidth10()) );
@@ -185,6 +195,10 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/clear_screen.png"), "Clear Screen", this, SLOT(actionClearScreen()) );
 		ui.toolBar->addSeparator();
 		ui.toolBar->addAction( QIcon(":/SharedPainter/Resources/last_item.png"), " Blink Last Added Item", this, SLOT(actionLastItem()) );
+
+		ui.toolBar->addSeparator();
+		ui.toolBar->addAction( tr("Painter List"), this, SLOT(actionPainterList()) );
+
 		toolBar_SliderPlayback_ = new QSlider(Qt::Horizontal);
 		ui.toolBar->addWidget( toolBar_SliderPlayback_ );
 		connect( toolBar_SliderPlayback_, SIGNAL(valueChanged(int)), this, SLOT(onPlaybackSliderValueChanged(int)) );
@@ -258,6 +272,9 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	// start server 
 	SharePaintManagerPtr()->startServer();
 	setStatusBar_NetworkInfo( Util::getMyIPAddress(), SharePaintManagerPtr()->acceptPort() );
+
+	// Create PaintList window
+	painterListWindow_ = new PainterListWindow( );
 }
 
 SharedPainter::~SharedPainter()
@@ -576,8 +593,6 @@ void SharedPainter::actionBGColor( void )
 
 void SharedPainter::actionConnectServer( void )
 {
-	static std::string userId = Util::generateMyId();
-
 	if( ! getNickNameString() )
 		return;
 
@@ -817,6 +832,11 @@ void SharedPainter::actionPreferences( void )
 	{
 		applySetting();
 	}
+}
+
+void SharedPainter::actionPainterList( void )
+{
+	painterListWindow_->show();
 }
 
 void SharedPainter::actionBroadcastTextMessage( void )
@@ -1099,6 +1119,12 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 
 	exitFlag_ = true;
 
+	if( painterListWindow_ )
+	{
+		delete painterListWindow_;
+		painterListWindow_ = NULL;
+	}
+
 	SettingManagerPtr()->save();
 	SharePaintManagerPtr()->clearScreen( false );
 
@@ -1181,7 +1207,7 @@ void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
 	item->setOwner( SharePaintManagerPtr()->myId() );
 	item->setItemId( currPaintItemId_++ );
 
-	SharePaintManagerPtr()->sendPaintItem( item );
+	SharePaintManagerPtr()->addPaintItem( item );
 }
 
 

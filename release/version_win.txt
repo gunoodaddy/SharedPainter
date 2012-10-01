@@ -29,5 +29,5 @@
 - tray icon removed on Mac
 - minor bug fix
 
-After restart this app, if you cannot see 0.8.2 string in the app's title bar,
+After restart this app, if you cannot see 0.8.6 string in the app's title bar,
 please tell gunoodaddy this issue.

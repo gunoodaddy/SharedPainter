@@ -106,7 +106,12 @@ public:
 	bool parse( void )
 	{
 		parsedItems_.clear();
-		return doParse();
+		while( 1 ) 
+		{
+			if( !doParse() )
+				break;
+		}
+		return parsedItems_.size() > 0 ? true : false;
 	}
 
 	size_t parsedItemCount( void )
@@ -157,7 +162,7 @@ private:
 					currFromIdLen_ = currToIdLen_ = 0;
 					currHeaderLen_ = 0;
 					if( buffer_.remainingSize() < 2 )
-						return parsedItems_.size() > 0 ? true : false;
+						return false;
 
 					boost::uint16_t magic = 0x0;
 					currHeaderLen_ += buffer_.readInt16( magic );
@@ -171,7 +176,7 @@ private:
 				state_ = STATE_HEADER_CODE;
 			case STATE_HEADER_CODE:
 				if( buffer_.remainingSize() < 2 )
-					return parsedItems_.size() > 0 ? true : false;
+					return false;
 
 				currHeaderLen_ += buffer_.readInt16( currCode_ );
 				qDebug() << "============================ packet recved " << currCode_;
@@ -184,20 +189,20 @@ private:
 			case STATE_HEADER_FROMID:
 				{
 					if( ! _readString8( currFromIdLen_, currFromId_ ) )
-						return parsedItems_.size() > 0 ? true : false;
+						return false;
 
 					state_ = STATE_HEADER_TOID;
 				}
 			case STATE_HEADER_TOID:
 				{
 					if( ! _readString8( currToIdLen_, currToId_ ) )
-						return parsedItems_.size() > 0 ? true : false;
+						return false;
 
 					state_ = STATE_HEADER_BLEN;
 				}
 			case STATE_HEADER_BLEN:
 				if( buffer_.remainingSize() < 4 )
-					return parsedItems_.size() > 0 ? true : false;
+					return false;
 
 				currHeaderLen_ += buffer_.readInt32( currBodyLen_ );
 
@@ -210,7 +215,7 @@ private:
 			case STATE_BODY:
 				if( buffer_.remainingSize() < (size_t)currBodyLen_ )
 				{
-					return parsedItems_.size() > 0 ? true : false;
+					return false;
 				}
 				
 				boost::shared_ptr<CPacketData> data = boost::shared_ptr<CPacketData>(new CPacketData);
@@ -227,14 +232,15 @@ private:
 				currHeaderLen_ = 0;
 
 				state_ = STATE_HEADER_MAGIC;
-				return doParse();
+				return true;
 			}
 		} catch(CPacketException &e) {
 			(void)e;
 			// nothing to do
+			return false;
 		}
 
-		return parsedItems_.size() > 0 ? true : false;
+		return true;
 	}
 
 private:

@@ -51,7 +51,7 @@ void CSharedPaintCommandManager::setAllowPainterToDraw( const std::string &userI
 
 	if( enabled )
 	{
-		for( size_t i = 0; i < historyTaskList_.size(); i++ )
+		for( int i = 0; i <= currentPlayPos_; i++ )
 		{
 			if( historyTaskList_[i]->owner() != userId )
 				continue;
@@ -60,7 +60,7 @@ void CSharedPaintCommandManager::setAllowPainterToDraw( const std::string &userI
 	}
 	else
 	{
-		for( int i = historyTaskList_.size() - 1; i >= 0; i-- )
+		for( int i = currentPlayPos_; i >= 0; i-- )
 		{
 			if( historyTaskList_[i]->owner() != userId )
 				continue;
@@ -126,7 +126,8 @@ void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 	for( int i = from + 1; i <= to; i++ )
 	{
 		qDebug() << "_playforwardTo" << i << from << to;
-		historyTaskList_[i]->execute();
+		if( isAllowPainterToDraw( historyTaskList_[i]->owner() ) )
+			historyTaskList_[i]->execute();
 	}
 }
 
@@ -140,6 +141,7 @@ void CSharedPaintCommandManager::_playbackwardTo( int from, int to )
 	for( int i = from; i > to; i-- )
 	{
 		qDebug() << "_playbackwardTo" << i << from << to;
-		historyTaskList_[i]->rollback();
+		if( isAllowPainterToDraw( historyTaskList_[i]->owner() ) )
+			historyTaskList_[i]->rollback();
 	}
 }

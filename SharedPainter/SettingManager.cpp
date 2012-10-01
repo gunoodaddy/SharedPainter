@@ -58,6 +58,11 @@ void CSettingManager::load( void )
 {
 	QSettings settings( iniFile, QSettings::IniFormat );
 
+	settings.beginGroup( "private" );
+	if( false == _multi_instance_mode )
+		myId_ = Util::toUtf8StdString( settings.value( "myId" ).toString() );
+	settings.endGroup();
+
 	settings.beginGroup( "personal" );
 	nickName_ = Util::toUtf8StdString( settings.value( "nickName" ).toString() );
 	settings.endGroup();
@@ -79,6 +84,11 @@ void CSettingManager::load( void )
 void CSettingManager::save( void )
 {
 	QSettings settings( iniFile, QSettings::IniFormat );
+
+	settings.beginGroup( "private" );
+	if( false == _multi_instance_mode )
+		settings.setValue( "myId", Util::toStringFromUtf8(myId_) );
+	settings.endGroup();
 
 	settings.beginGroup( "personal" );
 	settings.setValue( "nickName", Util::toStringFromUtf8(nickName_) );

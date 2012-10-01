@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 			::MessageBoxA( NULL, "This program is running already.", PROGRAME_TEXT, MB_OK );
 			return -1;
 		}
+		_multi_instance_mode = true;
 	}
 #endif
 	CSingleton<CDefferedCaller>::Instance();

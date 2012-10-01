@@ -54,8 +54,10 @@ public:
 	CPaintUser( void ) { }
 	~CPaintUser( void ) { }
 
+	// session id is only used for "always p2p mode"
 	void setSessionId( int sessionId ) { sessionId_ = sessionId; }
 	int sessionId( void ) { return sessionId_; }
+
 	void setData( const struct SPaintUserInfoData &info ) { data_ = info; }
 	void setNickName( const std::string & nick ) { data_.nickName = nick; }
 	void setChannel( const std::string & channel ) { data_.channel = channel; }

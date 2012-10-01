@@ -41,6 +41,12 @@ public:
 	CSettingManager(void);
 	~CSettingManager(void);
 
+	const std::string myId( void ) { return myId_; }
+	void setMyId( const std::string & id )
+	{
+		myId_ = id;
+	}
+
 	const std::string peerAddress( void ) { return peerAddress_; }
 	void setPeerAddress( const std::string & addr )
 	{
@@ -82,6 +88,7 @@ protected slots:
 
 private:
 	QString iniFile;
+	std::string myId_;
 	std::string paintChannel_;
 	std::string peerAddress_;
 	std::string relayServerAddress_;

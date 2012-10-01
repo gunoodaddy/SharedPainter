@@ -57,6 +57,15 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 {
 	CSingleton<CUpgradeManager>::Instance();
 
+	std::string myId = SettingManagerPtr()->myId();
+	if( myId.empty() )
+	{
+		myId = Util::generateMyId();
+		SettingManagerPtr()->setMyId( myId );
+	}
+
+	SharePaintManagerPtr()->initialize( myId );
+
 	fontBroadCastText_ = QFont( "Times" );
 	fontBroadCastText_.setBold( true );
 	fontBroadCastText_.setPixelSize( 20 );
@@ -584,8 +593,6 @@ void SharedPainter::actionBGColor( void )
 
 void SharedPainter::actionConnectServer( void )
 {
-	static std::string userId = Util::generateMyId();
-
 	if( ! getNickNameString() )
 		return;
 
@@ -1200,7 +1207,7 @@ void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
 	item->setOwner( SharePaintManagerPtr()->myId() );
 	item->setItemId( currPaintItemId_++ );
 
-	SharePaintManagerPtr()->sendPaintItem( item );
+	SharePaintManagerPtr()->addPaintItem( item );
 }
 
 

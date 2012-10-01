@@ -76,7 +76,7 @@ public:
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ChangeCanvasScrollPos( CSharedPaintManager *self, int posH, int posV ) = 0;
-	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
+	virtual void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size ) = 0;
@@ -111,6 +111,9 @@ protected slots:
 	void onTimeoutSyncStart( void );
 
 public:
+
+	void initialize( const std::string &myId );	// TODO : initialize check
+
 	const std::string& myId( void ) 
 	{
 		return myUserInfo_->userId();
@@ -370,7 +373,7 @@ public:
 	
 	std::string serializeData( const std::string *target = NULL );
 
-	bool sendPaintItem( boost::shared_ptr<CPaintItem> item )
+	bool addPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		if( ! enabled_ )
 			return false;
@@ -605,7 +608,7 @@ private:
 		std::pair<USER_MAP::iterator, bool> res = joinerMap_.insert( USER_MAP::value_type( user->userId(), user ) );
 		if( !res.second )
 		{
-			res.first->second = user;	// overwrite;
+			res.first->second->setData( user->data() );	// overwrite;
 			firstFlag = false;
 		}
 		mutexUser_.unlock();

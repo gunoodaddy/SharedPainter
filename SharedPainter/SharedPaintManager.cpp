@@ -74,13 +74,9 @@ CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFl
 , lastPacketId_(-1)
 {
 	// create my user info
-	struct SPaintUserInfoData data;
-	data.userId =  Util::generateMyId();
-
 	std::string myIp = Util::getMyIPAddress();
 	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
 	myUserInfo_->setLocalIPAddress( myIp );
-	myUserInfo_->setData( data );
 
 	backgroundColor_ = Qt::white;
 
@@ -94,8 +90,6 @@ CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFl
 	{
 		// ignore this error.. by multi programs on a computer
 	}
-
-	clearAllUsers(); // clear & add my user info
 
 	startListenBroadCast();
 }
@@ -114,6 +108,15 @@ CSharedPaintManager::~CSharedPaintManager( void )
 	stopListenBroadCast();
 
 	NetServiceRunnerPtr()->close();
+}
+
+void CSharedPaintManager::initialize( const std::string &myId )
+{
+	struct SPaintUserInfoData data;
+	data.userId = myId;
+	myUserInfo_->setData( data );
+
+	addUser( myUserInfo_ );
 }
 
 void CSharedPaintManager::onTimeoutSyncStart( void )

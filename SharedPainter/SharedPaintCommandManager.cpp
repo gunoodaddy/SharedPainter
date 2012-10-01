@@ -34,6 +34,41 @@
 
 static CDefferedCaller gCaller;
 
+void CSharedPaintCommandManager::setAllowPainterToDraw( const std::string &userId, bool enabled )
+{
+	if( enabled )
+	{
+		if( isAllowPainterToDraw( userId ) )
+			return;
+		allowPainters_.insert( userId );
+	}
+	else
+	{
+		if( !isAllowPainterToDraw( userId ) )
+			return;
+		allowPainters_.erase( userId );
+	}
+
+	if( enabled )
+	{
+		for( int i = 0; i <= currentPlayPos_; i++ )
+		{
+			if( historyTaskList_[i]->owner() != userId )
+				continue;
+			historyTaskList_[i]->execute();
+		}
+	}
+	else
+	{
+		for( int i = currentPlayPos_; i >= 0; i-- )
+		{
+			if( historyTaskList_[i]->owner() != userId )
+				continue;
+			historyTaskList_[i]->rollback();
+		}
+	}
+}
+
 bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData )
 {
 	task->setSharedPaintManager( spManager_ );
@@ -54,8 +89,8 @@ bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask
 
 		task->setSendData( sendData );
 
-		// now playback working, skip to execute this task.
-		if( playbackWorkingFlag )
+		// now playback working or user not allowed, skip to execute this task.
+		if( playbackWorkingFlag || !isAllowPainterToDraw(task->owner()))
 			return true;
 	}
 
@@ -91,7 +126,8 @@ void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 	for( int i = from + 1; i <= to; i++ )
 	{
 		qDebug() << "_playforwardTo" << i << from << to;
-		historyTaskList_[i]->execute();
+		if( isAllowPainterToDraw( historyTaskList_[i]->owner() ) )
+			historyTaskList_[i]->execute();
 	}
 }
 
@@ -105,6 +141,7 @@ void CSharedPaintCommandManager::_playbackwardTo( int from, int to )
 	for( int i = from; i > to; i-- )
 	{
 		qDebug() << "_playbackwardTo" << i << from << to;
-		historyTaskList_[i]->rollback();
+		if( isAllowPainterToDraw( historyTaskList_[i]->owner() ) )
+			historyTaskList_[i]->rollback();
 	}
 }

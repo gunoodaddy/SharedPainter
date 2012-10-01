@@ -54,8 +54,10 @@ public:
 	CPaintUser( void ) { }
 	~CPaintUser( void ) { }
 
+	// session id is only used for "always p2p mode"
 	void setSessionId( int sessionId ) { sessionId_ = sessionId; }
 	int sessionId( void ) { return sessionId_; }
+
 	void setData( const struct SPaintUserInfoData &info ) { data_ = info; }
 	void setNickName( const std::string & nick ) { data_.nickName = nick; }
 	void setChannel( const std::string & channel ) { data_.channel = channel; }
@@ -64,6 +66,7 @@ public:
 	void setLocalIPAddress( const std::string &ip ) { data_.localIp = ip; }
 	void setViewIPAddress( const std::string &ip ) { data_.viewIp = ip; }
 
+	const struct SPaintUserInfoData &data( void ) { return data_; }
 	bool isSuperPeerCandidate( void ) { return data_.superPeerCandidate; }   
 	const std::string &localIPAddress( void ) { return data_.localIp; }
 	const std::string &viewIPAddress( void ) { return data_.viewIp; }
@@ -82,6 +85,7 @@ public:
 		pos += CPacketBufferUtil::writeString8( body, pos, data_.localIp );
 		pos += CPacketBufferUtil::writeInt16( body, pos, data_.listenTcpPort, true );
 		pos += CPacketBufferUtil::writeInt8( body, pos, data_.superPeerCandidate ? 1 : 0 );
+
 		return body;
 	}        
 

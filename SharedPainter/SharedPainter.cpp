@@ -74,6 +74,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	connect( ui.splitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
 	ui.painterView->setScene( canvas );
 	ui.painterView->setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform );
+
 	QScrollBar *scrollBarH = ui.painterView->horizontalScrollBar();
 	QScrollBar *scrollBarV = ui.painterView->verticalScrollBar();
 	connect( scrollBarH, SIGNAL(valueChanged(int)), this, SLOT(onPaintViewHScrollBarChanged(int)) );
@@ -1237,4 +1238,12 @@ void SharedPainter::onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, bo
 void SharedPainter::onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
 {
 	SharePaintManagerPtr()->removePaintItem( item );
+}
+
+QString SharedPainter::onICanvasViewEvent_GetToolTipText( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item )
+{
+	boost::shared_ptr<CPaintUser> user = SharePaintManagerPtr()->findHistoryUser( item->owner() );
+	if( user )
+		return Util::toStringFromUtf8(user->nickName());
+	return "";
 }

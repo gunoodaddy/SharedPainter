@@ -1,3 +1,7 @@
+0.8.5
+- myself enter channel event bug fix
+- canvas size sync bug fix
+
 0.8.4
 - Blink last item bug fix
 

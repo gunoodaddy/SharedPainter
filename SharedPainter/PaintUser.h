@@ -51,7 +51,8 @@ typedef std::vector<boost::shared_ptr<CPaintUser> > USER_LIST;
 class CPaintUser
 {
 public:
-	CPaintUser( void ) { }
+	CPaintUser( bool myself ) : mySelfFlag_(myself) { }
+	CPaintUser( void ) : mySelfFlag_(false) { }
 	~CPaintUser( void ) { }
 
 	// session id is only used for "always p2p mode"
@@ -66,6 +67,7 @@ public:
 	void setLocalIPAddress( const std::string &ip ) { data_.localIp = ip; }
 	void setViewIPAddress( const std::string &ip ) { data_.viewIp = ip; }
 
+	bool isMyself( void ) { return mySelfFlag_; }
 	const struct SPaintUserInfoData &data( void ) { return data_; }
 	bool isSuperPeerCandidate( void ) { return data_.superPeerCandidate; }   
 	const std::string &localIPAddress( void ) { return data_.localIp; }
@@ -112,6 +114,7 @@ public:
 		return true;
 	}    
 private:
+	bool mySelfFlag_;
 	int sessionId_;
 	SPaintUserInfoData data_;
 };

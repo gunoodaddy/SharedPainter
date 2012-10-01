@@ -613,10 +613,13 @@ private:
 		}
 		mutexUser_.unlock();
 
-		if( firstFlag )
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_EnterPaintUser, this, user ) );
-		else
-			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, user ) );
+		if( !user->isMyself() )
+		{
+			if( firstFlag )
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_EnterPaintUser, this, user ) );
+			else
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_UpdatePaintUser, this, user ) );
+		}
 
 		return firstFlag;
 	}
@@ -966,6 +969,7 @@ private:
 	}
 	void fireObserver_ResizeMainWindow( int width, int height )
 	{
+		qDebug() << "fireObserver_ResizeMainWindow" << width << height;
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
 
@@ -988,8 +992,8 @@ private:
 	}
 	void fireObserver_ResizeCanvas( int width, int height )
 	{
-		lastWindowWidth_ = width;
-		lastWindowHeight_ = height;
+		lastCanvasWidth_ = width;
+		lastCanvasHeight_ = height;
 
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )

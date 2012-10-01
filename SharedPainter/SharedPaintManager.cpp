@@ -75,7 +75,7 @@ CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFl
 {
 	// create my user info
 	std::string myIp = Util::getMyIPAddress();
-	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser);
+	myUserInfo_ = boost::shared_ptr<CPaintUser>(new CPaintUser(true));
 	myUserInfo_->setLocalIPAddress( myIp );
 
 	backgroundColor_ = Qt::white;

@@ -329,17 +329,17 @@ public:
 		
 		if( superPeerSession_ && superPeerSession_->session()->isConnected() )	// not me & super suer exist
 		{
-			qDebug() << "sendDataToUsers() : Netmode = to superpeer";
+			//qDebug() << "sendDataToUsers() : Netmode = to superpeer";
 			sessionList.push_back( superPeerSession_ );
 		}
 		else if( sessionList_.size() > 0 )
 		{
-			qDebug() << "sendDataToUsers() : Netmode = I'm superpeer";
+			//qDebug() << "sendDataToUsers() : Netmode = I'm superpeer";
 			sessionList = sessionList_;
 		}
 		else if( relayServerSession_ && relayServerSession_->session()->isConnected() )
 		{
-			qDebug() << "sendDataToUsers() : Netmode = to relay server";
+			//qDebug() << "sendDataToUsers() : Netmode = to relay server";
 			sessionList.push_back( relayServerSession_ );
 		}
 		else
@@ -862,9 +862,14 @@ private:
 		return false;
 	}
 
+	inline bool isRelayServerMode( void )
+	{
+		return relayServerSession_ != NULL;
+	}
+
 	inline bool isAlwaysP2PMode( void )
 	{
-		return relayServerSession_ == NULL;	// TODO : isAwaysP2PMode
+		return relayServerSession_ == NULL;
 	}
 
 	void _requestSyncData( void );
@@ -969,7 +974,7 @@ private:
 	}
 	void fireObserver_ResizeMainWindow( int width, int height )
 	{
-		qDebug() << "fireObserver_ResizeMainWindow" << width << height;
+		//qDebug() << "fireObserver_ResizeMainWindow" << width << height;
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
 
@@ -1021,6 +1026,7 @@ private:
 	}
 	void fireObserver_ClearScreen( void )
 	{
+		// clear here for giving a chance to handle current item data.
 		clearAllItems();
 
 		std::list<ISharedPaintEvent *> observers = observers_;
@@ -1028,6 +1034,7 @@ private:
 		{
 			(*it)->onISharedPaintEvent_ClearScreen( this );
 		}
+
 	}
 	void fireObserver_ClearBackground( void )
 	{
@@ -1188,7 +1195,16 @@ protected:
 	virtual void onINetPeerServerEvent_Accepted( boost::shared_ptr<CNetPeerServer> server, boost::shared_ptr<CNetPeerSession> session )
 	{
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
-		
+
+		if( isRelayServerMode() )
+		{
+			if( isMySelfSuperPeer() == false )
+			{
+				session->close();
+				return;
+			}
+		}
+
 		mutexSession_.lock();
 		sessionList_.push_back( userSession );
 		mutexSession_.unlock();

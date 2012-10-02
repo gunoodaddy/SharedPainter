@@ -52,7 +52,7 @@
  `QT_DIR` : qt home directory. <br>
  `BOOST_DIR` : boost home directory <br>
 
-## Server Requirements
+### Server Requirements
 * coconut network library 
 * libevent
 * boost 1.47+

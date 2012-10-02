@@ -102,7 +102,7 @@ bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask
 
 void CSharedPaintCommandManager::playbackTo( int position )
 {
-	qDebug() << "playbackTo()" << position;
+	//qDebug() << "playbackTo()" << position;
 	if( currentPlayPos_ < position )
 	{
 		_playforwardTo( currentPlayPos_, position );
@@ -125,7 +125,7 @@ void CSharedPaintCommandManager::_playforwardTo( int from, int to )
 
 	for( int i = from + 1; i <= to; i++ )
 	{
-		qDebug() << "_playforwardTo" << i << from << to;
+		//qDebug() << "_playforwardTo" << i << from << to;
 		if( isAllowPainterToDraw( historyTaskList_[i]->owner() ) )
 			historyTaskList_[i]->execute();
 	}
@@ -140,7 +140,7 @@ void CSharedPaintCommandManager::_playbackwardTo( int from, int to )
 
 	for( int i = from; i > to; i-- )
 	{
-		qDebug() << "_playbackwardTo" << i << from << to;
+		//qDebug() << "_playbackwardTo" << i << from << to;
 		if( isAllowPainterToDraw( historyTaskList_[i]->owner() ) )
 			historyTaskList_[i]->rollback();
 	}

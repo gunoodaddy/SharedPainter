@@ -34,12 +34,12 @@ boost::thread::id CDefferedCaller::mainThreadId_ = boost::this_thread::get_id();
 
 CDefferedCaller::CDefferedCaller(void) : autoDelete_(false)
 {
-	qDebug() << "CDefferedCaller()" << this;
+	//qDebug() << "CDefferedCaller()" << this;
 }
 
 CDefferedCaller::~CDefferedCaller(void)
 {
-	qDebug() << "~CDefferedCaller()" << this << autoDelete_;
+	//qDebug() << "~CDefferedCaller()" << this << autoDelete_;
 }
 
 bool CDefferedCaller::isMainThread( void )

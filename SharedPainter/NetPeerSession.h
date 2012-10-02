@@ -48,12 +48,12 @@ public:
 	CNetPeerSession( boost::asio::io_service& io_service, int sessionId ) 
 		: io_service_(io_service), sessionId_(sessionId), stopped_(true), connected_(false), evtTarget_(NULL), clientsocket_(io_service), deadline_(io_service) 
 	{ 
-		qDebug() << "CNetPeerSession(void) " << this;
+		//qDebug() << "CNetPeerSession(void) " << this;
 	}
 
 	~CNetPeerSession( void )
 	{
-		qDebug() << "~CNetPeerSession(void) " << this;
+		//qDebug() << "~CNetPeerSession(void) " << this;
 		close();
 	}
 

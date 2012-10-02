@@ -41,12 +41,12 @@ public:
 		, broadCastPort_(0), sendMsgSecond_(DEFAULT_SEND_SEC), sentCount_(0)
 		, stopBroadCastMsgFlag_(true), broadcast_timer_(io_service)
 	{
-		qDebug() << "CNetBroadCastSession" << this;
+		//qDebug() << "CNetBroadCastSession" << this;
 	}
 
 	~CNetBroadCastSession(void)
 	{
-		qDebug() << "~CNetBroadCastSession" << this;
+		//qDebug() << "~CNetBroadCastSession" << this;
 		close();
 	}
 

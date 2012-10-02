@@ -179,7 +179,7 @@ private:
 					return false;
 
 				currHeaderLen_ += buffer_.readInt16( currCode_ );
-				qDebug() << "============================ packet recved " << currCode_;
+				//qDebug() << "CPacketSlicer::packet recved " << currCode_;
 				if( currCode_ >= CODE_MAX )
 				{
 					init();

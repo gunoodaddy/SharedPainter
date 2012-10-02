@@ -38,12 +38,12 @@ public:
 	CNetUdpSession( boost::asio::io_service& io_service ) 
 		: io_service_(io_service), socket_(io_service), evtTarget_(NULL)
 	{
-		qDebug() << "CNetUdpSession" << this;
+		//qDebug() << "CNetUdpSession" << this;
 	}
 
 	~CNetUdpSession(void)
 	{
-		qDebug() << "~CNetUdpSession" << this;
+		//qDebug() << "~CNetUdpSession" << this;
 		close();
 	}
 

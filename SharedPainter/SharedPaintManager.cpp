@@ -539,15 +539,17 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 						connectSuperPeerFlag = true;
 					}
 				}
-			}
 
-            qDebug() << "CODE_SYSTEM_RES_JOIN recved" << firstUserFlag << connectSuperPeerFlag << (relayServerSession_ ? true : false) << syncStartedFlag_;
+				superPeerId_ = superId;
 
-			if( false == firstUserFlag 
-				&& false == connectSuperPeerFlag 
-				&& relayServerSession_ )
-			{
-				_requestSyncData();
+				qDebug() << "CODE_SYSTEM_RES_JOIN recved" << firstUserFlag << connectSuperPeerFlag << (relayServerSession_ ? true : false) << syncStartedFlag_;
+
+				if( false == firstUserFlag
+					&& false == connectSuperPeerFlag
+					&& relayServerSession_ )
+				{
+					_requestSyncData();
+				}
 			}
 		}
 		break;

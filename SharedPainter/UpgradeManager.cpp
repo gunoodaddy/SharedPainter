@@ -87,7 +87,7 @@ void CUpgradeManager::doJob( void )
 
 	if( prevState != upgradeState_ )
 	{
-		qDebug() << "CUpgradeManager::doJob >> STATE CHANGED : " << upgradeState_;
+		//qDebug() << "CUpgradeManager::doJob >> STATE CHANGED : " << upgradeState_;
 		prevState = upgradeState_;
 	}
 
@@ -236,5 +236,6 @@ void CUpgradeManager::finished(QNetworkReply *reply)
 
 void CUpgradeManager::downloadProgress(qint64 done, qint64 total)
 {
-	qDebug() << "dataReadProgress" << done << total;
+	if( total == done )
+		qDebug() << "CUpgradeManager::dataReadProgress complete" << done << total;
 }

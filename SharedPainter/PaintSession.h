@@ -51,15 +51,15 @@ public:
 	CPaintSession( boost::shared_ptr<CNetPeerSession> session, IPaintSessionEvent *evt ) : session_(session), evtTarget_(evt)
 	{
 		session_->setEvent( this );
-		qDebug() << "CPaintSession(void) " << this;
+		//qDebug() << "CPaintSession(void) " << this;
 	}
 	
 	~CPaintSession(void) 
 	{
-		qDebug() << "~CPaintSession(void) start" << this;
+		//qDebug() << "~CPaintSession(void) start" << this;
 		session_->close();
 		session_->setEvent( NULL );
-		qDebug() << "~CPaintSession(void) end" << this;
+		//qDebug() << "~CPaintSession(void) end" << this;
 	}
 
 	int sessionId( void )

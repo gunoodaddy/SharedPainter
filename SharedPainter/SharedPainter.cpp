@@ -50,7 +50,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 #define ADD_CHAT_VERTICAL_SPACE_CHAT_BIG()	ADD_CHAT_VERTICAL_SPACE(3)
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags), canvas_(canvas), currPaintItemId_(1), currPacketId_(-1)
+	: QMainWindow(parent, flags), canvas_(canvas), modifiedFlag_(false), currPacketId_(-1)
 	, changeScrollPosFreezingFlag_(false), resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
 	, screenShotMode_(false), exitFlag_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
@@ -520,11 +520,59 @@ void SharedPainter::actionImportFile( void )
 	{
 		QMessageBox::critical( this, "", tr("cannot import this file. or this file is not compatible with this version.") );
 	}
+
+	modifiedFlag_ = false;
 }
 
-void SharedPainter::actionLastItem( void )
+
+void SharedPainter::exportToFile( const std::string &data, const QString & path )
 {
-	canvas_->drawLastItemBorderRect();
+	QFile f(path);
+	if( !f.open( QIODevice::WriteOnly ) )
+	{
+		QMessageBox::warning( this, "", tr("cannot open file.") );
+		return;
+	}
+
+	QDataStream out(&f);
+	int ret = out.writeRawData( data.c_str(), data.size() );
+	if( ret != (int)data.size() )
+	{
+		QMessageBox::warning( this, "", tr("failed to save.") );
+		return;
+	}
+}
+
+void SharedPainter::autoExportToFile( void )
+{
+	if( !SettingManagerPtr()->isAutoSaveData() || !modifiedFlag_ )
+		return;
+
+	QString autoPath = qApp->applicationDirPath() + QDir::separator() + DEFAULT_AUTO_SAVE_FILE_PATH + QDir::separator();
+	QDir dir( autoPath );
+	if ( !dir.exists() )
+		dir.mkpath( autoPath );
+
+	autoPath += DEFAULT_AUTO_SAVE_FILE_NAME_PREFIX;
+	autoPath += QDateTime::currentDateTime().toString( "yyMMddhhmmss");
+	autoPath += ".sp";
+
+	qDebug() << "autoExportToFile" << autoPath;
+
+	std::string allData = SharePaintManagerPtr()->serializeData();
+	exportToFile( allData, autoPath );
+}
+
+void SharedPainter::actionExportFile( void )
+{
+	std::string allData = SharePaintManagerPtr()->serializeData();
+
+	QString path;
+	path = QFileDialog::getSaveFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );
+	if( path.isEmpty() )
+		return;
+
+	exportToFile( allData, path );
 }
 
 void SharedPainter::actionSaveImageFile( void )
@@ -539,32 +587,11 @@ void SharedPainter::actionSaveImageFile( void )
 	canvas_->render(&painter);
 
 	newImage.save( path );
-
 }
 
-void SharedPainter::actionExportFile( void )
+void SharedPainter::actionLastItem( void )
 {
-	std::string allData = SharePaintManagerPtr()->serializeData();
-
-	QString path;
-	path = QFileDialog::getSaveFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );
-	if( path.isEmpty() )
-		return;
-
-	QFile f(path);
-	if( !f.open( QIODevice::WriteOnly ) )
-	{
-		QMessageBox::warning( this, "", tr("cannot open file.") );
-		return;
-	}
-
-	QDataStream out(&f);
-	int ret = out.writeRawData( allData.c_str(), allData.size() );
-	if( ret != allData.size() )
-	{
-		QMessageBox::warning( this, "", tr("failed to save.") );
-		return;
-	}
+	canvas_->drawLastItemBorderRect();
 }
 
 void SharedPainter::actionGridLine( void )
@@ -1209,7 +1236,6 @@ void SharedPainter::splitterMoved( int pos, int index )
 void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
 {
 	item->setOwner( SharePaintManagerPtr()->myId() );
-	item->setItemId( currPaintItemId_++ );
 
 	SharePaintManagerPtr()->addPaintItem( item );
 }

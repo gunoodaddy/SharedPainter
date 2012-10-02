@@ -38,7 +38,6 @@ public:
 	CSharedPaintItemList( const std::string &owner ) : owner_(owner) { }
 	~CSharedPaintItemList( void )
 	{
-		qDebug() << "~CSharedPaintItemList";
 	}
 
 	bool addItem( boost::shared_ptr<CPaintItem> item )
@@ -46,6 +45,7 @@ public:
 		std::pair< ITEM_MAP::iterator, bool > ret = itemMap_.insert( ITEM_MAP::value_type(item->itemId(), item) );
 		if( ! ret.second )
 		{
+			qDebug() << "CSharedPaintItemList::addItem : critical error!" << item->owner().c_str() << item->itemId();
 			return false;
 		}
 

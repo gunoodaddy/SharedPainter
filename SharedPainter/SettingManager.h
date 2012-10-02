@@ -80,6 +80,9 @@ public:
 	bool isRelayServerConnectOnStarting( void ) { return serverConnectOnStart_; }
 	void setRelayServerConnectOnStarting( bool enable ) { serverConnectOnStart_ = enable; }
 
+	bool isAutoSaveData( void ) { return autoSaveData_; }
+	void setAutoSaveData( bool enable ) { autoSaveData_ = enable; }
+
 	void load( void );
 	void save( void );
 
@@ -96,6 +99,7 @@ private:
 	bool syncWindowSize_;
 	bool serverConnectOnStart_;
 	bool blinkLastItem_;
+	bool autoSaveData_;
 
 	QTimer *timer_;
 };

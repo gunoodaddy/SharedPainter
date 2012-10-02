@@ -288,7 +288,8 @@ private:
 	void addYourChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
 	void addMyChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
 	void addBroadcastChatMessage(  const QString & channel, const QString & userId, const QString &nickName, const QString &chatMsg );
-
+	void exportToFile( const std::string &data, const QString & path );
+	void autoExportToFile( void );
 	void sendChatMessage( void );
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
 	void setCheckGridLineAction( bool checked );
@@ -407,6 +408,7 @@ protected:
 			::FlashWindow( winId(), TRUE);
 #endif
 		}
+		modifiedFlag_ = true;
 	}
 	
 	virtual void onISharedPaintEvent_SyncStart( CSharedPaintManager *self )
@@ -442,7 +444,9 @@ protected:
 
 	virtual void onISharedPaintEvent_AddTask( CSharedPaintManager *self, int totalTaskCount, bool playBackWorking )
 	{
-		qDebug() << "onISharedPaintEvent_AddTask" << totalTaskCount << playBackWorking;
+		modifiedFlag_ = true;
+
+		//qDebug() << "onISharedPaintEvent_AddTask" << totalTaskCount << playBackWorking;
 		toolBar_SliderPlayback_->setRange( 0, totalTaskCount );
 		playbackSliderFreezingFlag_ = true;
 		if( ! playBackWorking )
@@ -489,34 +493,48 @@ protected:
 
 	virtual void onISharedPaintEvent_ClearScreen( CSharedPaintManager *self )
 	{
+		autoExportToFile();
+
 		setCheckGridLineAction( false );
 
 		// clear playback info
+		playbackSliderFreezingFlag_ = true;
 		toolBar_SliderPlayback_->setRange( 0, 0 );
 		setStatusBar_PlaybackStatus( 0, 0 );
+		playbackSliderFreezingFlag_ = false;
 		
 		// thaw canvas
 		canvas_->thawAction();
+
+		modifiedFlag_ = false;
 	}
 
 	virtual void onISharedPaintEvent_SetBackgroundGridLine( CSharedPaintManager *self, int size )
 	{
+		modifiedFlag_ = true;
+
 		setCheckGridLineAction( size > 0 );
 		canvas_->drawBackgroundGridLine( size );
 	}
 
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) 
 	{
+		modifiedFlag_ = true;
+
 		canvas_->drawBackgroundImage( image );
 	}
 
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a )
 	{
+		modifiedFlag_ = true;
+
 		canvas_->setBackgroundColor( r, g, b, a );
 	}
 
 	virtual void onISharedPaintEvent_ClearBackground( CSharedPaintManager *self )
 	{
+		modifiedFlag_ = true;
+
 		setCheckGridLineAction( false );
 		canvas_->drawBackgroundGridLine( 0 );
 		canvas_->clearBackgroundImage();
@@ -524,6 +542,8 @@ protected:
 
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height )
 	{
+		modifiedFlag_ = true;
+
 		if( SettingManagerPtr()->isSyncWindowSize() == false )
 			return;
 
@@ -534,11 +554,15 @@ protected:
 
 	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height )
 	{
+		modifiedFlag_ = true;
+
 		canvas_->setSceneRect(0, 0, width, height);
 	}
 
 	virtual void onISharedPaintEvent_ChangeCanvasScrollPos( CSharedPaintManager *self, int posH, int posV )
 	{
+		modifiedFlag_ = true;
+
 		if( SettingManagerPtr()->isSyncWindowSize() == false )
 			return;
 
@@ -552,6 +576,8 @@ protected:
 
 	virtual	void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes )
 	{
+		modifiedFlag_ = true;
+
 		if( SettingManagerPtr()->isSyncWindowSize() == false )
 			return;
 
@@ -666,8 +692,7 @@ private:
 	Ui::SharedPainterClass ui;
 
 	CSharedPainterScene* canvas_;
-
-	int currPaintItemId_;
+	bool modifiedFlag_;
 	int currPacketId_;
 	bool changeScrollPosFreezingFlag_;
 	bool resizeFreezingFlag_;

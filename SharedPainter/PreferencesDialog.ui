@@ -95,6 +95,19 @@
       <string>Blink last Item always</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="checkBoxAutoSaveData">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>110</y>
+       <width>331</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Automatically save data before screen will be cleared</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QPushButton" name="cancelButton">

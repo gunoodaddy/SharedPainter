@@ -378,6 +378,8 @@ public:
 		if( ! enabled_ )
 			return false;
 
+		item->setItemId( commandMngr_.generateItemId() );
+
 		std::string msg = PaintPacketBuilder::CCreateItem::make( item );
 		sendDataToUsers( msg );
 
@@ -1026,15 +1028,14 @@ private:
 	}
 	void fireObserver_ClearScreen( void )
 	{
-		// clear here for giving a chance to handle current item data.
-		clearAllItems();
-
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_ClearScreen( this );
 		}
 
+		// clear here for giving a chance to handle current item data.
+		clearAllItems();
 	}
 	void fireObserver_ClearBackground( void )
 	{

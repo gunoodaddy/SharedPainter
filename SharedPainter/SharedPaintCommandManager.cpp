@@ -69,6 +69,34 @@ void CSharedPaintCommandManager::setAllowPainterToDraw( const std::string &userI
 	}
 }
 
+void CSharedPaintCommandManager::addHistoryItem( boost::shared_ptr<CPaintItem> item )
+{
+	boost::recursive_mutex::scoped_lock autolock(mutex_);
+
+	boost::shared_ptr<CSharedPaintItemList> itemList;
+	ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
+	if( it != userItemListMap_.end() )
+	{
+		itemList = it->second;
+	}
+	else
+	{
+		itemList = boost::shared_ptr<CSharedPaintItemList>( new CSharedPaintItemList( item->owner() ) );
+		userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
+	}
+
+	if(itemList->addItem( item ))
+		historyItemSet_.insert( item );
+	else
+	{
+		std::string error = "Internal error. cannot insert task. : ";
+		char id[500];
+		sprintf( id, "owner = %s, itemid= %d", item->owner().c_str(), item->itemId() );
+		error += id;
+		gCaller.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ShowErrorMessage, spManager_, error ) );
+	}
+}
+
 bool CSharedPaintCommandManager::executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData )
 {
 	task->setSharedPaintManager( spManager_ );

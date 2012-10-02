@@ -41,6 +41,9 @@
 #define PROGRAM_UPGRADER_FILE_NAME	"Upgrader"
 #endif
 
+#define DEFAULT_AUTO_SAVE_FILE_PATH			"autosave"
+#define DEFAULT_AUTO_SAVE_FILE_NAME_PREFIX	"auto_saved_"
+
 #ifdef Q_WS_WIN
 #define REMOTE_UPGRADE_VERSION_URL	"https://raw.github.com/gunoodaddy/SharedPainter/master/release/version_win.txt"
 #define REMOTE_UPGRADE_PATCH_URL	"https://raw.github.com/gunoodaddy/SharedPainter/master/release/patch_win.zip"

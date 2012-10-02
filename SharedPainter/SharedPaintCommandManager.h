@@ -97,6 +97,12 @@ public:
 		return historyTaskList_;
 	}
 
+	int generateItemId( void )
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutex_);
+		return historyItemSet_.size() + 1;
+	}
+
 	bool executeTask( boost::shared_ptr<CSharedPaintTask> task, bool sendData = true );
 
 	bool executeCommand( boost::shared_ptr< CSharedPaintCommand > command )
@@ -165,25 +171,7 @@ public:
 
 	void playbackTo( int position );
 
-	void addHistoryItem( boost::shared_ptr<CPaintItem> item )
-	{
-		boost::recursive_mutex::scoped_lock autolock(mutex_);
-
-		boost::shared_ptr<CSharedPaintItemList> itemList;
-		ITEM_LIST_MAP::iterator it = userItemListMap_.find( item->owner() );
-		if( it != userItemListMap_.end() )
-		{
-			itemList = it->second;
-		}
-		else
-		{
-			itemList = boost::shared_ptr<CSharedPaintItemList>( new CSharedPaintItemList( item->owner() ) );
-			userItemListMap_.insert( ITEM_LIST_MAP::value_type(item->owner(), itemList) );
-		}
-
-		if(itemList->addItem( item ))
-			historyItemSet_.insert( item );
-	}
+	void addHistoryItem( boost::shared_ptr<CPaintItem> item );
 
 	boost::shared_ptr<CPaintItem> findItem( const std::string &owner, int itemId )
 	{
@@ -228,7 +216,6 @@ protected:
 	typedef std::stack< boost::shared_ptr< CSharedPaintCommand > > COMMAND_LIST;
 
 	CSharedPaintManager *spManager_;
-
 	TASK_LIST historyTaskList_;
 	ITEM_SET historyItemSet_;		// for iterating
 	ITEM_LIST_MAP userItemListMap_;	// for searching

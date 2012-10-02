@@ -240,7 +240,7 @@ void CSharedPainterScene::onTimer( void )
 
 void CSharedPainterScene::sceneRectChanged(const QRectF &rect)
 {
-	qDebug() << "sceneRectChanged" << rect;
+	//qDebug() << "sceneRectChanged" << rect;
 	resetBackground( rect );
 }
 

@@ -3,6 +3,8 @@
 <img src="https://raw.github.com/gunoodaddy/SharedPainter/master/SharedPainterIntro.png"/>
 
 ## Features
+* Tested on win32
+* Tested on mac
 * Automatically server finding by udp broadcast (only available for the same network)
 * Available to using relay server
 * TCP directly connection to host (host with NAT not available yet..)
@@ -30,7 +32,7 @@
 * Figure drawing
 
 ## Requirement
-* Now, you can build with Qt Creator (tested in Windows only..)
+* Now, you can build with Qt Creator 
 
 ### Common Requirements
 * Qt 4.8.2+ (http://qt-project.org/downloads) <br>

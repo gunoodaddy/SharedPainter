@@ -70,7 +70,7 @@ static bool isCompatibleVersion( const std::string &version )
 CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL)
 , listenTcpPort_(-1), listenUdpPort_(-1), retryServerReconnectCount_(0), lastConnectMode_(INIT_MODE), lastConnectPort_(-1)
 , findingServerMode_(false)
-, lastWindowWidth_(0), lastWindowHeight_(0), lastCanvasWidth_(0), lastCanvasHeight_(0), gridLineSize_(0)
+, lastWindowWidth_(0), lastWindowHeight_(0), lastCanvasWidth_(0), lastCanvasHeight_(0), lastScrollHPos_(-1), lastScrollVPos_(-1), gridLineSize_(0)
 , lastPacketId_(-1)
 {
 	// create my user info
@@ -755,7 +755,7 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 		break;
 	case CODE_WINDOW_CHANGE_CANVAS_SCROLL_POS:
 		{
-			int posH, posV;
+			boost::int16_t posH, posV;
 			if( WindowPacketBuilder::CChangeCanvasScrollPos::parse( packetData->body, posH, posV ) )
 			{
 				if( posH < 0 || posV < 0 )

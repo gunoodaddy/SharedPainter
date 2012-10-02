@@ -108,6 +108,19 @@
       <string>Automatically save data before screen will be cleared</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="checkBoxHighQualityMoveItem">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>140</y>
+       <width>331</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>High quality move items mode</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QPushButton" name="cancelButton">

@@ -295,6 +295,7 @@ void SharedPainter::applySetting( void )
 	SharePaintManagerPtr()->changeNickName( SettingManagerPtr()->nickName() );
 	SharePaintManagerPtr()->setPaintChannel( SettingManagerPtr()->paintChannel() );
 	canvas_->setSettingShowLastAddItemBorder( SettingManagerPtr()->isBlinkLastItem() );
+	canvas_->setHighQualityMoveItems( SettingManagerPtr()->isHighQualityMoveItemMode() );
 }
 
 
@@ -357,11 +358,13 @@ void SharedPainter::onPlaybackSliderValueChanged( int value )
 
 	if( playback )
 	{
+		SharePaintManagerPtr()->setEnabled( false );
 		if( canvas_->freezeAction() )
 			qApp->setOverrideCursor(QCursor(QPixmap(":/SharedPainter/Resources/draw_disabled.png"))); 
 	}
 	else
 	{
+		SharePaintManagerPtr()->setEnabled( true );
 		qApp->restoreOverrideCursor(); 
 		canvas_->thawAction();
 	}
@@ -524,44 +527,6 @@ void SharedPainter::actionImportFile( void )
 	modifiedFlag_ = false;
 }
 
-
-void SharedPainter::exportToFile( const std::string &data, const QString & path )
-{
-	QFile f(path);
-	if( !f.open( QIODevice::WriteOnly ) )
-	{
-		QMessageBox::warning( this, "", tr("cannot open file.") );
-		return;
-	}
-
-	QDataStream out(&f);
-	int ret = out.writeRawData( data.c_str(), data.size() );
-	if( ret != (int)data.size() )
-	{
-		QMessageBox::warning( this, "", tr("failed to save.") );
-		return;
-	}
-}
-
-void SharedPainter::autoExportToFile( void )
-{
-	if( !SettingManagerPtr()->isAutoSaveData() || !modifiedFlag_ )
-		return;
-
-	QString autoPath = qApp->applicationDirPath() + QDir::separator() + DEFAULT_AUTO_SAVE_FILE_PATH + QDir::separator();
-	QDir dir( autoPath );
-	if ( !dir.exists() )
-		dir.mkpath( autoPath );
-
-	autoPath += DEFAULT_AUTO_SAVE_FILE_NAME_PREFIX;
-	autoPath += QDateTime::currentDateTime().toString( "yyMMddhhmmss");
-	autoPath += ".sp";
-
-	qDebug() << "autoExportToFile" << autoPath;
-
-	std::string allData = SharePaintManagerPtr()->serializeData();
-	exportToFile( allData, autoPath );
-}
 
 void SharedPainter::actionExportFile( void )
 {
@@ -949,6 +914,44 @@ void SharedPainter::actionClipboardPaste( void )
 	 }
 }
 
+void SharedPainter::exportToFile( const std::string &data, const QString & path )
+{
+	QFile f(path);
+	if( !f.open( QIODevice::WriteOnly ) )
+	{
+		QMessageBox::warning( this, "", tr("cannot open file.") );
+		return;
+	}
+
+	QDataStream out(&f);
+	int ret = out.writeRawData( data.c_str(), data.size() );
+	if( ret != (int)data.size() )
+	{
+		QMessageBox::warning( this, "", tr("failed to save.") );
+		return;
+	}
+}
+
+void SharedPainter::autoExportToFile( void )
+{
+	if( !SettingManagerPtr()->isAutoSaveData() || !modifiedFlag_ )
+		return;
+
+	QString autoPath = qApp->applicationDirPath() + QDir::separator() + DEFAULT_AUTO_SAVE_FILE_PATH + QDir::separator();
+	QDir dir( autoPath );
+	if ( !dir.exists() )
+		dir.mkpath( autoPath );
+
+	autoPath += DEFAULT_AUTO_SAVE_FILE_NAME_PREFIX;
+	autoPath += QDateTime::currentDateTime().toString( "yyMMddhhmmss");
+	autoPath += ".sp";
+
+	qDebug() << "autoExportToFile" << autoPath;
+
+	std::string allData = SharePaintManagerPtr()->serializeData();
+	exportToFile( allData, autoPath );
+}
+
 void SharedPainter::updateWindowTitle( void )
 {
 	// Title
@@ -1240,13 +1243,7 @@ void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
 	SharePaintManagerPtr()->addPaintItem( item );
 }
 
-
-void SharedPainter::onICanvasViewEvent_BeginMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
-{
-	// nothing to do
-}
-
-void SharedPainter::onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
+void SharedPainter::onICanvasViewEvent_MoveItem( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )
 {
 	SharePaintManagerPtr()->movePaintItem( item );
 }

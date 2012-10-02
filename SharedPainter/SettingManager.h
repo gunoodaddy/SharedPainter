@@ -41,47 +41,35 @@ public:
 	CSettingManager(void);
 	~CSettingManager(void);
 
-	const std::string myId( void ) { return myId_; }
-	void setMyId( const std::string & id )
-	{
-		myId_ = id;
-	}
+	const std::string &myId( void ) { return myId_; }
+	void setMyId( const std::string & id ) { myId_ = id; }
 
-	const std::string peerAddress( void ) { return peerAddress_; }
-	void setPeerAddress( const std::string & addr )
-	{
-		peerAddress_ = addr;
-	}
+	const std::string &peerAddress( void ) { return peerAddress_; }
+	void setPeerAddress( const std::string & addr ) { peerAddress_ = addr; }
 
-	const std::string relayServerAddress( void ) { return relayServerAddress_; }
-	void setRelayServerAddress( const std::string & addr )
-	{
-		relayServerAddress_ = addr;
-	}
+	const std::string &relayServerAddress( void ) { return relayServerAddress_; }
+	void setRelayServerAddress( const std::string & addr ) { relayServerAddress_ = addr; }
 
-	const std::string paintChannel( void) { return paintChannel_; }
-	void setPaintChannel( const std::string & channel )
-	{
-		paintChannel_ = channel;
-	}
+	const std::string &paintChannel( void) { return paintChannel_; }
+	void setPaintChannel( const std::string & channel ) { paintChannel_ = channel; }
 
-	const std::string nickName( void) { return nickName_; }
-	void setNickName( const std::string & nickName )
-	{
-		nickName_ = nickName;
-	}
+	const std::string &nickName( void) { return nickName_; }
+	void setNickName( const std::string & nickName ) { nickName_ = nickName; }
 
 	bool isBlinkLastItem( void ) { return blinkLastItem_; }
-	void setBlinkLastItem( bool enable ) { blinkLastItem_ = enable; }
+	void setBlinkLastItem( bool enabled ) { blinkLastItem_ = enabled; }
 
 	bool isSyncWindowSize( void ) { return syncWindowSize_; }
-	void setSyncWindowSize( bool enable ) { syncWindowSize_ = enable; }
+	void setSyncWindowSize( bool enabled ) { syncWindowSize_ = enabled; }
 
 	bool isRelayServerConnectOnStarting( void ) { return serverConnectOnStart_; }
-	void setRelayServerConnectOnStarting( bool enable ) { serverConnectOnStart_ = enable; }
+	void setRelayServerConnectOnStarting( bool enabled ) { serverConnectOnStart_ = enabled; }
 
 	bool isAutoSaveData( void ) { return autoSaveData_; }
-	void setAutoSaveData( bool enable ) { autoSaveData_ = enable; }
+	void setAutoSaveData( bool enabled ) { autoSaveData_ = enabled; }
+
+	bool isHighQualityMoveItemMode( void ) { return hiqhQualityMoveItemMode_; }
+	void setHighQualityMoveItemMode( bool enabled ) { hiqhQualityMoveItemMode_ = enabled; }
 
 	void load( void );
 	void save( void );
@@ -100,6 +88,7 @@ private:
 	bool serverConnectOnStart_;
 	bool blinkLastItem_;
 	bool autoSaveData_;
+	bool hiqhQualityMoveItemMode_;
 
 	QTimer *timer_;
 };

@@ -36,7 +36,7 @@ namespace WindowPacketBuilder
 	class CChangeCanvasScrollPos
 	{
 	public:
-		static std::string make( int scrollH, int scrollV, const std::string *target = NULL )
+		static std::string make( boost::int16_t scrollH, boost::int16_t scrollV, const std::string *target = NULL )
 		{
 			int pos = 0;
 			try
@@ -52,7 +52,7 @@ namespace WindowPacketBuilder
 			return "";
 		}
 
-		static bool parse( const std::string &body, int &scrollH, int &scrollV )
+		static bool parse( const std::string &body, boost::int16_t &scrollH, boost::int16_t &scrollV )
 		{
 			int pos = 0;
 			try

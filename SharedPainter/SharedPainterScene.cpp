@@ -85,14 +85,13 @@ public:
 
 	QVariant itemChange( QGraphicsItem::GraphicsItemChange change, const QVariant & value )
 	{
-		if( change == ItemPositionChange )
+		if( change == QGraphicsItem::ItemPositionHasChanged )
 		{
-			QPointF newPos = value.toPointF();
-
 			if( boost::shared_ptr<CPaintItem> r = itemData_.lock() )
 			{
-				r->setPos( newPos.x(), newPos.y() );
-				scene_->onItemMoveEnd( r );
+				QPointF newPos = value.toPointF();
+
+				scene_->onItemMoving( r, newPos );
 				return newPos;
 			}
 		}
@@ -191,7 +190,9 @@ private:
 
 
 CSharedPainterScene::CSharedPainterScene(void )
-: eventTarget_(NULL), freezeActionFlag_(false), drawFlag_(false), freePenMode_(false), currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
+: eventTarget_(NULL), freezeActionFlag_(false), drawFlag_(false), freePenMode_(false)
+, hiqhQualityMoveItemMode_(false)
+, currentZValue_(ZVALUE_NORMAL), gridLineSize_(0)
 , lastCoverGraphicsItem_(NULL), timeoutRemoveLastCoverItem_(0), lastTempBlinkShowFlag_(false), showLastAddItemBorderFlag_(false)
 {
 	backgroundColor_ = Qt::white;
@@ -723,17 +724,39 @@ void CSharedPainterScene::drawBackground ( QPainter * painter, const QRectF & re
 	painter->drawImage(rect, image_, rect);
 }
 
-void CSharedPainterScene::onItemMoveBegin( boost::shared_ptr< CPaintItem > item)
-{
-	clearLastItemBorderRect();
 
-	eventTarget_->onICanvasViewEvent_BeginMove( this, item );
+void CSharedPainterScene::doLowQualityMoveItems( void )
+{
+	if( tempMovingItemList_.size() <= 0 )
+		return;
+
+	ITEM_SET::iterator it = tempMovingItemList_.begin();
+	for( ; it != tempMovingItemList_.end(); it++ )
+	{
+		boost::shared_ptr<CPaintItem> item = *it;
+
+		QAbstractGraphicsShapeItem* i = reinterpret_cast<QAbstractGraphicsShapeItem *>(item->drawingObject());
+		if( ! i )
+			continue;
+
+		item->setPos( i->pos().x(), i->pos().y() );
+		eventTarget_->onICanvasViewEvent_MoveItem( this, item );
+	}
+
+	tempMovingItemList_.clear();
 }
 
-void CSharedPainterScene::onItemMoveEnd( boost::shared_ptr< CPaintItem > item )
+void CSharedPainterScene::onItemMoving(boost::shared_ptr< CPaintItem > item, const QPointF & newPos)
 {
-	//qDebug() << "onItemMovingEnd" << item->posX() << item->posY();
-	eventTarget_->onICanvasViewEvent_EndMove( this, item );
+	if( hiqhQualityMoveItemMode_ )
+	{
+		item->setPos( newPos.x(), newPos.y() );
+		eventTarget_->onICanvasViewEvent_MoveItem( this, item );
+	}
+	else
+	{
+		tempMovingItemList_.insert( item );
+	}
 }
 
 void CSharedPainterScene::onItemUpdate( boost::shared_ptr< CPaintItem > item )
@@ -896,11 +919,12 @@ void CSharedPainterScene::mouseMoveEvent( QGraphicsSceneMouseEvent *evt )
 	prevPos_ = to;
 }
 
-
 void CSharedPainterScene::mouseReleaseEvent( QGraphicsSceneMouseEvent *evt )
 {
 	if( !freePenMode_)
 	{
+		doLowQualityMoveItems();
+
 		QGraphicsScene::mouseReleaseEvent( evt );
 		return;
 	}

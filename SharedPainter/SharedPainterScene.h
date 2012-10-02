@@ -38,8 +38,7 @@ class CSharedPainterScene;
 class ICanvasViewEvent
 {
 public:
-	virtual void onICanvasViewEvent_BeginMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item ) = 0;
-	virtual void onICanvasViewEvent_EndMove( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item ) = 0;
+	virtual void onICanvasViewEvent_MoveItem( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item ) = 0;
 	virtual void onICanvasViewEvent_DrawItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onICanvasViewEvent_UpdateItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
 	virtual void onICanvasViewEvent_RemoveItem( CSharedPainterScene *view, boost::shared_ptr<CPaintItem> item ) = 0;
@@ -160,6 +159,9 @@ public:
 	bool isSettingShowLastAddItemBorder( void ) { return showLastAddItemBorderFlag_; }
 	void setSettingShowLastAddItemBorder( bool enable )
 	{
+		if( showLastAddItemBorderFlag_ == enable )
+			return;
+
 		showLastAddItemBorderFlag_ = enable;
 		if( enable )
 			drawLastItemBorderRect();
@@ -176,6 +178,9 @@ public:
 			list.at(i)->setSelected( false );
 		}
 	}
+
+	void setHighQualityMoveItems( bool enabled = true ) { hiqhQualityMoveItemMode_ = enabled; }
+	bool isHighQualityMoveItems( void ) { return hiqhQualityMoveItemMode_; }
 
 public:
 	// IGluePaintCanvas
@@ -220,10 +225,10 @@ private:
 	void dragMoveEvent( QGraphicsSceneDragDropEvent * evt );
 	void dropEvent( QGraphicsSceneDragDropEvent * evt );
 	void keyPressEvent( QKeyEvent * evt );
+
 	// for CMyGraphicItem
 public:	
-	void onItemMoveBegin( boost::shared_ptr< CPaintItem > );
-	void onItemMoveEnd( boost::shared_ptr< CPaintItem > );
+	void onItemMoving( boost::shared_ptr< CPaintItem >, const QPointF&);
 	void onItemUpdate( boost::shared_ptr< CPaintItem > );
 	void onItemRemove( boost::shared_ptr< CPaintItem > );
 	void onItemClipboardCopy( boost::shared_ptr< CPaintItem > );
@@ -246,6 +251,7 @@ private:
 	void resizeImage(QImage *image, const QSize &newSize);
 	void drawLineStart( const QPointF &pt, const QColor &clr, int width );
 	void drawLineTo( const QPointF &pt1, const QPointF &pt2, const QColor &clr, int width );
+	void doLowQualityMoveItems( void );
 	void setScaleImageFileItem( boost::shared_ptr<CImageFileItem> image, QGraphicsPixmapItem *pixmapItem );
 	void commonAddItem( boost::shared_ptr<CPaintItem> item, QGraphicsItem *drawingItem, int borderType );
 	void internalDrawGridLine( QPainter *painter, const QRectF &rect, int gridLineSize );
@@ -264,6 +270,7 @@ private:
 	bool freezeActionFlag_;
 	bool drawFlag_;
 	bool freePenMode_;
+	bool hiqhQualityMoveItemMode_;
 	QImage image_;
 	QPixmap backgroundPixmap_;
 
@@ -271,6 +278,7 @@ private:
 	boost::shared_ptr<CLineItem> currLineItem_;
 
 	std::vector< QGraphicsItem * > tempLineItemList_;
+	ITEM_SET tempMovingItemList_;
 
 	QFileIconProvider fileIconProvider_;
 	qreal currentZValue_;

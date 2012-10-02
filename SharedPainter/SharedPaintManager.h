@@ -361,11 +361,17 @@ public:
 
 	void redoCommand( void )
 	{
+		if( ! enabled_ )
+			return;
+
 		commandMngr_.redoCommand();
 	}
 
 	void undoCommand( void )
 	{
+		if( ! enabled_ )
+			return;
+
 		commandMngr_.undoCommand();
 	}
 
@@ -1435,8 +1441,8 @@ private:
 	int lastWindowHeight_;
 	int lastCanvasWidth_;
 	int lastCanvasHeight_;
-	int lastScrollHPos_;
-	int lastScrollVPos_;
+	boost::int16_t lastScrollHPos_;
+	boost::int16_t lastScrollVPos_;
 	std::vector<int> lastWindowSplitterSizes_;
 	QColor backgroundColor_;
 	int gridLineSize_;

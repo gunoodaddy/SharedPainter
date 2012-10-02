@@ -72,6 +72,7 @@ void CSettingManager::load( void )
 	serverConnectOnStart_ = settings.value( "serverConnectOnStart", true ).toBool();
 	blinkLastItem_ = settings.value( "blinkLastItem", true ).toBool();
 	autoSaveData_ = settings.value( "autoSaveData", true ).toBool();
+	hiqhQualityMoveItemMode_ = settings.value( "highQualityMoveItem", false ).toBool();
 	settings.endGroup();
 
 	settings.beginGroup( "network" );
@@ -100,6 +101,7 @@ void CSettingManager::save( void )
 	settings.setValue( "serverConnectOnStart", serverConnectOnStart_ );
 	settings.setValue( "blinkLastItem", blinkLastItem_ );
 	settings.setValue( "autoSaveData", autoSaveData_ );
+	settings.setValue( "highQualityMoveItem", hiqhQualityMoveItemMode_ );
 	settings.endGroup();
 
 	settings.beginGroup( "network" );

@@ -6,7 +6,7 @@
 * Tested on win32
 * Tested on mac
 * Automatically server finding by udp broadcast (only available for the same network)
-* Available to using relay server
+* Available to use relay server
 * TCP directly connection to host (host with NAT not available yet..)
 * Multiuser sharing
 * Free Pen Object

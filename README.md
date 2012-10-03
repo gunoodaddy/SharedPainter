@@ -26,10 +26,10 @@
 * Channel Chatting
 * Broadcast Chatting (only available for the same network)
 * Auto version update feature
-* Multi-objects selecting by mouse dragging.
+* Auto-save file(export) before items are cleared
 
 ## TODO
-* Figure drawing
+* Basic figure drawing
 
 ## Requirement
 * Now, you can build with Qt Creator 

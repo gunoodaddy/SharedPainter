@@ -50,7 +50,7 @@ static const int DEFAULT_HIDE_POS_Y = 9999;
 #define ADD_CHAT_VERTICAL_SPACE_CHAT_BIG()	ADD_CHAT_VERTICAL_SPACE(3)
 
 SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags), canvas_(canvas), modifiedFlag_(false), currPacketId_(-1)
+	: QMainWindow(parent, flags), canvas_(canvas), enabledPainter_(true), modifiedFlag_(false), currPacketId_(-1)
 	, changeScrollPosFreezingFlag_(false), resizeFreezingFlag_(false), resizeSplitterFreezingFlag_(false), playbackSliderFreezingFlag_(false)
 	, screenShotMode_(false), exitFlag_(false), wroteProgressBar_(NULL)
 	, lastTextPosX_(0), lastTextPosY_(0), status_(INIT), findingServerWindow_(NULL), syncProgressWindow_(NULL)
@@ -117,7 +117,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		QMenu* penMenu = edit->addMenu( "Pen Setting" );
 		penWidthAction_ = penMenu->addAction( "Pen &Width", this, SLOT(actionPenWidth()), Qt::ALT+Qt::Key_V );
 		penMenu->addAction( "Pen &Color", this, SLOT(actionPenColor()), Qt::ALT+Qt::Key_C );
-		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::ALT+Qt::Key_A );
+		penModeAction_ = edit->addAction( "Pen Mode", this, SLOT(actionPenMode()), Qt::Key_A );
 		edit->addAction( "&Text", this, SLOT(actionAddText()), Qt::Key_Enter|Qt::Key_Return );
 		gridLineAction_ = edit->addAction( "&Draw Grid Line", this, SLOT(actionGridLine()));
 		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_B );
@@ -149,7 +149,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		options->addAction( "&Nick Name", this, SLOT(actionNickName()) );
 		options->addAction( "&Paint Channel", this, SLOT(actionPaintChannel()), Qt::CTRL+Qt::Key_H );
 		options->addSeparator();
-		options->addAction( "&Preferences", this, SLOT(actionPreferences()) );
+		options->addAction( "&Preferences", this, SLOT(actionPreferences()), Qt::CTRL+Qt::Key_P  );
 		menuBar->addMenu( options );
 
 		gridLineAction_->setCheckable( true );
@@ -353,19 +353,31 @@ void SharedPainter::onPlaybackSliderValueChanged( int value )
 
 	bool playback = SharePaintManagerPtr()->isPlaybackMode();
 
-	if( playback )
+	setEnabledPainter( !playback );
+}
+
+
+void SharedPainter::setEnabledPainter( bool enabled )
+{
+	if( enabledPainter_ == enabled )
+		return;
+
+	enabledPainter_ = enabled;
+
+	if( enabled )
 	{
-		SharePaintManagerPtr()->setEnabled( false );
-		if( canvas_->freezeAction() )
-			qApp->setOverrideCursor(QCursor(QPixmap(":/SharedPainter/Resources/draw_disabled.png"))); 
+		canvas_->thawAction();
+		qApp->restoreOverrideCursor();
 	}
 	else
 	{
-		SharePaintManagerPtr()->setEnabled( true );
-		qApp->restoreOverrideCursor(); 
-		canvas_->thawAction();
+		if( canvas_->freezeAction() )
+			qApp->setOverrideCursor(QCursor(QPixmap(":/SharedPainter/Resources/draw_disabled.png")));
 	}
+
+	SharePaintManagerPtr()->setEnabled( enabled );
 }
+
 
 void SharedPainter::onTrayMessageClicked( void )
 {
@@ -495,33 +507,13 @@ void SharedPainter::addBroadcastChatMessage( const QString & channel, const QStr
 	updateLastChatTime();
 }
 
-
 void SharedPainter::actionImportFile( void )
 {
 	QString path;
 
 	path = QFileDialog::getOpenFileName( this, tr("Export to file"), "", tr("Shared Paint Data File (*.sp)") );
 
-	if( path.isEmpty() )
-		return;
-
-	QFile f(path);
-	if( !f.open( QIODevice::ReadOnly ) )
-	{
-		QMessageBox::warning( this, "", tr("cannot open file.") );
-		return;
-	}
-
-	QByteArray byteArray;
-	byteArray = f.readAll();
-
-	SharePaintManagerPtr()->clearScreen( true );
-	if( ! SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() ) )
-	{
-		QMessageBox::critical( this, "", tr("cannot import this file. or this file is not compatible with this version.") );
-	}
-
-	modifiedFlag_ = false;
+	importFromFile( path );
 }
 
 
@@ -799,6 +791,8 @@ void SharedPainter::actionClearScreen( void )
 	}
 
 	SharePaintManagerPtr()->clearScreen();
+
+	SettingManagerPtr()->setLastAutoSavePath( "" );
 }
 
 void SharedPainter::actionUndo( void )
@@ -906,6 +900,32 @@ void SharedPainter::actionClipboardPaste( void )
 	 }
 }
 
+
+void SharedPainter::importFromFile( const QString & path )
+{
+	if( path.isEmpty() )
+		return;
+
+	QFile f(path);
+	if( !f.open( QIODevice::ReadOnly ) )
+	{
+		QMessageBox::warning( this, "", tr("cannot open file.") );
+		return;
+	}
+
+	QByteArray byteArray;
+	byteArray = f.readAll();
+
+	SharePaintManagerPtr()->clearScreen( true );
+	if( ! SharePaintManagerPtr()->deserializeData( byteArray.data(), byteArray.size() ) )
+	{
+		QMessageBox::critical( this, "", tr("cannot import this file. or this file is not compatible with this version.") );
+	}
+
+	modifiedFlag_ = false;
+}
+
+
 void SharedPainter::exportToFile( const std::string &data, const QString & path )
 {
 	QFile f(path);
@@ -926,22 +946,40 @@ void SharedPainter::exportToFile( const std::string &data, const QString & path 
 
 void SharedPainter::autoExportToFile( void )
 {
-	if( !SettingManagerPtr()->isAutoSaveData() || !modifiedFlag_ )
-		return;
-
 	QString autoPath = qApp->applicationDirPath() + QDir::separator() + DEFAULT_AUTO_SAVE_FILE_PATH + QDir::separator();
 	QDir dir( autoPath );
 	if ( !dir.exists() )
 		dir.mkpath( autoPath );
 
 	autoPath += DEFAULT_AUTO_SAVE_FILE_NAME_PREFIX;
-	autoPath += QDateTime::currentDateTime().toString( "yyMMddhhmmss");
-	autoPath += ".sp";
+
+	if( exitFlag_ )
+	{
+		autoPath += "last.sp";
+	}
+	else
+	{
+		if( !SettingManagerPtr()->isAutoSaveData() || !modifiedFlag_ )
+			return;
+
+
+		autoPath += QDateTime::currentDateTime().toString( "yyMMddhhmmss");
+		autoPath += ".sp";
+	}
 
 	qDebug() << "autoExportToFile" << autoPath;
 
 	std::string allData = SharePaintManagerPtr()->serializeData();
 	exportToFile( allData, autoPath );
+
+	SettingManagerPtr()->setLastAutoSavePath( Util::toUtf8StdString(autoPath) );
+}
+
+void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
+{
+	item->setOwner( SharePaintManagerPtr()->myId() );
+
+	SharePaintManagerPtr()->addPaintItem( item );
 }
 
 void SharedPainter::updateWindowTitle( void )
@@ -1087,6 +1125,7 @@ void SharedPainter::onAppSafeStarted( void )
 	getNickNameString();
 
 	// automatically relay server connect
+	bool connectFlag = false;
 	if( SettingManagerPtr()->isRelayServerConnectOnStarting() )
 	{
 		QString address( SettingManagerPtr()->relayServerAddress().c_str() );
@@ -1096,8 +1135,16 @@ void SharedPainter::onAppSafeStarted( void )
 			std::string ip = list.at(0).toStdString();
 			int port = list.at(1).toInt();
 			SharePaintManagerPtr()->requestJoinServer( ip, port, SettingManagerPtr()->paintChannel() );
+			connectFlag = true;
 		}
 	}
+
+	if( false == connectFlag )
+	{
+		// load last auto saved file
+		importFromFile( Util::toStringFromUtf8(SettingManagerPtr()->lastAutoSavePath()) );
+	}
+
 }
 
 void SharedPainter::showEvent( QShowEvent * evt )
@@ -1151,8 +1198,8 @@ void SharedPainter::closeEvent( QCloseEvent *evt )
 		painterListWindow_ = NULL;
 	}
 
-	SettingManagerPtr()->save();
 	SharePaintManagerPtr()->clearScreen( false );
+	SettingManagerPtr()->save();
 
 	QMainWindow::closeEvent( evt );
 }
@@ -1225,14 +1272,6 @@ void SharedPainter::splitterMoved( int pos, int index )
 	resizeFreezingFlag_ = true;
 	resizeEvent( NULL );
 	resizeFreezingFlag_ = prevFlag;
-}
-
-
-void SharedPainter::requestAddItem( boost::shared_ptr<CPaintItem> item )
-{
-	item->setOwner( SharePaintManagerPtr()->myId() );
-
-	SharePaintManagerPtr()->addPaintItem( item );
 }
 
 void SharedPainter::onICanvasViewEvent_MoveItem( CSharedPainterScene *view, boost::shared_ptr< CPaintItem > item )

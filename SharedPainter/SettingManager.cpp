@@ -61,6 +61,7 @@ void CSettingManager::load( void )
 	settings.beginGroup( "private" );
 	if( false == _multi_instance_mode )
 		myId_ = Util::toUtf8StdString( settings.value( "myId" ).toString() );
+	lastAutoSavePath_ = Util::toUtf8StdString( settings.value( "lastAutoSavePath" ).toString() );
 	settings.endGroup();
 
 	settings.beginGroup( "personal" );
@@ -90,6 +91,7 @@ void CSettingManager::save( void )
 	settings.beginGroup( "private" );
 	if( false == _multi_instance_mode )
 		settings.setValue( "myId", Util::toStringFromUtf8(myId_) );
+	settings.setValue( "lastAutoSavePath", Util::toStringFromUtf8(lastAutoSavePath_) );
 	settings.endGroup();
 
 	settings.beginGroup( "personal" );

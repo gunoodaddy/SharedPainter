@@ -56,6 +56,9 @@ public:
 	const std::string &nickName( void) { return nickName_; }
 	void setNickName( const std::string & nickName ) { nickName_ = nickName; }
 
+	const std::string &lastAutoSavePath( void) { return lastAutoSavePath_; }
+	void setLastAutoSavePath( const std::string & path ) { lastAutoSavePath_ = path; }
+
 	bool isBlinkLastItem( void ) { return blinkLastItem_; }
 	void setBlinkLastItem( bool enabled ) { blinkLastItem_ = enabled; }
 
@@ -84,6 +87,7 @@ private:
 	std::string peerAddress_;
 	std::string relayServerAddress_;
 	std::string nickName_;
+	std::string lastAutoSavePath_;
 	bool syncWindowSize_;
 	bool serverConnectOnStart_;
 	bool blinkLastItem_;

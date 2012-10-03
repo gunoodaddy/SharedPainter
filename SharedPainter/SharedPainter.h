@@ -272,6 +272,7 @@ protected slots:
 	void actionPainterList( void );
 
 private:
+	void setEnabledPainter( bool enabled );
 	void updateWindowTitle( void );
 	void updateLastChatTime( void );
 	void addSystemMessage( const QString &chatMsg );
@@ -279,6 +280,7 @@ private:
 	void addMyChatMessage( const QString & userId, const QString &nickName, const QString &chatMsg );
 	void addBroadcastChatMessage(  const QString & channel, const QString & userId, const QString &nickName, const QString &chatMsg );
 	void exportToFile( const std::string &data, const QString & path );
+	void importFromFile( const QString & path );
 	void autoExportToFile( void );
 	void sendChatMessage( void );
 	void requestAddItem( boost::shared_ptr<CPaintItem> item );
@@ -494,6 +496,8 @@ protected:
 		setStatusBar_PlaybackStatus( 0, 0 );
 		playbackSliderFreezingFlag_ = false;
 		
+		setEnabledPainter( true );
+
 		// thaw canvas
 		canvas_->thawAction();
 
@@ -683,6 +687,7 @@ private:
 	Ui::SharedPainterClass ui;
 
 	CSharedPainterScene* canvas_;
+	bool enabledPainter_;
 	bool modifiedFlag_;
 	int currPacketId_;
 	bool changeScrollPosFreezingFlag_;

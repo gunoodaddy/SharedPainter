@@ -1,3 +1,8 @@
+0.8.8
+- auto save file(export) before clear screen
+- high quality move item option added
+- minor bug fix
+
 0.8.7
 - massive packet parse bug fix
 
@@ -32,5 +37,5 @@
 - tray icon removed on Mac
 - minor bug fix
 
-After restart this app, if you cannot see 0.8.7 string in the app's title bar,
+After restart this app, if you cannot see 0.8.8 string in the app's title bar,
 please tell gunoodaddy this issue.

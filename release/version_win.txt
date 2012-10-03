@@ -1,3 +1,7 @@
+0.8.9
+- auto load last saved file on init
+- playback minor bug fix
+
 0.8.8
 - auto save file(export) before clear screen
 - high quality move item option added

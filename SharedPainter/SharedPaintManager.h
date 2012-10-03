@@ -1265,9 +1265,6 @@ protected:
 	// IPaintSessionEvent
 	virtual void onIPaintSessionEvent_Connected( CPaintSession* session )
 	{
-		if( isFindingServerMode() )
-			broadCastSessionForFinder_->pauseSend();
-
 		if( isSuperPeerSession(session) )
 		{
 			_requestSyncData();
@@ -1316,9 +1313,6 @@ protected:
 	virtual void onIPaintSessionEvent_Disconnected( CPaintSession * session )
 	{
 		tryReconnectToRelayServer( session );
-
-		if( isFindingServerMode() )
-			broadCastSessionForFinder_->resumeSend();
 
 		if( isConnected() == false )
 			caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_DisConnected, this ) );

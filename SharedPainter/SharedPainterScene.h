@@ -289,7 +289,7 @@ private:
 	// blink last item
 	QTimer *timer_;
 	QGraphicsItem *lastCoverGraphicsItem_;
-	int lastTimeValue_;
+	qint64 lastTimeValue_;
 	int timeoutRemoveLastCoverItem_;
 	int lastItemBorderType_;
 	boost::shared_ptr<CPaintItem> lastAddItem_;

@@ -45,7 +45,7 @@
 #define CURSOR_OFFSET_X -10
 #define CURSOR_OFFSET_Y 9
 
-#define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	2	//sec
+#define DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM	600	//msec
 #define DEFAULT_COVER_RECT_OFFSET				5
 
 #define ITEM_SCALE_STEP	0.1f
@@ -203,7 +203,7 @@ CSharedPainterScene::CSharedPainterScene(void )
 
 	// Timer Setting
 	timer_ = new QTimer(this);
-	timer_->start(200);
+	timer_->start(150);
 	connect(timer_, SIGNAL(timeout()),this, SLOT(onTimer()));
 }
 
@@ -217,9 +217,9 @@ void CSharedPainterScene::onTimer( void )
 	if( NULL == lastCoverGraphicsItem_ || timeoutRemoveLastCoverItem_ <= 0 )
 		return;
 
-	int now = time(NULL);
-	int elapsedSec =  now - lastTimeValue_;
-	timeoutRemoveLastCoverItem_ -= elapsedSec;
+	qint64 now = QDateTime::currentDateTime().toMSecsSinceEpoch();
+	qint64 elapsedMSec =  now - lastTimeValue_;
+	timeoutRemoveLastCoverItem_ -= elapsedMSec;
 
 	if( timeoutRemoveLastCoverItem_ > 0)
 	{
@@ -379,7 +379,7 @@ void CSharedPainterScene::drawLastItemBorderRect( void  )
 
 	// clear
 	lastTempBlinkShowFlag_ = true;
-	lastTimeValue_ = time(NULL);
+	lastTimeValue_ = QDateTime::currentDateTime().toMSecsSinceEpoch();
 	timeoutRemoveLastCoverItem_ = DEFAULT_TIMEOUT_REMOVE_LAST_COVER_ITEM;
 }
 

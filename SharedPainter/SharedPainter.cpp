@@ -791,8 +791,6 @@ void SharedPainter::actionClearScreen( void )
 	}
 
 	SharePaintManagerPtr()->clearScreen();
-
-	SettingManagerPtr()->setLastAutoSavePath( "" );
 }
 
 void SharedPainter::actionUndo( void )

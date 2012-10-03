@@ -15,8 +15,8 @@
 * File Object (limit 200MB per a file)
 * Image File Object (limit 200MB per a file)
 * Image File Object Scale
-* Window Resize
-* All Objects Position
+* Window layout sync
+* All items position sync
 * Object Remove
 * Export/Import file
 * Undo/Redo

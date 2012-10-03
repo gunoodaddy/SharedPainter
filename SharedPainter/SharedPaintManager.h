@@ -379,6 +379,11 @@ public:
 	
 	std::string serializeData( const std::string *target = NULL );
 
+	boost::shared_ptr<CPaintItem> findPaintItem( const std::string & owner, int itemId )
+	{
+		return commandMngr_.findItem( owner, itemId );
+	}
+
 	bool addPaintItem( boost::shared_ptr<CPaintItem> item )
 	{
 		if( ! enabled_ )
@@ -531,6 +536,21 @@ public:
 
 		lastWindowSplitterSizes_ = sizes;
 		return sendDataToUsers( msg );
+	}
+
+private:
+	void clearAllItems( void )	// this function must be called on main thread!
+	{
+		qDebug() << "CSharedPaintManager::clearAllItems()";
+
+		assert( caller_.isMainThread() );
+
+		backgroundColor_ = Qt::white;
+		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
+		canvas_->clearScreen();
+
+		// all data clear
+		commandMngr_.clear();
 	}
 
 	// Playback
@@ -748,27 +768,6 @@ private:
 		return allData;
 	}
 
-public:
-	boost::shared_ptr<CPaintItem> findPaintItem( const std::string & owner, int itemId )
-	{
-		return commandMngr_.findItem( owner, itemId );
-	}
-
-private:
-	void clearAllItems( void )	// this function must be called on main thread!
-	{
-		qDebug() << "CSharedPaintManager::clearAllItems()";
-
-		assert( caller_.isMainThread() );
-
-		backgroundColor_ = Qt::white;
-		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
-		canvas_->clearScreen();
-
-		// all data clear
-		commandMngr_.clear();
-	}
-
 	boost::shared_ptr<CPaintSession> findSession( int sessionId )
 	{
 		boost::recursive_mutex::scoped_lock autolock(mutexSession_);
@@ -982,7 +981,6 @@ private:
 	}
 	void fireObserver_ResizeMainWindow( int width, int height )
 	{
-		//qDebug() << "fireObserver_ResizeMainWindow" << width << height;
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
 
@@ -1409,8 +1407,6 @@ protected:
 				sendInfoDataMap_.erase( it );
 			}
 		}
-
-		//qDebug() << "sendInfoDataMap_.noti !!i!!" << packet->packetId() << wroteBytes << totalBytes << "====" << packet->buffer().remainingSize() << packet->buffer().totalSize();
 
 		caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_SendingPacket, this, packet->packetId(), wroteBytes, totalBytes ) );
 	}

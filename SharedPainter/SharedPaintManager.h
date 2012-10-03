@@ -119,6 +119,18 @@ public:
 		return myUserInfo_->userId();
 	}
 
+	void closeSession( void )
+	{
+		setEnabled( true );
+
+		clearAllUsers();
+		clearAllSessions();
+		stopFindingServer();
+
+		syncStartedFlag_ = false;
+		findingServerMode_ = false;
+	}
+
 	void close( void )
 	{
 		// all clear session, item, status
@@ -126,14 +138,8 @@ public:
 
 		clearScreen( false );	// DO NOT NOTIFY TO OTHERS.. JUST TRIGGER CLEAR SCREEN EVENT
 		clearAllItems();
-		clearAllUsers();
-		clearAllSessions();
-		setEnabled( true );
 
-		stopFindingServer();
-
-		syncStartedFlag_ = false;
-		findingServerMode_ = false;
+		closeSession();
 	}
 
 	void setCanvas( IGluePaintCanvas *canvas )

@@ -217,19 +217,16 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	// create status bar
 	{
 		statusBarLabel_ = new QLabel();
-		broadCastTypeLabel_ = new QLabel();
 		joinerCountLabel_ = new QLabel();
 		playbackStatusLabel_ = new QLabel();
 		wroteProgressBar_ = new QProgressBar();
 		networkInfoLabel_ = new QLabel();
-		ui.statusBar->addPermanentWidget( broadCastTypeLabel_ );
 		ui.statusBar->addPermanentWidget( joinerCountLabel_ );
 		ui.statusBar->addPermanentWidget( playbackStatusLabel_, 1 );
 		ui.statusBar->addPermanentWidget( wroteProgressBar_ );
 		ui.statusBar->addPermanentWidget( networkInfoLabel_ );
 		ui.statusBar->addPermanentWidget( statusBarLabel_ );
 
-		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		setStatusBar_JoinerCnt( 1 );	// my self 
 		setStatusBar_PlaybackStatus( 0, 0 );
 	}
@@ -816,7 +813,7 @@ void SharedPainter::actionRedo( void )
 
 void SharedPainter::actionCloseConnection( void )
 {
-	SharePaintManagerPtr()->close();
+	SharePaintManagerPtr()->closeSession();
 }
 
 void SharedPainter::actionPreferences( void )
@@ -867,17 +864,12 @@ void SharedPainter::actionFindingServer( void )
 	{
 		if( SharePaintManagerPtr()->startFindingServer() )
 		{
-			setStatusBar_BroadCastType( STR_NET_MODE_FINDING_SERVER );
-
 			showFindingServerWindow();
 		}
-		else
-			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 	}
 	else
 	{
 		SharePaintManagerPtr()->stopFindingServer();
-		setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 	}
 }
 

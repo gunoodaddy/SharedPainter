@@ -42,9 +42,6 @@
 #include "UpgradeWindow.h"
 #include "PainterListWindow.h"
 
-#define STR_NET_MODE_INIT			tr("Waiting.. ")
-#define STR_NET_MODE_FINDING_SERVER	tr("Finding Server.. ")
-
 class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent, IUpgradeEvent
 {
 	Q_OBJECT
@@ -73,11 +70,6 @@ public:
 	{
 		QString realStr = str + "  ";
 		statusBarLabel_->setText( realStr );
-	}
-	void setStatusBar_BroadCastType( const QString &str )
-	{
-		QString realStr = str + "  ";
-		broadCastTypeLabel_->setText( realStr );
 	}
 	void setStatusBar_JoinerCnt( int count )
 	{
@@ -173,7 +165,6 @@ public:
 		if( findingServerWindow_ && findingServerWindow_->isCanceled() )
 		{
 			SharePaintManagerPtr()->stopFindingServer();
-			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		}
 		if( findingServerWindow_ )	delete findingServerWindow_;
 		findingServerWindow_ = NULL;
@@ -184,7 +175,6 @@ public:
 		if( findingServerWindow_ )
 		{
 			findingServerWindow_->reject();
-			setStatusBar_BroadCastType( STR_NET_MODE_INIT );
 		}
 	}
 
@@ -397,6 +387,8 @@ protected:
 		setStatus( DISCONNECTED );
 
 		hideSyncProgressWindow();
+
+		setStatusBar_JoinerCnt( self->userCount() );
 	}
 
 	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self )
@@ -700,7 +692,6 @@ private:
 	bool screenShotMode_;
 	bool exitFlag_;
 	QPoint orgPos_;
-	QLabel *broadCastTypeLabel_;
 	QLabel *statusBarLabel_;
 	QLabel *joinerCountLabel_;
 	QLabel *playbackStatusLabel_;

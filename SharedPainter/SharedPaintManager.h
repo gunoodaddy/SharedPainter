@@ -435,9 +435,6 @@ public:
 
 	int sendBackgroundImage( boost::shared_ptr<CBackgroundImageItem> image )
 	{
-		if( ! enabled_ )
-			return false;
-
 		if( !image )
 			return -1;
 
@@ -452,9 +449,6 @@ public:
 
 	void setBackgroundColor( int r, int g, int b, int a )
 	{
-		if( ! enabled_ )
-			return;
-
 		std::string msg = PaintPacketBuilder::CSetBackgroundColor::make( r, g, b, a );
 		sendDataToUsers( msg );
 
@@ -463,9 +457,6 @@ public:
 
 	void clearBackground( void )
 	{
-		if( ! enabled_ )
-			return;
-
 		// data init..
 		backgroundImageItem_ = boost::shared_ptr<CBackgroundImageItem>();
 
@@ -477,9 +468,6 @@ public:
 
 	void clearScreen( bool sendData = true )
 	{
-		if( ! enabled_ )
-			return;
-
 		if( sendData )
 		{
 			std::string msg = PaintPacketBuilder::CClearScreen::make();
@@ -491,9 +479,6 @@ public:
 
 	void setBackgroundGridLine( int size )
 	{
-		if( ! enabled_ )
-			return;
-
 		std::string msg = PaintPacketBuilder::CSetBackgroundGridLine::make( size );
 		sendDataToUsers( msg );
 
@@ -502,9 +487,6 @@ public:
 
 	int notifyChangeCanvasScrollPos( int scrollH, int scrollV )
 	{
-		if( ! enabled_ )
-			return -1;
-
 		std::string msg = WindowPacketBuilder::CChangeCanvasScrollPos::make( scrollH, scrollV );
 		lastScrollHPos_ = scrollH;
 		lastScrollVPos_ = scrollV;
@@ -513,9 +495,6 @@ public:
 	
 	int notifyResizingCanvas( int width, int height )
 	{
-		if( ! enabled_ )
-			return -1;
-
 		std::string msg = WindowPacketBuilder::CResizeCanvas::make( width, height );
 		lastCanvasWidth_ = width;
 		lastCanvasHeight_ = height;
@@ -524,9 +503,6 @@ public:
 
 	int notifyResizingMainWindow( int width, int height )
 	{
-		if( ! enabled_ )
-			return -1;
-
 		std::string msg = WindowPacketBuilder::CResizeMainWindow::make( width, height );
 		lastWindowWidth_ = width;
 		lastWindowHeight_ = height;
@@ -535,9 +511,6 @@ public:
 
 	int notifyResizingWindowSplitter( const std::vector<int> &sizes )
 	{
-		if( ! enabled_ )
-			return -1;
-
 		std::string msg = WindowPacketBuilder::CResizeWindowSplitter::make( sizes );
 
 		lastWindowSplitterSizes_ = sizes;

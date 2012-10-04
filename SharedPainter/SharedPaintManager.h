@@ -770,6 +770,8 @@ private:
 
 	bool _connectToSuperPeer( boost::shared_ptr<CPaintUser> user )
 	{
+		assert( false == user->isMyself() );
+
 		boost::shared_ptr<CNetPeerSession> session = NetServiceRunnerPtr()->newSession();
 		boost::shared_ptr<CPaintSession> userSession = boost::shared_ptr<CPaintSession>(new CPaintSession(session, this));
 
@@ -778,7 +780,6 @@ private:
 		mutexSession_.unlock();
 
 		// must be called here for preventing from a crash by thread race condition.
-
 		userSession->session()->connect( user->viewIPAddress(), user->listenTcpPort() );
 
 		return true;
@@ -786,7 +787,7 @@ private:
 
 	bool _connectToPeer( const std::string &addr, int port )
 	{
-		if( port == listenTcpPort_ )
+		if( port == listenTcpPort_ && ( addr == Util::getMyIPAddress() || addr == "localhost" ) )
 			return false;
 
 		boost::shared_ptr<CNetPeerSession> session = NetServiceRunnerPtr()->newSession();

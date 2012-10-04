@@ -37,7 +37,7 @@ bool CUpgradeManager::isAvailableUpgrade( void )
 	if( ! patchFileDownloaded_ )
 		return false;
 
-	if( std::string(VERSION_TEXT) >= remoteVersion_ )
+	if( Util::compareVersion( std::string(VERSION_TEXT), remoteVersion_ ) >= 0 )
 		return false;
 
 	return true;
@@ -182,7 +182,7 @@ void CUpgradeManager::processVersionInfoFile( void )
 
 	mutex_.unlock();
 
-	if( std::string(VERSION_TEXT) < remoteVersion_ )
+	if( Util::compareVersion( std::string(VERSION_TEXT), remoteVersion_ ) < 0 )
 		gotoNextState();
 	else
 	{

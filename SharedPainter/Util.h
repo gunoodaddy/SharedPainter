@@ -82,6 +82,36 @@ namespace Util
 		return true;
 	}
 
+	inline int compareVersion( const std::string &version1, const std::string &version2 )
+	{
+		int major1, minor1, rev1;
+		int major2, minor2, rev2;
+		if( !parseVersionString( version1, major1, minor1, rev1 ) )
+			return 0;	// exception
+		if( !parseVersionString( version2, major2, minor2, rev2 ) )
+			return 0;	// exception
+
+		if( major1 == major2 && minor1 == minor2 && rev1 == rev2 )	// most case
+			return 0;
+
+		if( major1 > major2 )
+			return 1;
+		else if( major1 < major2 )
+			return -1;
+
+		if( minor1 > minor2 )
+			return 1;
+		else if( minor1 < minor2 )
+			return -1;
+
+		if( rev1 > rev2 )
+			return 1;
+		else if( rev1 < rev2 )
+			return -1;
+
+		return 0;
+	}
+
 	inline bool checkKeyPressed( int virtKey )
 	{
 		bool res = false;

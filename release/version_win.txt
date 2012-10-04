@@ -50,5 +50,5 @@
 - tray icon removed on Mac
 - minor bug fix
 
-After restart this app, if you cannot see 0.9.0 string in the app's title bar,
+After restart this app, if you cannot see 0.9.1 string in the app's title bar,
 please tell gunoodaddy this issue.

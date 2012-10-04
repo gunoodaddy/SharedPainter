@@ -73,13 +73,14 @@ namespace SystemPacketBuilder
 
 	class CVersionInfo {
 	public:
-		static std::string make( const std::string &version )
+		static std::string make( const std::string &version, const std::string &protVersion )
 		{
 			try
 			{
 				int pos = 0;
 				std::string body;
 				pos += CPacketBufferUtil::writeString8( body, pos, version );
+				pos += CPacketBufferUtil::writeString8( body, pos, protVersion );
 
 				return CommonPacketBuilder::makePacket( CODE_SYSTEM_VERSION_INFO, body );
 			}catch(...)
@@ -88,12 +89,13 @@ namespace SystemPacketBuilder
 			return "";
 		}
 
-		static bool parse( const std::string &body, std::string &version )
+		static bool parse( const std::string &body, std::string &version, std::string &protVersion )
 		{
 			try
 			{
 				int pos = 0;
 				pos += CPacketBufferUtil::readString8( body, pos, version );
+				pos += CPacketBufferUtil::readString8( body, pos, protVersion );
 				return true;
 
 			}catch(...)

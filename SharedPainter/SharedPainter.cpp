@@ -272,7 +272,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	setStatusBar_NetworkInfo( Util::getMyIPAddress(), SharePaintManagerPtr()->acceptPort() );
 
 	// Create PaintList window
-	painterListWindow_ = new PainterListWindow( );
+	painterListWindow_ = new PainterListWindow( this );
 }
 
 SharedPainter::~SharedPainter()
@@ -986,6 +986,9 @@ void SharedPainter::updateWindowTitle( void )
 	QString newTitle = PROGRAME_TEXT;
 	newTitle += " Ver ";
 	newTitle += VERSION_TEXT;
+	newTitle += " (";
+	newTitle += PROTOCOL_VERSION_TEXT;
+	newTitle += ")";
 	newTitle += ", ";
 	newTitle += Util::toStringFromUtf8(SettingManagerPtr()->nickName());
 	newTitle += " - Channel : ";

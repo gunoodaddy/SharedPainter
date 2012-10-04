@@ -38,6 +38,12 @@ SyncDataProgressDialog::SyncDataProgressDialog(QWidget *parent)
 	QMovie *movie = new QMovie(":/SharedPainter/Resources/syncprogress.gif"); 
 	movie->start();
 	ui.labelAnimation->setMovie(movie); 
+
+	// Key Hooking Timer 
+	timer_ = new QTimer(this);
+	timer_->start(200);
+	connect(timer_, SIGNAL(timeout()),this, SLOT(onTimer()));
+
 }
 
 SyncDataProgressDialog::~SyncDataProgressDialog()
@@ -45,6 +51,13 @@ SyncDataProgressDialog::~SyncDataProgressDialog()
 
 }
 
+void SyncDataProgressDialog::onTimer( void )
+{
+	if( SharePaintManagerPtr()->isConnected() == false )
+	{
+		reject();
+	}
+}
 
 void SyncDataProgressDialog::onCancel( void )
 {

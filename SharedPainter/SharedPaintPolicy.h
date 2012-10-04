@@ -29,7 +29,9 @@
 
 #pragma once 
 
-#define VERSION_TEXT	"0.9.1"
+#define VERSION_TEXT			"0.10.1"
+#define PROTOCOL_VERSION_TEXT	"0.0.1"
+
 #define AUTHOR_TEXT		"gunoodaddy"
 #define PROGRAME_TEXT	"Shared Painter"
 

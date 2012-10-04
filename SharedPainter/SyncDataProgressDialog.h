@@ -50,10 +50,12 @@ public:
 
 private slots:
 	void onCancel( void );
+	void onTimer( void );
 
 private:
 	Ui::SyncDataProgressDialog ui;
 	bool cancel_;
+	QTimer *timer_;
 };
 
 #endif // SYNCDATAPROGRESSDIALOG_H

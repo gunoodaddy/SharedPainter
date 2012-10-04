@@ -25,7 +25,7 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>80</height>
+       <height>110</height>
       </size>
      </property>
      <property name="frameShape">
@@ -89,7 +89,7 @@
       <property name="geometry">
        <rect>
         <x>60</x>
-        <y>50</y>
+        <y>70</y>
         <width>141</width>
         <height>16</height>
        </rect>
@@ -101,8 +101,8 @@
      <widget class="QLabel" name="labelLink">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>60</y>
+        <x>10</x>
+        <y>90</y>
         <width>271</width>
         <height>16</height>
        </rect>
@@ -112,6 +112,19 @@
       </property>
       <property name="openExternalLinks">
        <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelProtVersion">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>53</y>
+        <width>181</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Version</string>
       </property>
      </widget>
     </widget>
@@ -197,8 +210,8 @@
    </item>
   </layout>
   <zorder>frame_2</zorder>
-  <zorder>frame</zorder>
   <zorder>editCurrentPatch</zorder>
+  <zorder>frame</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

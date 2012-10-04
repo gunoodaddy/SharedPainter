@@ -1247,7 +1247,7 @@ protected:
 	{
 		if( isSuperPeerSession(session) )
 		{
-			_requestSyncData();
+			_requestSyncData();	// only relay server mode
 		}
 
 		if( isRelayServerSession( session ) || isSuperPeerSession( session ) || isAlwaysP2PMode() )

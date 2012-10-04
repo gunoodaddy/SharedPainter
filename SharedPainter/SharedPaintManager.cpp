@@ -38,35 +38,6 @@
 
 #define	TIMEOUT_SYNC_MSEC	5000
 
-static bool isCompatibleVersion( const std::string &version )
-{
-	int major1, minor1, revision1;	// mine
-	int major2, minor2, revision2;	// yours
-
-	bool ret = Util::parseVersionString( VERSION_TEXT, major1, minor1, revision1 );
-	assert( ret );
-	
-	if( ! Util::parseVersionString( version, major2, minor2, revision2 ) )
-	{
-		qDebug() << "isCompatibleVersion : parseVersionString failed : " << version.c_str();
-		return false;
-	}
-
-	if( major1 != major2 )
-	{
-		qDebug() << "isCompatibleVersion : major diff : " << major1 << major2;
-		return false;
-	}
-	if( minor1 != minor2 )
-	{
-		qDebug() << "isCompatibleVersion : minor diff : " << minor1 << minor2;
-		return false;
-	}
-
-	return true;
-}
-
-
 CSharedPaintManager::CSharedPaintManager( void ) : enabled_(true), syncStartedFlag_(false), commandMngr_(this), canvas_(NULL)
 , listenTcpPort_(-1), listenUdpPort_(-1), retryServerReconnectCount_(0), lastConnectMode_(INIT_MODE), lastConnectPort_(-1)
 , findingServerMode_(false)
@@ -312,13 +283,13 @@ bool CSharedPaintManager::deserializeData( const char * data, size_t size )
 		return false;
 	}
 
-	std::string version;
-	if( ! SystemPacketBuilder::CVersionInfo::parse( packetData->body, version ) )
+	std::string version, protocolVersion;
+	if( ! SystemPacketBuilder::CVersionInfo::parse( packetData->body, version, protocolVersion ) )
 	{
 		return false;
 	}
 
-	if( ! isCompatibleVersion( version ) )
+	if( 0 != Util::compareVersion( PROTOCOL_VERSION_TEXT, protocolVersion ) )
 	{
 		return false;
 	}
@@ -342,7 +313,7 @@ std::string CSharedPaintManager::serializeData( const std::string *target )
 {
 	std::string allData;
 
-	allData += SystemPacketBuilder::CVersionInfo::make( VERSION_TEXT );
+	allData += SystemPacketBuilder::CVersionInfo::make( VERSION_TEXT, PROTOCOL_VERSION_TEXT );
 
 	// Window Size
 	allData += WindowPacketBuilder::CResizeMainWindow::make( lastWindowWidth_, lastWindowHeight_, target );
@@ -446,10 +417,10 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 	case CODE_SYSTEM_VERSION_INFO:
 		{
 			bool error = false;
-			std::string version;
-			if( SystemPacketBuilder::CVersionInfo::parse( packetData->body, version ) )
+			std::string version, protVersion;
+			if( SystemPacketBuilder::CVersionInfo::parse( packetData->body, version, protVersion ) )
 			{
-				if( ! isCompatibleVersion( version ) )
+				if( 0 != Util::compareVersion( PROTOCOL_VERSION_TEXT, protVersion ) )
 				{
 					error = true;
 				}
@@ -461,12 +432,11 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 
 			if( error )
 			{
-				std::string errorMsg = "Your version is not compatible with current users in this channel.";
-				errorMsg += "\n(";
-				errorMsg += version;
+				std::string errorMsg = "protocol version is not compatible";
+				errorMsg += " : ";
+				errorMsg += protVersion;
 				errorMsg += " <> ";
-				errorMsg += VERSION_TEXT;
-				errorMsg += ")";
+				errorMsg += PROTOCOL_VERSION_TEXT;
 
 				qDebug() << errorMsg.c_str();	// TEST TODO : REMOVE THIS
 				clearAllSessions();

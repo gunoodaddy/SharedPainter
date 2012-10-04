@@ -1,14 +1,14 @@
 #ifndef PAINTERLISTWINDOW_H
 #define PAINTERLISTWINDOW_H
 
-#include <QWidget>
+#include <QDialog>
 #include "PaintUser.h"
 
 namespace Ui {
 class PainterListWindow;
 }
 
-class PainterListWindow : public QWidget
+class PainterListWindow : public QDialog
 {
 	Q_OBJECT
 	

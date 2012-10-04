@@ -42,6 +42,11 @@ AboutWindow::AboutWindow(QWidget *parent)
 	QString version = "Ver ";
 	version += VERSION_TEXT;
 	ui.labelVersion->setText(version);
+
+	version = "Protocol Ver ";
+	version += PROTOCOL_VERSION_TEXT;
+	ui.labelProtVersion->setText(version);
+
 	ui.editCurrentPatch->document()->setDefaultStyleSheet(gStyleSheet_UpdateEdit);
 
 	std::string ver, patchContents;

@@ -5,7 +5,7 @@
 #include "SharedPaintManager.h"
 
 PainterListWindow::PainterListWindow(QWidget *parent) :
-	QWidget(parent),
+	QDialog(parent),
 	ui(new Ui::PainterListWindow)
 {
 	ui->setupUi(this);

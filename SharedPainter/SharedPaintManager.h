@@ -728,13 +728,24 @@ private:
 		{
 			joinerHistory_.push_back( user );
 
+			if( user->userId() == myId() )
+				user->setMyself();
+
 			commandMngr_.addPainter( user->userId() );
 		}
 	}
 
 	void clearAllHistoryUsers( void )
 	{
-		joinerHistory_.clear();
+		USER_LIST::iterator it = joinerHistory_.begin();
+		for( ; it != joinerHistory_.end(); )
+		{
+			if( (*it)->isMyself() == false )
+				it = joinerHistory_.erase(it);
+			else
+				it++;
+		}
+		assert( joinerHistory_.size() == 1 );
 	}
 
 	void clearAllUsers( void )

@@ -59,6 +59,7 @@ public:
 	void setSessionId( int sessionId ) { sessionId_ = sessionId; }
 	int sessionId( void ) { return sessionId_; }
 
+	void setMyself( void ) { mySelfFlag_ = true; }
 	void setData( const struct SPaintUserInfoData &info ) { data_ = info; }
 	void setNickName( const std::string & nick ) { data_.nickName = nick; }
 	void setChannel( const std::string & channel ) { data_.channel = channel; }

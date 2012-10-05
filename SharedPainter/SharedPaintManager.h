@@ -134,6 +134,8 @@ public:
 	void close( void )
 	{
 		// all clear session, item, status
+		assert( caller_.isMainThread() );
+
 		qDebug() << "CSharedPaintManager::close()";
 
 		clearScreen( false );	// DO NOT NOTIFY TO OTHERS.. JUST TRIGGER CLEAR SCREEN EVENT
@@ -358,6 +360,23 @@ public:
 
 	void sendBroadCastTextMessage( const std::string &paintChannel, const std::string &msg );
 
+	inline bool isMySelfSuperPeer( void ) 
+	{
+		if( ! superPeerSession_ && superPeerId_ == myUserInfo_->userId() )
+			return true;
+		return false;
+	}
+
+	inline bool isRelayServerMode( void )
+	{
+		return relayServerSession_ != NULL;
+	}
+
+	inline bool isAlwaysP2PMode( void )
+	{
+		return relayServerSession_ == NULL;
+	}
+
 	// Shared Paint Action
 public:
 	void setEnabled( bool enabled )
@@ -521,7 +540,6 @@ private:
 	void clearAllItems( void )	// this function must be called on main thread!
 	{
 		qDebug() << "CSharedPaintManager::clearAllItems()";
-
 		assert( caller_.isMainThread() );
 
 		backgroundColor_ = Qt::white;
@@ -530,6 +548,9 @@ private:
 
 		// all data clear
 		commandMngr_.clear();
+
+		// history must be removed with removing all paint item.
+		clearAllHistoryUsers();
 	}
 
 	// Playback
@@ -606,7 +627,6 @@ private:
 
 	void notifyRemoveUserInfo( boost::shared_ptr<CPaintUser> user )
 	{
-		qDebug() << "notifyRemoveUserInfo" << joinerMap_.size();
 		std::string msg = SystemPacketBuilder::CLeftUser::make( user->channel(), user->userId() );
 		sendDataToUsers( msg );
 	}
@@ -712,11 +732,17 @@ private:
 		}
 	}
 
+	void clearAllHistoryUsers( void )
+	{
+		joinerHistory_.clear();
+	}
+
 	void clearAllUsers( void )
 	{
 		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
 		joinerMap_.clear();
-		joinerHistory_.clear();
+
+		// DO NOT CALL clearAllHistoryUsers method here! (called in clearAllItems)
 
 		addUser( myUserInfo_ );
 	}
@@ -840,23 +866,6 @@ private:
 		if ( superPeerSession_ && session->sessionId() == superPeerSession_->sessionId() )
 			return true;
 		return false;
-	}
-
-	inline bool isMySelfSuperPeer( void ) 
-	{
-		if( ! superPeerSession_ && superPeerId_ == myUserInfo_->userId() )
-			return true;
-		return false;
-	}
-
-	inline bool isRelayServerMode( void )
-	{
-		return relayServerSession_ != NULL;
-	}
-
-	inline bool isAlwaysP2PMode( void )
-	{
-		return relayServerSession_ == NULL;
 	}
 
 	void _requestSyncData( void );

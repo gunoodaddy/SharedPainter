@@ -1092,13 +1092,24 @@ bool SharedPainter::getPaintChannelString( bool force )
 	{
 		if( SharePaintManagerPtr()->isConnected() || SharePaintManagerPtr()->isConnecting() )
 		{
-			int res = QMessageBox::question( this, "", tr("If you change the channel, your connection will be lost.\nDo you change the channel and reconnect?"), QMessageBox::Ok|QMessageBox::Cancel);
+			QString msg;
+			if( SharePaintManagerPtr()->isRelayServerMode() )
+			{
+				msg = tr("If the channel is changed, your connection will be lost.\nAre you sure to change the channel and reconnect?");
+				reconnectFlag = true;
+			}
+			else
+			{
+				msg = tr("If the channel is changed, your connection will be lost.\nAre you sure to change the channel?");
+			}
+
+			int res = QMessageBox::question( this, "", msg, QMessageBox::Ok | QMessageBox::Cancel);
 			if( res != QMessageBox::Ok )
 			{
 				return false;
 			}
 
-			reconnectFlag = true;
+			SharePaintManagerPtr()->closeSession();
 		}
 	}
 
@@ -1107,7 +1118,6 @@ bool SharedPainter::getPaintChannelString( bool force )
 
 	if( reconnectFlag )
 	{
-		SharePaintManagerPtr()->close();
 		SharePaintManagerPtr()->reconnect();
 	}
 

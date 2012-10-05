@@ -1,3 +1,7 @@
+0.10.1
+- [Close all connections] bug fix
+- when changing channel, only reconnect on relay server mode. 
+
 0.10.0
 - protocol version added for protocol compatability check
 

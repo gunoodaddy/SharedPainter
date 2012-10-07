@@ -41,6 +41,7 @@
 #include "SyncDataProgressDialog.h"
 #include "UpgradeWindow.h"
 #include "PainterListWindow.h"
+#include "ScreenRecoder.h"
 
 class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent, IUpgradeEvent
 {
@@ -270,6 +271,7 @@ protected slots:
 	void actionLastItem( void );
 	void actionPreferences( void );
 	void actionPainterList( void );
+	void actionScreenRecord( void );
 
 private:
 	void setEnabledPainter( bool enabled );
@@ -727,6 +729,8 @@ private:
 	SyncDataProgressDialog *syncProgressWindow_;
 
 	QString lastChatUserId_;
+
+	ScreenRecoder screenRecoder;
 };
 
 #endif // SHAREDPAINTER_H

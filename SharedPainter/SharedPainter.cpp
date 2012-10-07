@@ -122,6 +122,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		gridLineAction_ = edit->addAction( "&Draw Grid Line", this, SLOT(actionGridLine()));
 		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_B );
 		edit->addAction( "&Screen Shot", this, SLOT(actionScreenShot()), Qt::ALT+Qt::Key_S );
+		edit->addAction( "&Screen Record", this, SLOT(actionScreenRecord()), Qt::ALT+Qt::Key_R );
 		edit->addSeparator();
 		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
@@ -767,6 +768,15 @@ void SharedPainter::actionPenMode( void )
 	{
 		actionMoveMode();
 	}
+}
+
+
+void SharedPainter::actionScreenRecord( void )
+{
+	if( screenRecoder.isRecording() )
+		screenRecoder.recordStop();
+	else
+		screenRecoder.recordStart();
 }
 
 void SharedPainter::actionScreenShot( void )

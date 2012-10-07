@@ -10,11 +10,8 @@ int main(int argc, char *argv[])
 
 	ffmpegwrapper test;
 	test.init();
-	stringlist_t list = test.getDeviceList( "dshow" );
-	for( size_t i = 0; i < list.size(); i++ )
-	{
-		qDebug() << list[i].c_str();
-	}
+	test.videoCapture( "dshow" );
+
 
 	qDebug() << "App path : " << qApp->applicationDirPath() << "Current Path : " << QDir::currentPath();
 

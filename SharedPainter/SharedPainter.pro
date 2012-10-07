@@ -168,6 +168,7 @@ FFMPEG_INCLUDE_PATH = ../ffmpeg/include
 LIBS += -lavutil \
     -lavcodec \
     -lavformat \
+    -lavfilter \
     -lswscale
 
 # Add the path

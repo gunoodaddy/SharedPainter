@@ -2,10 +2,19 @@
 #include "sharedpainter.h"
 #include "SharedPainterScene.h"
 #include <QtGui/QApplication>
+#include "ffmpegwrapper.h"
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
+
+	ffmpegwrapper test;
+	test.init();
+	stringlist_t list = test.getDeviceList( "dshow" );
+	for( size_t i = 0; i < list.size(); i++ )
+	{
+		qDebug() << list[i].c_str();
+	}
 
 	qDebug() << "App path : " << qApp->applicationDirPath() << "Current Path : " << QDir::currentPath();
 

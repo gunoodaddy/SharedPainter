@@ -22,12 +22,14 @@ extern "C" {
 //#include "libavutil/timestamp.h"
 //#include "libavutil/bprint.h"
 #include "libavutil/time.h"
-
+ #include "libavformat/avformat.h"
 # include "libavfilter/avcodec.h"
 # include "libavfilter/avfilter.h"
 # include "libavfilter/avfiltergraph.h"
 # include "libavfilter/buffersrc.h"
 # include "libavfilter/buffersink.h"
+
+extern AVInputFormat ff_dshow_demuxer;
 }
 
 typedef std::vector<std::string> stringlist_t;

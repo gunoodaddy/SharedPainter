@@ -736,7 +736,7 @@ typedef struct AVStream {
      * Stream information used internally by av_find_stream_info()
      */
 #define MAX_STD_TIMEBASES (60*12+6)
-    struct {
+    struct stream_info{
         int64_t last_dts;
         int64_t duration_gcd;
         int duration_count;
@@ -752,7 +752,8 @@ typedef struct AVStream {
         int64_t fps_last_dts;
         int     fps_last_dts_idx;
 
-    } *info;
+    };
+	struct stream_info *info;
 
     int pts_wrap_bits; /**< number of bits in pts (used for wrapping control) */
 

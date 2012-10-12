@@ -27,6 +27,7 @@
 * Broadcast Chatting (only available for the same network)
 * Auto version update feature
 * Auto-save file(export) before items are cleared
+* Screen Recording feature added. BETA. only Windows 7. (not tested on Mac, etc)
 
 ## TODO
 * Basic figure drawing
@@ -47,6 +48,9 @@
 * QT Creator (if you installed QT SDK, QT Creator is automatically installed..)
 * debugging tool(for QT Creator on windows) : http://msdn.microsoft.com/ko-kr/windows/hardware/hh852363
 
+### Windows Screen Capture Requirements
+* UScreenCapture (http://www.videohelp.com/tools/UScreenCapture)
+* Now, screen recording is only tested on Windows 7. It's BETA.
 
 ### Add System Environment <br>
  `QT_DIR` : qt home directory. <br>

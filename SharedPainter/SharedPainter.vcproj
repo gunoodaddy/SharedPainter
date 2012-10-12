@@ -2145,42 +2145,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="FFMPEG"
-			>
-			<File
-				RelativePath=".\ffmpegutil.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ffmpegwrapper.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ffmpegwrapper.h"
-				>
-			</File>
-			<File
-				RelativePath=".\pixel_desc.c"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-		</Filter>
-		<Filter
 			Name="Screen Recoder"
 			>
 			<File
@@ -2191,6 +2155,42 @@
 				RelativePath=".\ScreenRecoder.h"
 				>
 			</File>
+			<Filter
+				Name="FFMPEG"
+				>
+				<File
+					RelativePath=".\ffmpegutil.h"
+					>
+				</File>
+				<File
+					RelativePath=".\ffmpegwrapper.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ffmpegwrapper.h"
+					>
+				</File>
+				<File
+					RelativePath=".\pixel_desc.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

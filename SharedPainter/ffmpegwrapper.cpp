@@ -10,6 +10,7 @@ const AVIOInterruptCB int_cb = { decode_interrupt_cb, NULL };
 
 // http://nerdlogger.com/2011/11/03/stream-your-windows-desktop-using-ffmpeg/
 // ffmpeg -f dshow  -i video="UScreenCapture"  -r 30 -vcodec mpeg4 -q 12 a.avi
+// ffmpeg -f dshow  -i video="UScreenCapture"  -r 30 -vcodec mpeg4 -q 12 -f mpegts udp://1127.0.0.1:1234?pkt_size=188?buffer_size=65535
 // ffmpeg -list_devices true -f dshow -i dummy
 // >>> libavdevice/openal-dec.c
 //------------------------------------------------------------------------------------------

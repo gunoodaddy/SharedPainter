@@ -76,6 +76,7 @@ public:
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ChangeCanvasScrollPos( CSharedPaintManager *self, int posH, int posV ) = 0;
+	virtual void onISharedPaintEvent_ChangeScreenRecordStatus( CSharedPaintManager *self, const std::string &fromId, bool status ) = 0;
 	virtual void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
@@ -533,6 +534,14 @@ public:
 		std::string msg = WindowPacketBuilder::CResizeWindowSplitter::make( sizes );
 
 		lastWindowSplitterSizes_ = sizes;
+		return sendDataToUsers( msg );
+	}
+
+	int notifyScreenRecordingStatus( bool recording )
+	{
+		myUserInfo_->setScreenRecording( recording );
+
+		std::string msg = WindowPacketBuilder::CChangeScreenRecordStatus::make( myId(), recording );
 		return sendDataToUsers( msg );
 	}
 
@@ -999,6 +1008,14 @@ private:
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
 			(*it)->onISharedPaintEvent_ChangeCanvasScrollPos( this, posH, posV );
+		}
+	}
+	void fireObserver_ChangeScreenRecordStatus( const std::string &fromId, bool status )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ChangeScreenRecordStatus( this, fromId, status );
 		}
 	}
 	void fireObserver_ResizeCanvas( int width, int height )

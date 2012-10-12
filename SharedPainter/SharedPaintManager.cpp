@@ -734,6 +734,22 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			}
 		}
 		break;
+	case CODE_WINDOW_CHANGE_SCREEN_RECORD_STATUS:
+		{
+			std::string fromId = packetData->fromId;
+			bool status;
+			if( WindowPacketBuilder::CChangeScreenRecordStatus::parse( packetData->body, status ) )
+			{
+				boost::shared_ptr<CPaintUser> joiner = findUser( fromId );
+				if( joiner )
+				{
+					joiner->setScreenRecording( status );
+				}
+
+				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangeScreenRecordStatus, this, fromId, status ) );
+			}
+		}
+		break;
 	}
 
 	return res;

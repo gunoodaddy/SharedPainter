@@ -31,6 +31,14 @@ extern "C" {
 #include "libavfilter/buffersink.h"
 }
 
+extern AVRational _AV_TIME_BASE_Q;
+
+#define VSYNC_AUTO       -1                                                                                                                                  
+#define VSYNC_PASSTHROUGH 0
+#define VSYNC_CFR         1
+#define VSYNC_VFR         2
+#define VSYNC_DROP        0xff
+
 #define DESCRIBE_FILTER_LINK(f, inout, in)                         \
 	{                                                                  \
 	AVFilterContext *ctx = inout->filter_ctx;                      \
@@ -246,6 +254,15 @@ namespace ffmpegutil {
 
 	static volatile int received_nb_signals = 0;
 
+	static void initializeLib()
+	{
+		avcodec_register_all();
+		avdevice_register_all();
+		avfilter_register_all();
+		av_register_all();
+		avformat_network_init();
+	}
+
 	static int decode_interrupt_cb(void *ctx)
 	{
 		return received_nb_signals > 1;
@@ -436,26 +453,26 @@ namespace ffmpegutil {
 		unref_buffer(buf);
 	}  
 
-	static void *grow_array(void *array, int elem_size, int *size, int new_size)                                                                                        
+	static void *grow_array(void *arrayPtr, int elem_size, int *size, int new_size)                                                                                        
 	{                     
 		if (new_size >= INT_MAX / elem_size) 
 		{
 			av_log(NULL, AV_LOG_ERROR, "Array too big.\n");
-			exit(1);      
+			return NULL;	// exit(1)
 		}   
 		if (*size < new_size) 
 		{
-			uint8_t *tmp = (uint8_t *)av_realloc(array, new_size*elem_size);
+			uint8_t *tmp = (uint8_t *)av_realloc(arrayPtr, new_size*elem_size);
 			if (!tmp) 
 			{
 				av_log(NULL, AV_LOG_ERROR, "Could not alloc buffer.\n");
-				exit(1);
+				return NULL;	// exit(1)
 			}
 			memset(tmp + *size*elem_size, 0, (new_size-*size) * elem_size);
 			*size = new_size; 
 			return tmp;   
 		}
-		return array;     
+		return arrayPtr;     
 	}  
 
 
@@ -532,7 +549,7 @@ namespace ffmpegutil {
 			int len;
 
 			if (avio_open_dyn_buf(&s) < 0)
-				exit(1);
+				return NULL;	// exit(1)
 
 			const enum PixelFormat temp1[] = { PIX_FMT_YUVJ420P, PIX_FMT_YUVJ422P, PIX_FMT_YUV420P, PIX_FMT_YUV422P, PIX_FMT_NONE };
 			const enum PixelFormat temp2[] = { PIX_FMT_YUVJ420P, PIX_FMT_YUVJ422P, PIX_FMT_YUVJ444P, PIX_FMT_YUV420P,
@@ -620,5 +637,196 @@ namespace ffmpegutil {
 				*p = ':';
 		}
 		return ret;
+	}
+
+	static int write_frame(AVFormatContext *s, AVPacket *pkt, OutputStream *ost, int video_sync_method, int audio_sync_method)
+	{
+		AVBitStreamFilterContext *bsfc = ost->bitstream_filters;
+		AVCodecContext          *avctx = ost->st->codec;
+		int ret;
+
+		if ((avctx->codec_type == AVMEDIA_TYPE_VIDEO && video_sync_method == VSYNC_DROP) ||
+			(avctx->codec_type == AVMEDIA_TYPE_AUDIO && audio_sync_method < 0))
+			pkt->pts = pkt->dts = AV_NOPTS_VALUE;
+
+		if ((avctx->codec_type == AVMEDIA_TYPE_AUDIO || avctx->codec_type == AVMEDIA_TYPE_VIDEO) && pkt->dts != AV_NOPTS_VALUE) 
+		{
+			int64_t max = ost->st->cur_dts + !(s->oformat->flags & AVFMT_TS_NONSTRICT);
+			if (ost->st->cur_dts && ost->st->cur_dts != AV_NOPTS_VALUE &&  max > pkt->dts) 
+			{
+				av_log(s, max - pkt->dts > 2 || avctx->codec_type == AVMEDIA_TYPE_VIDEO ? AV_LOG_WARNING : AV_LOG_DEBUG,
+					"st:%d PTS: %"PRId64" DTS: %"PRId64" < %"PRId64" invalid, clipping\n", pkt->stream_index, pkt->pts, pkt->dts, max);
+				if(pkt->pts >= pkt->dts)
+					pkt->pts = FFMAX(pkt->pts, max);
+				pkt->dts = max;
+			}
+		}
+
+		/*
+		* Audio encoders may split the packets --  #frames in != #packets out.
+		* But there is no reordering, so we can limit the number of output packets
+		* by simply dropping them here.
+		* Counting encoded video frames needs to be done separately because of
+		* reordering, see do_video_out()
+		*/
+		if (!(avctx->codec_type == AVMEDIA_TYPE_VIDEO && avctx->codec)) 
+		{
+			if (ost->frame_number >= ost->max_frames) 
+			{
+				av_free_packet(pkt);
+				return 0;
+			}
+			ost->frame_number++;
+		}
+
+		while (bsfc) 
+		{
+			AVPacket new_pkt = *pkt;
+			int a = av_bitstream_filter_filter(bsfc, avctx, NULL,
+				&new_pkt.data, &new_pkt.size,
+				pkt->data, pkt->size,
+				pkt->flags & AV_PKT_FLAG_KEY);
+			if(a == 0 && new_pkt.data != pkt->data && new_pkt.destruct) 
+			{
+				uint8_t *t = (uint8_t *)av_malloc(new_pkt.size + FF_INPUT_BUFFER_PADDING_SIZE); //the new should be a subset of the old so cannot overflow
+				if(t) 
+				{
+					memcpy(t, new_pkt.data, new_pkt.size);
+					memset(t + new_pkt.size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+					new_pkt.data = t;
+					a = 1;
+				} 
+				else
+					a = AVERROR(ENOMEM);
+			}
+			if (a > 0) 
+			{
+				av_free_packet(pkt);
+				new_pkt.destruct = av_destruct_packet;
+			} 
+			else if (a < 0) 
+			{
+				return -1;
+			}
+			*pkt = new_pkt;
+
+			bsfc = bsfc->next;
+		}
+
+		pkt->stream_index = ost->index;
+
+		//if (debug_ts) 
+		//{
+		//	av_log(NULL, AV_LOG_INFO, "muxer <- type:%s "
+		//		"pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s size:%d\n",
+		//		av_get_media_type_string(ost->st->codec->codec_type),
+		//		_av_ts2str(pkt->pts), _av_ts2timestr(pkt->pts, &ost->st->time_base),
+		//		_av_ts2str(pkt->dts), _av_ts2timestr(pkt->dts, &ost->st->time_base),
+		//		pkt->size
+		//		);
+		//}
+
+		ret = av_interleaved_write_frame(s, pkt);
+		if (ret < 0) 
+		{
+			//print_error("av_interleaved_write_frame()", ret);
+			//exit(1);
+			return -2;
+		}
+		return 0;
+	}
+
+
+	static void update_benchmark(const char *fmt, ...)
+	{
+		// TODO:update_benchmark
+	}
+
+	
+	static int ist_in_filtergraph(FilterGraph *fg, InputStream *ist)
+	{
+		int i;
+		for (i = 0; i < fg->nb_inputs; i++)
+			if (fg->inputs[i]->ist == ist)
+				return 1;
+		return 0;
+	}
+
+	static void filter_release_buffer(AVFilterBuffer *fb)
+	{
+		FrameBuffer *buf = (FrameBuffer *)fb->priv;
+		av_free(fb);
+		unref_buffer(buf);
+	}
+
+	static void pre_process_video_frame(InputStream *ist, AVPicture *picture, int do_deinterlace, void **bufp)
+	{
+		AVCodecContext *dec;
+		AVPicture *picture2;
+		AVPicture picture_tmp;
+		uint8_t *buf = 0;
+
+		dec = ist->st->codec;
+
+		/* deinterlace : must be done before any resize */
+		if (do_deinterlace) 
+		{
+			int size;
+
+			/* create temporary picture */
+			size = avpicture_get_size(dec->pix_fmt, dec->width, dec->height);
+			buf  = (uint8_t *)av_malloc(size);
+			if (!buf)
+				return;
+
+			picture2 = &picture_tmp;
+			avpicture_fill(picture2, buf, dec->pix_fmt, dec->width, dec->height);
+
+			if (avpicture_deinterlace(picture2, picture,
+				dec->pix_fmt, dec->width, dec->height) < 0) 
+			{
+				/* if error, do not deinterlace */
+				av_log(NULL, AV_LOG_WARNING, "Deinterlacing failed\n");
+				av_free(buf);
+				buf = NULL;
+				picture2 = picture;
+			}
+		} 
+		else 
+		{
+			picture2 = picture;
+		}
+
+		if (picture != picture2)
+			*picture = *picture2;
+		*bufp = buf;
+	}
+
+	static void sub2video_push_ref(InputStream *ist, int64_t pts)
+	{
+		AVFilterBufferRef *ref = ist->sub2video.ref;
+		int i;
+
+		ist->sub2video.last_pts = ref->pts = pts;
+		for (i = 0; i < ist->nb_filters; i++)
+		{
+			av_buffersrc_add_ref(ist->filters[i]->filter,
+					avfilter_ref_buffer(ref, ~0),
+					AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT |
+					AV_BUFFERSRC_FLAG_NO_COPY |
+					AV_BUFFERSRC_FLAG_PUSH);
+		}
+	}
+
+	static void free_buffer_pool(FrameBuffer **pool)                                                                      
+	{
+		FrameBuffer *buf = *pool;
+		while (buf) 
+		{
+			*pool = buf->next;
+			av_freep(&buf->base[0]);
+			av_free(buf);
+			buf = *pool;
+		}
 	}
 }

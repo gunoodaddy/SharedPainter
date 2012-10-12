@@ -1,110 +1,75 @@
 #include "stdafx.h"
 #include "ScreenRecoder.h"
+#include "ffmpegwrapper.h"
+#include "DefferedCaller.h"
+#include "atlconv.h"
 
-class ScreenRecoderThread : public QThread, public INetUdpSessionEvent
+static bool ffmpegLibInitialized = false;
+
+class ScreenRecoderThread : public QThread
 {
 public:
-	ScreenRecoderThread( ScreenRecoder *owner ) : stop_(false), owner_(owner), process_(NULL) { }
-
-	void processStop( void )
+	ScreenRecoderThread( ScreenRecoder *owner ) : owner_(owner) { }
+	virtual ~ScreenRecoderThread() 
 	{
-		qDebug() << "processStop";
-		owner_->lock();
-		qDebug() << "processStop1";
-		stop_ = true;
-		udpSocket_->close();
-		QString program = qApp->applicationDirPath() + QDir::separator() +  "ffmpeg" + QDir::separator() + "kill_ffmpeg.bat";
-		QProcess::execute( program );
-		qDebug() << "processStop2";
-		owner_->unlock();
-		qDebug() << "processStop3";
+		qDebug() << "~ScreenRecoderThread()";
+	}
+
+	void stop( void )
+	{
+		wrapper_.stop();
+	}
+
+	QString outputFilePath( void ) 
+	{
+		return outputPath_;
 	}
 
 private:
-	virtual void onINetUdpSessionEvent_Received( CNetUdpSession *session, const std::string buffer )
+
+	static QString getFilePath( void )
 	{
-		qDebug() << "onINetUdpSessionEvent_Received" << buffer.size();
-		recordData_.append( buffer );
+		QString outputPath = qApp->applicationDirPath() + QDir::separator() + DEFAULT_RECORD_FILE_PATH + QDir::separator();
+		QDir dir( outputPath );
+		if ( !dir.exists() )
+			dir.mkpath( outputPath );
+		outputPath += QDateTime::currentDateTime().toString( "yyMMddhhmmss");
+		outputPath += ".avi";
+		return outputPath;
 	}
 
 	void run( void )
 	{
-		owner_->lock();
-		process_ = new QProcess();
-		owner_->unlock();
+		outputPath_ = getFilePath();
 
-		QString program = qApp->applicationDirPath() + QDir::separator() +  "ffmpeg" + QDir::separator() + "ffmpeg.exe";
-		QStringList arguments;
+		wrapper_.setInputFormatName("dshow");
+		wrapper_.setInputFileName("UScreenCapture");
+		wrapper_.setOutputCodecName("mpeg4");
+		wrapper_.setOutputFileName(outputPath_.toStdString());
 
-		qDebug() << program;
+		qDebug() << "ffmpeg start : " << outputPath_;
 
-		udpSocket_ = boost::shared_ptr<CNetUdpSession>(new CNetUdpSession( NetServiceRunnerPtr()->io_service() ) );
-		udpSocket_->setEvent( this );
-		udpSocket_->listen( 5555 );
+		wrapper_.videoCapture();
 
-		while( !stop_ )
-		{
-			Sleep(1000);
-			qDebug() << "------------------------------";
-		}
-		qDebug() << "------------------------------ STOPPED ---------------------------------";
+		CDefferedCaller::singleShot( boost::bind(&ScreenRecoder::onThreadExit, owner_, outputPath_) );
 
-		if(0)
-		{
-			//arguments << "-f" << "dshow";
-			arguments << "-f" << "mpegts";
-			arguments << "-i" << "video=UScreenCapture";
-			arguments << "-r" << "30";
-			arguments << "-vcodec" << "mpeg4";
-			arguments << "-q" << "12";
-			arguments << "udp://127.0.0.1:5555?pkt_size=188?buffer_size=65535";
-			//arguments << "c:\\output.avi";
-
-			process_->start(program, arguments);
-			process_->waitForFinished();
-			process_->close();
-		}
-
-		QFile f("c:/test.avi");
-		if( f.open( QIODevice::WriteOnly ) )
-		{
-			qDebug() << "FILE OPEN";
-			QDataStream out(&f);
-			int ret = out.writeRawData( recordData_.c_str(), recordData_.size() );
-			if( ret != (int)recordData_.size() )
-			{
-				qDebug() << "FILE WRITE FAILED";
-			}
-		}
-		else
-		{
-			qDebug() << "FILE OPEN FAILED";
-		}
-
-
-
-		owner_->lock();
-		delete process_;
-		process_ = NULL;
-		owner_->unlock();
-
-		owner_->onThreadExit();
-		//delete this;
-
-		qDebug() << program;
-		qDebug() << arguments;
+		qDebug() << "ScreenRecoderThread task finished..";
 	}
 private:
-	bool stop_;
-	boost::shared_ptr<CNetUdpSession> udpSocket_;
+//	boost::shared_ptr<CNetUdpSession> udpSocket_;
 	ScreenRecoder *owner_;
-	QProcess *process_;
-	std::string recordData_;
+	ffmpegwrapper wrapper_;
+	QString outputPath_;
 
 };
 
 ScreenRecoder::ScreenRecoder() : lock_(QMutex::Recursive), thread_(NULL)
 {
+	if( !ffmpegLibInitialized )
+	{
+		ffmpegwrapper::initialize();
+		ffmpegLibInitialized = true;
+	}
 }
 
 bool ScreenRecoder::isRecording( void )
@@ -148,12 +113,27 @@ void ScreenRecoder::recordStop( void )
 		qDebug() << "recordStop";
 
 		ScreenRecoderThread *impl = (ScreenRecoderThread*)thread_;
-		impl->processStop();
+		impl->stop();
+		waitForFinished();
 	}
 	lock_.unlock();
 }
 
-void ScreenRecoder::onThreadExit( void )
+void ScreenRecoder::waitForFinished( void )
 {
+	if( NULL == thread_ )
+		return;
+
+	thread_->wait();
+	delete thread_;
 	thread_ = NULL;
+}
+
+void ScreenRecoder::onThreadExit( const QString &path )
+{
+	waitForFinished();
+
+	fireObserver_RecordStop( path, "" );
+
+	qDebug() << "onThreadExit called and thread clear";
 }

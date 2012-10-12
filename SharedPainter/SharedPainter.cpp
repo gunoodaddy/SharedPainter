@@ -83,6 +83,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	ui.editChat->document()->setDefaultStyleSheet(gStyleSheet_Chat);
 	ui.editChat->setReadOnly( true );
 	ui.editMsg->installEventFilter( this );
+	ui.recodingIndicator->hide();
 
 	// test
 	//UpgradeWindow wnd;
@@ -96,6 +97,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	UpgradeManagerPtr()->registerObserver( this );
 	SharePaintManagerPtr()->registerObserver( this );
 	SharePaintManagerPtr()->setCanvas( canvas_ );
+	screenRecoder.registerObserver(this);
 	
 	QMenuBar *menuBar = ui.menuBar;
 
@@ -278,6 +280,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 SharedPainter::~SharedPainter()
 {
+	screenRecoder.unregisterObserver(this);
 	UpgradeManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->close();
@@ -773,10 +776,20 @@ void SharedPainter::actionPenMode( void )
 
 void SharedPainter::actionScreenRecord( void )
 {
+	bool status = false;
 	if( screenRecoder.isRecording() )
+	{
 		screenRecoder.recordStop();
+		status = false;
+	}
 	else
+	{
 		screenRecoder.recordStart();
+		status = true;
+	}
+
+	SharePaintManagerPtr()->notifyScreenRecordingStatus( status );
+	updateRecordingStatus();
 }
 
 void SharedPainter::actionScreenShot( void )

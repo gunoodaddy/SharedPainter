@@ -29,7 +29,7 @@
 
 #pragma once 
 
-#define VERSION_TEXT			"0.10.2"
+#define VERSION_TEXT			"0.11.0"
 #define PROTOCOL_VERSION_TEXT	"0.0.1"
 
 #define AUTHOR_TEXT		"gunoodaddy"
@@ -43,6 +43,7 @@
 #define PROGRAM_UPGRADER_FILE_NAME	"Upgrader"
 #endif
 
+#define DEFAULT_RECORD_FILE_PATH			"record"
 #define DEFAULT_AUTO_SAVE_FILE_PATH			"autosave"
 #define DEFAULT_AUTO_SAVE_FILE_NAME_PREFIX	"auto_saved_"
 

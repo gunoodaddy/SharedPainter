@@ -43,7 +43,7 @@
 #include "PainterListWindow.h"
 #include "ScreenRecoder.h"
 
-class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent, IUpgradeEvent
+class SharedPainter : public QMainWindow, ICanvasViewEvent, ISharedPaintEvent, IUpgradeEvent, IScreenRecorderEvent
 {
 	Q_OBJECT
 
@@ -205,6 +205,13 @@ public:
 		}
 	}
 
+	void onIScreenRecorderEvent_RecordStop( ScreenRecoder *self, const QString &filePath, const std::string &errormsg )
+	{
+		QFileInfo info(filePath);
+		Util::executeProgram(info.absolutePath());
+		Util::executeProgram(filePath);
+	}
+
 protected:
 	void closeEvent( QCloseEvent *evt );
 	void moveEvent( QMoveEvent * evt );
@@ -302,6 +309,24 @@ private:
 		QMessageBox::critical( this, "", Util::toStringFromUtf8(error) );
 	}
 
+	void updateRecordingStatus( void ) 
+	{
+		int recordingCnt = 0;
+		USER_LIST list = SharePaintManagerPtr()->userList();
+		for( size_t i = 0 ; i < list.size(); i++ )
+		{
+			if(list[i]->isScreenRecording()) 
+			{
+				recordingCnt++;
+			}
+		}
+
+		if( recordingCnt > 0 )
+			ui.recodingIndicator->show();
+		else 
+			ui.recodingIndicator->hide();
+	}
+
 	void checkIfItemVisibleAndRecognize( boost::shared_ptr<CPaintItem> item, const QString &msg )
 	{
 #define VIEW_W	ui.painterView->width()
@@ -374,6 +399,8 @@ protected:
 		setStatus( CONNECTED );
 
 		hideFindingServerWindow();
+
+		updateRecordingStatus();
 	}
 
 	virtual void onISharedPaintEvent_ConnectFailed( CSharedPaintManager *self )
@@ -675,6 +702,11 @@ protected:
 		}
 	}
 
+	virtual void onISharedPaintEvent_ChangeScreenRecordStatus( CSharedPaintManager *self, const std::string &fromId, bool status )
+	{
+		updateRecordingStatus();
+	}
+
 	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents )
 	{
 		UpgradeWindow wnd(this);
@@ -683,6 +715,7 @@ protected:
 
 		wnd.exec();
 	}
+
 
 
 private:

@@ -8,11 +8,6 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 
-	ffmpegwrapper test;
-	test.init();
-	test.videoCapture( "dshow" );
-
-
 	qDebug() << "App path : " << qApp->applicationDirPath() << "Current Path : " << QDir::currentPath();
 
 #if defined(Q_WS_WIN)

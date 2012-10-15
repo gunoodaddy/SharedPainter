@@ -35,6 +35,7 @@
 #define DEFAULT_BROADCAST_PORT                  3336
 #define DEFAULT_BROADCAST_UDP_PORT_FOR_TEXTMSG  3338
 #define START_UDP_LISTEN_PORT	                5001
+#define START_UDP_LISTEN_PORT_FOR_STREAM        6000
 
 #define	TIMEOUT_SYNC_MSEC	5000
 
@@ -265,6 +266,33 @@ void CSharedPaintManager::stopServer( void )
 		netPeerServer_->close();
 
 	netPeerServer_ = boost::shared_ptr<CNetPeerServer>();
+}
+
+int CSharedPaintManager::sendResponseShowScreenStream( const std::string &toId, bool accept ) 
+{
+	int listenPort = 0;
+
+	boost::shared_ptr<CPaintUser> user = findUser( toId );
+	if( user )
+	{
+		if( accept )
+		{
+			listenPort = START_UDP_LISTEN_PORT_FOR_STREAM;
+			udpSessionForStream_ = boost::shared_ptr<CNetUdpSession>( new CNetUdpSession(udpStreamRunner_.io_service()) );
+			while( true )
+			{
+				if( udpSessionForStream_->listen( listenPort ) )
+					break;
+				listenPort++;
+			}
+		}
+
+		myUserInfo_->setScreenStreamListenPort(listenPort);
+
+		std::string msg = ScreenSharePacketBuilder::CResShowStream::make( myId(), accept, listenPort );
+		sendDataToUsers( msg, user->sessionId() );
+	}
+	return listenPort;
 }
 
 bool CSharedPaintManager::deserializeData( const char * data, size_t size )
@@ -734,19 +762,67 @@ bool CSharedPaintManager::dispatchPaintPacket( CPaintSession * session, boost::s
 			}
 		}
 		break;
-	case CODE_WINDOW_CHANGE_SCREEN_RECORD_STATUS:
+	case CODE_SCREENSHARE_CHANGE_RECORD_STATUS:
 		{
 			std::string fromId = packetData->fromId;
 			bool status;
-			if( WindowPacketBuilder::CChangeScreenRecordStatus::parse( packetData->body, status ) )
+			if( ScreenSharePacketBuilder::CChangeRecordStatus::parse( packetData->body, status ) )
 			{
 				boost::shared_ptr<CPaintUser> joiner = findUser( fromId );
 				if( joiner )
 				{
 					joiner->setScreenRecording( status );
+					caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangeScreenRecordStatus, this, joiner, status ) );
 				}
+			}
+		}
+		break;
+	case CODE_SCREENSHARE_CHANGE_SHOW_STREAM:
+		{
+			std::string fromId = packetData->fromId;
+			int port;
+			bool sender, status;
+			if( ScreenSharePacketBuilder::CChangeShowStream::parse( packetData->body, sender, status ) )
+			{
+				boost::shared_ptr<CPaintUser> joiner = findUser( fromId );
+				if( joiner )
+				{
+					if( sender )
+						joiner->setScreenStreaming( status );
+					else 
+					{
+						joiner->setScreenStreamingReceiver( status );
 
-				caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangeScreenRecordStatus, this, fromId, status ) );
+						removeUdpStreamSession( fromId );
+					}
+
+					caller_.performMainThread( boost::bind( &CSharedPaintManager::fireObserver_ChangeShowScreenStreams, this, joiner, sender, status ) );
+				}
+			}
+		}
+		break;
+	case CODE_SCREENSHARE_RES_SHOW_STREAM:
+		{
+			std::string fromId = packetData->fromId;
+			bool accept;
+			int port;
+			if( ScreenSharePacketBuilder::CResShowStream::parse( packetData->body, accept, port ) )
+			{
+				boost::shared_ptr<CPaintUser> joiner = findUser( fromId );
+				if( joiner )
+				{
+					joiner->setScreenStreamListenPort( accept ? port : 0 );
+
+					
+					if( accept && port > 0 )
+					{
+						boost::recursive_mutex::scoped_lock autolock(mutexSession_);
+
+						boost::shared_ptr<CNetUdpSession> session( new CNetUdpSession(udpStreamRunner_.io_service()) );
+						session->setTargetAddress( joiner->localIPAddress(), joiner->screenStreamListenPort() );	// TODO:when use viewIPAddress?
+						udpSessionMap_.insert( UDP_SESSION_MAP::value_type( fromId, session) );
+					}
+				}
 			}
 		}
 		break;

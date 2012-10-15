@@ -29,7 +29,7 @@
 
 #pragma once 
 
-#define VERSION_TEXT			"0.11.0"
+#define VERSION_TEXT			"0.12.0"
 #define PROTOCOL_VERSION_TEXT	"0.0.1"
 
 #define AUTHOR_TEXT		"gunoodaddy"

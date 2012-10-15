@@ -185,40 +185,4 @@ namespace WindowPacketBuilder
 			return true;
 		}
 	};
-
-	class CChangeScreenRecordStatus
-	{
-	public:
-		static std::string make( const std::string &from, bool status )
-		{
-			int pos = 0;
-			try
-			{
-				std::string body;
-				pos += CPacketBufferUtil::writeInt8( body, pos, status ? 1 : 0 );
-
-				return CommonPacketBuilder::makePacket( CODE_WINDOW_CHANGE_SCREEN_RECORD_STATUS, body, &from );
-			}catch(...)
-			{
-			}
-			return "";
-		}
-
-		static bool parse( const std::string &body, bool &status )
-		{
-			int pos = 0;
-			try
-			{
-				boost::uint8_t temp;
-				pos += CPacketBufferUtil::readInt8( body, pos, temp );
-				status = temp == 1 ? true : false;
-				return true;
-
-			}catch(...)
-			{
-			}
-			return false;
-		}
-	};
-
 };

@@ -34,7 +34,6 @@
 
 namespace SystemPacketBuilder
 {
-
 	class CChatMessage
 	{
 	public:

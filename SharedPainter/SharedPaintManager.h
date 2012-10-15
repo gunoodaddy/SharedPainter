@@ -39,6 +39,7 @@
 #include "UdpPacketBuilder.h"
 #include "SystemPacketBuilder.h"
 #include "TaskPacketBuilder.h"
+#include "ScreenSharePacketBuilder.h"
 #include "SharedPaintPolicy.h"
 #include "DefferedCaller.h"
 #include "SharedPaintCommandManager.h"
@@ -76,7 +77,6 @@ public:
 	virtual void onISharedPaintEvent_ResizeMainWindow( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ResizeCanvas( CSharedPaintManager *self, int width, int height ) = 0;
 	virtual void onISharedPaintEvent_ChangeCanvasScrollPos( CSharedPaintManager *self, int posH, int posV ) = 0;
-	virtual void onISharedPaintEvent_ChangeScreenRecordStatus( CSharedPaintManager *self, const std::string &fromId, bool status ) = 0;
 	virtual void onISharedPaintEvent_ResizeWindowSplitter( CSharedPaintManager *self, std::vector<int> &sizes ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundImage( CSharedPaintManager *self, boost::shared_ptr<CBackgroundImageItem> image ) = 0;
 	virtual void onISharedPaintEvent_SetBackgroundColor( CSharedPaintManager *self, int r, int g, int b, int a ) = 0;
@@ -92,6 +92,8 @@ public:
 	virtual void onISharedPaintEvent_ServerFinding( CSharedPaintManager *self, int sentCount ) = 0;
 	virtual void onISharedPaintEvent_ChangedNickName( CSharedPaintManager *self, const std::string & userId, const std::string &prevNickName, const std::string &currNickName ) = 0;
 	virtual void onISharedPaintEvent_ReceivedChatMessage( CSharedPaintManager *self, const std::string & userId, const std::string &nickName, const std::string &chatMsg ) = 0;
+	virtual void onISharedPaintEvent_ChangeScreenRecordStatus( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user, bool status ) = 0;
+	virtual void onISharedPaintEvent_ChangeShowScreenStream( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user, bool sender, bool status ) = 0;
 };
 
 
@@ -103,6 +105,7 @@ private:
 	typedef std::map< std::string, boost::shared_ptr<CSharedPaintItemList> > ITEM_LIST_MAP;
 	typedef std::map< std::string, boost::shared_ptr<CPaintUser> > USER_MAP;
 	typedef std::vector< boost::shared_ptr<CPaintSession> > SESSION_LIST;
+	typedef std::map< std::string, boost::shared_ptr<CNetUdpSession> > UDP_SESSION_MAP;
 
 public:
 	CSharedPaintManager(void);
@@ -541,8 +544,37 @@ public:
 	{
 		myUserInfo_->setScreenRecording( recording );
 
-		std::string msg = WindowPacketBuilder::CChangeScreenRecordStatus::make( myId(), recording );
+		std::string msg = ScreenSharePacketBuilder::CChangeRecordStatus::make( myId(), recording );
 		return sendDataToUsers( msg );
+	}
+
+	int notifyChangeShowScreenStream( bool senderFlag, bool start )
+	{
+		if( senderFlag ) 
+		{
+			myUserInfo_->setScreenStreaming( start );
+		}
+		else
+		{
+			myUserInfo_->setScreenStreamingReceiver( start );
+		}
+
+		std::string msg = ScreenSharePacketBuilder::CChangeShowStream::make( myId(), senderFlag, start );
+		return sendDataToUsers( msg );
+	}
+
+	int sendResponseShowScreenStream( const std::string &toId, bool accept );
+
+	void sendScreenStreamData( const std::string &data ) 
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexUser_);
+
+		UDP_SESSION_MAP::iterator it = udpSessionMap_.begin();
+		for( ; it != udpSessionMap_.end(); it++ )
+		{
+			boost::shared_ptr<CNetUdpSession> session = it->second;
+			session->sendData(data);
+		}
 	}
 
 private:
@@ -1010,12 +1042,20 @@ private:
 			(*it)->onISharedPaintEvent_ChangeCanvasScrollPos( this, posH, posV );
 		}
 	}
-	void fireObserver_ChangeScreenRecordStatus( const std::string &fromId, bool status )
+	void fireObserver_ChangeScreenRecordStatus(boost::shared_ptr<CPaintUser> user, bool status )
 	{
 		std::list<ISharedPaintEvent *> observers = observers_;
 		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
 		{
-			(*it)->onISharedPaintEvent_ChangeScreenRecordStatus( this, fromId, status );
+			(*it)->onISharedPaintEvent_ChangeScreenRecordStatus( this, user, status );
+		}
+	}
+	void fireObserver_ChangeShowScreenStreams( boost::shared_ptr<CPaintUser> user, bool sender, bool status )
+	{
+		std::list<ISharedPaintEvent *> observers = observers_;
+		for( std::list<ISharedPaintEvent *>::iterator it = observers.begin(); it != observers.end(); it++ )
+		{
+			(*it)->onISharedPaintEvent_ChangeShowScreenStream( this, user, sender, status );
 		}
 	}
 	void fireObserver_ResizeCanvas( int width, int height )
@@ -1212,6 +1252,17 @@ private:
 		caller_.performMainThreadAlwaysDeffered( boost::bind(&CSharedPaintManager::_delayedRemoveSession, this, sessionId) );
 	}
 
+	void removeUdpStreamSession( const std::string &id ) 
+	{
+		boost::recursive_mutex::scoped_lock autolock(mutexSession_);
+
+		UDP_SESSION_MAP::iterator it = udpSessionMap_.find( id );
+		if( it != udpSessionMap_.end() )
+		{
+			udpSessionMap_.erase(it);
+		}
+	}
+
 protected:
 	// INetPeerServerEvent
 	virtual void onINetPeerServerEvent_Accepted( boost::shared_ptr<CNetPeerServer> server, boost::shared_ptr<CNetPeerSession> session )
@@ -1342,6 +1393,7 @@ protected:
 				notifyRemoveUserInfo( user );
 			}
 			removeUser( user );
+			removeUdpStreamSession( user->userId() );
 		}
 
 		removeSession( session->sessionId() );
@@ -1486,6 +1538,11 @@ private:
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForFinder_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForSendMessage_;
 	boost::shared_ptr< CNetBroadCastSession > broadCastSessionForRecvMessage_;
+
+	// udp stream
+	UDP_SESSION_MAP udpSessionMap_;
+	boost::shared_ptr< CNetUdpSession > udpSessionForStream_;
+	CNetServiceRunner udpStreamRunner_;
 
 	// seding byte management
 	boost::recursive_mutex mutexSendInfo_;

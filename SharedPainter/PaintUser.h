@@ -33,7 +33,7 @@
 
 struct SPaintUserInfoData
 {
-	SPaintUserInfoData() : listenTcpPort(0), superPeerCandidate(false), screenRecording(false) { }
+	SPaintUserInfoData() : listenTcpPort(0), superPeerCandidate(false), screenRecording(false), screenStreaming(false), screenStreamingReceiver(false) { }
 
 	std::string channel;
 	std::string userId;
@@ -43,6 +43,8 @@ struct SPaintUserInfoData
 	std::string localIp;
 	bool superPeerCandidate;
 	bool screenRecording;
+	bool screenStreaming;
+	bool screenStreamingReceiver;
 };
 
 class CPaintUser;
@@ -52,7 +54,7 @@ typedef std::vector<boost::shared_ptr<CPaintUser> > USER_LIST;
 class CPaintUser
 {
 public:
-	CPaintUser( bool myself ) : mySelfFlag_(myself) { }
+	CPaintUser( bool myself ) : mySelfFlag_(myself), screenStreamListenPort_(0) { }
 	CPaintUser( void ) : mySelfFlag_(false) { }
 	~CPaintUser( void ) { }
 
@@ -69,6 +71,9 @@ public:
 	void setLocalIPAddress( const std::string &ip ) { data_.localIp = ip; }
 	void setViewIPAddress( const std::string &ip ) { data_.viewIp = ip; }
 	void setScreenRecording( bool status ) { data_.screenRecording = status; }
+	void setScreenStreaming( bool status ) { data_.screenStreaming = status; }
+	void setScreenStreamingReceiver( bool status ) { data_.screenStreamingReceiver = status; }
+	void setScreenStreamListenPort( boost::uint16_t port ) { screenStreamListenPort_ = port; }
 
 	bool isMyself( void ) { return mySelfFlag_; }
 	const struct SPaintUserInfoData &data( void ) { return data_; }
@@ -80,6 +85,12 @@ public:
 	const std::string &nickName( void ) { return data_.nickName; }
 	boost::uint16_t listenTcpPort( void ) { return data_.listenTcpPort; }
 	bool isScreenRecording( void ) { return data_.screenRecording; }
+	bool isScreenStreaming( void ) { return data_.screenStreaming; }
+	bool isScreenStreamingReceiver( void ) { return data_.screenStreamingReceiver; }
+	
+	bool isAvailableRecvScreenStream( void ) { return screenStreamListenPort_ != 0; }
+	boost::uint16_t screenStreamListenPort( void ) { return screenStreamListenPort_; }
+
 
 	std::string serialize( void ) {
 		std::string body;
@@ -92,7 +103,7 @@ public:
 		pos += CPacketBufferUtil::writeInt16( body, pos, data_.listenTcpPort, true );
 		pos += CPacketBufferUtil::writeInt8( body, pos, data_.superPeerCandidate ? 1 : 0 );
 		pos += CPacketBufferUtil::writeInt8( body, pos, data_.screenRecording ? 1 : 0 );
-
+		pos += CPacketBufferUtil::writeInt8( body, pos, data_.screenStreamingReceiver ? 1 : 0 );
 		return body;
 	}        
 
@@ -112,6 +123,8 @@ public:
 			data_.superPeerCandidate = (f == 1 ? true : false);
 			pos += CPacketBufferUtil::readInt8( data, pos, f );
 			data_.screenRecording = (f == 1 ? true : false);
+			pos += CPacketBufferUtil::readInt8( data, pos, f );
+			data_.screenStreamingReceiver = (f == 1 ? true : false);
 			if( readPos ) *readPos = pos;
 		} catch(...)
 		{    
@@ -121,6 +134,7 @@ public:
 	}    
 private:
 	bool mySelfFlag_;
+	boost::uint16_t screenStreamListenPort_;
 	int sessionId_;
 	SPaintUserInfoData data_;
 };

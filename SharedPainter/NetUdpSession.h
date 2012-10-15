@@ -36,7 +36,7 @@ class CNetUdpSession : public boost::enable_shared_from_this<CNetUdpSession>
 {
 public:
 	CNetUdpSession( boost::asio::io_service& io_service ) 
-		: io_service_(io_service), socket_(io_service), evtTarget_(NULL)
+		: io_service_(io_service), socket_(io_service), evtTarget_(NULL), port_(0)
 	{
 		//qDebug() << "CNetUdpSession" << this;
 	}
@@ -50,6 +50,17 @@ public:
 	void setEvent( INetUdpSessionEvent * evt )
 	{
 		evtTarget_ = evt;
+	}
+
+	void setTargetAddress(  const std::string &addr, int port )
+	{
+		addr_ = addr;
+		port_ = port;
+	}
+
+	void sendData( const std::string &data )
+	{
+		sendData( addr_, port_, data );
 	}
 
 	void sendData( int port, const std::string &data )
@@ -163,4 +174,7 @@ private:
 	boost::asio::ip::udp::endpoint sender_endpoint_;
 	//boost::asio::ip::udp::endpoint last_sender_endpoint_;	// not thread safe
 	char read_buffer_[_BUF_SIZE];
+
+	std::string addr_;
+	int port_;
 };

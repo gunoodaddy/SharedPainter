@@ -279,6 +279,7 @@ protected slots:
 	void actionPreferences( void );
 	void actionPainterList( void );
 	void actionScreenRecord( void );
+	void actionScreenStreaming( void );
 
 private:
 	void setEnabledPainter( bool enabled );
@@ -420,6 +421,9 @@ protected:
 		hideSyncProgressWindow();
 
 		setStatusBar_JoinerCnt( self->userCount() );
+
+		screenRecoder_.stopStream();
+		streamingUserId_ = "";
 	}
 
 	virtual void onISharedPaintEvent_ReceivedPacket( CSharedPaintManager *self )
@@ -629,6 +633,9 @@ protected:
 		addSystemMessage( msg );
 
 		setStatusBar_JoinerCnt( self->userCount() );
+
+		if( user->userId() == streamingUserId_ )
+			screenRecoder_.stopStream();
 	}
 
 	virtual void onISharedPaintEvent_UpdatePaintUser( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user )
@@ -702,9 +709,69 @@ protected:
 		}
 	}
 
-	virtual void onISharedPaintEvent_ChangeScreenRecordStatus( CSharedPaintManager *self, const std::string &fromId, bool status )
+	virtual void onISharedPaintEvent_ChangeScreenRecordStatus( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user, bool status )
 	{
 		updateRecordingStatus();
+	}
+
+	virtual void onISharedPaintEvent_ChangeShowScreenStream( CSharedPaintManager *self, boost::shared_ptr<CPaintUser> user, bool sender, bool status ) 
+	{
+		if( status )
+		{
+			if( sender )
+			{
+				streamingUserId_ = user->userId();
+
+				int listenPort = self->sendResponseShowScreenStream( user->userId(), true );
+				if( listenPort > 0 ) 
+				{
+					screenRecoder_.setWindowId( ui.painterView->winId() );
+					screenRecoder_.playStream( Util::getMyIPAddress(), listenPort );	// TODO: udp stream, when use viewIPAddress??
+				}
+			}
+			else
+			{
+				// TODO : not streamer, start playing stream, concurrent counter increasement
+			}
+		}
+		else
+		{
+			if( sender )
+			{
+				streamingUserId_ = "";
+
+				screenRecoder_.stopStream();
+			}
+			else
+			{
+				if( screenRecoder_.isStreaming() )	// i'm streamer, but other person stop stream play..
+				{
+					int cnt = 0;
+					USER_LIST list = SharePaintManagerPtr()->userList();
+					for( size_t i = 0 ; i < list.size(); i++ )
+					{
+						if(list[i]->isScreenStreamingReceiver()) 
+						{
+							cnt++;
+						}
+					}
+
+					if( cnt <= 0 )	// no rececivers..  
+					{
+						screenRecoder_.stopStream();
+						SharePaintManagerPtr()->notifyChangeShowScreenStream( true, false );
+						QMessageBox::warning( this, "", tr("No stream receivers. screen streaming stopped.") );
+					}
+				}
+
+				// TODO : not streamer, stop playing stream, concurrent counter decreasement
+			}
+		}
+	}
+
+	virtual void onIScreenRecorderEvent_ReadyStreamingData( ScreenRecoder *self, const std::string &streamData )
+	{
+		SharePaintManagerPtr()->sendScreenStreamData( streamData );
 	}
 
 	virtual void onIUpgradeEvent_NewVersion( CUpgradeManager *self, const std::string &version, const std::string &patchContents )
@@ -763,7 +830,8 @@ private:
 
 	QString lastChatUserId_;
 
-	ScreenRecoder screenRecoder;
+	ScreenRecoder screenRecoder_;
+	std::string streamingUserId_;
 };
 
 #endif // SHAREDPAINTER_H

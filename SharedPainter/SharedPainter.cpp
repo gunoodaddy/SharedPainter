@@ -97,7 +97,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 	UpgradeManagerPtr()->registerObserver( this );
 	SharePaintManagerPtr()->registerObserver( this );
 	SharePaintManagerPtr()->setCanvas( canvas_ );
-	screenRecoder.registerObserver(this);
+	screenRecoder_.registerObserver(this);
 	
 	QMenuBar *menuBar = ui.menuBar;
 
@@ -125,6 +125,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 		edit->addAction( "&Background Color", this, SLOT(actionBGColor()), Qt::ALT+Qt::Key_B );
 		edit->addAction( "&Screen Shot", this, SLOT(actionScreenShot()), Qt::ALT+Qt::Key_S );
 		edit->addAction( "&Screen Record", this, SLOT(actionScreenRecord()), Qt::ALT+Qt::Key_R );
+		edit->addAction( "&Screen UDP Streaming", this, SLOT(actionScreenStreaming()) );
 		edit->addSeparator();
 		edit->addAction( "Clear &Background", this, SLOT(actionClearBG()), Qt::CTRL+Qt::Key_B );
 		edit->addAction( "Cl&ear Screen", this, SLOT(actionClearScreen()), Qt::CTRL+Qt::Key_X );
@@ -280,7 +281,7 @@ SharedPainter::SharedPainter(CSharedPainterScene *canvas, QWidget *parent, Qt::W
 
 SharedPainter::~SharedPainter()
 {
-	screenRecoder.unregisterObserver(this);
+	screenRecoder_.unregisterObserver(this);
 	UpgradeManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->unregisterObserver( this );
 	SharePaintManagerPtr()->close();
@@ -773,18 +774,60 @@ void SharedPainter::actionPenMode( void )
 	}
 }
 
-
-void SharedPainter::actionScreenRecord( void )
+void SharedPainter::actionScreenStreaming( void )
 {
+	bool senderFlag = true;
 	bool status = false;
-	if( screenRecoder.isRecording() )
+	screenRecoder_.setWindowId( ui.painterView->winId() );
+
+	if( screenRecoder_.isStreaming() ) 
 	{
-		screenRecoder.recordStop();
+		screenRecoder_.stopStream();
 		status = false;
 	}
 	else
 	{
-		screenRecoder.recordStart();
+		if( screenRecoder_.isPlaying() )
+		{
+			senderFlag = false;
+			status = false;
+			screenRecoder_.stopStream();
+		}
+		else
+		{
+			USER_LIST list = SharePaintManagerPtr()->userList();
+			for( size_t i = 0 ; i < list.size(); i++ )
+			{
+				if(list[i]->isScreenStreaming() && list[i]->isMyself() == false) 
+				{
+					QString message = tr("Now <b>'%1'</b> is streaming screen. before that user stop streaming, you cannot start streaming");
+					message = message.arg( Util::toStringFromUtf8(list[i]->nickName()));
+					QMessageBox::warning( this, "", message );
+					return;
+				}
+			}
+
+			screenRecoder_.startStreamSend();
+			status = true;
+		}
+	}
+
+	SharePaintManagerPtr()->notifyChangeShowScreenStream( senderFlag, status );
+}
+
+void SharedPainter::actionScreenRecord( void )
+{
+	bool status = false;
+	screenRecoder_.setWindowId( ui.painterView->winId() );
+
+	if( screenRecoder_.isRecording() )
+	{
+		screenRecoder_.stopRecord();
+		status = false;
+	}
+	else
+	{
+		screenRecoder_.startRecord();
 		status = true;
 	}
 
